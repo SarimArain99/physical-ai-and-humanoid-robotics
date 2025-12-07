@@ -1,0 +1,173 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+/* --- HERO SECTION --- */
+.heroBanner {
+  padding: 5rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  /* Uses Docusaurus Primary Color with a subtle gradient */
+  background: linear-gradient(
+    135deg, 
+    var(--ifm-color-primary-darker) 0%, 
+    var(--ifm-color-primary-lighter) 100%
+  );
+  color: #fff; /* Always white text on the primary background */
+  box-shadow: 0 4px 20px #0000001a;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-top: 2.5rem;
+}
+
+/* --- OVERVIEW SECTION --- */
+.courseOverview {
+  max-width: 800px;
+  margin: 0 auto 4rem;
+  padding: 0 2rem;
+  text-align: center;
+}
+
+.courseTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  /* Uses default text color (black in light mode, white in dark mode) */
+  color: var(--ifm-font-color-base); 
+}
+
+.courseSubtitle {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--ifm-color-emphasis-700); /* Subtle grey that adapts */
+  margin-bottom: 2rem;
+}
+
+/* --- MODULES / CARDS SECTION --- */
+.modulesSection {
+  padding: 4rem 0;
+  /* Adapts to light gray in light mode, dark gray in dark mode */
+  background-color: var(--ifm-background-surface-color); 
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.modulesContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* --- CARD STYLING (Used for Modules & Features) --- */
+.moduleCard, 
+.featureCard, 
+.weekCard {
+  background: var(--ifm-card-background-color); /* Auto-switching background */
+  border-radius: var(--ifm-card-border-radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--ifm-color-emphasis-200); /* Subtle border */
+  box-shadow: var(--ifm-global-shadow-lw); /* Native Docusaurus shadow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.moduleCard:hover, 
+.featureCard:hover, 
+.weekCard:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--ifm-global-shadow-md);
+  border-color: var(--ifm-color-primary); /* Highlight border on hover */
+}
+
+.moduleTitle, 
+.featureTitle, 
+.weekNumber {
+  color: var(--ifm-color-primary); /* Uses your site's brand color */
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.moduleDescription, 
+.featureDescription, 
+.weekDescription {
+  color: var(--ifm-font-color-base);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* --- GRIDS --- */
+.featuresSection {
+  padding: 4rem 0;
+  background-color: var(--ifm-background-color);
+}
+
+.featuresGrid, 
+.weeksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.featureIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-color-primary);
+}
+
+.weekTitle {
+  font-size: 1.25rem;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* --- LEARNING OUTCOMES --- */
+.learningOutcomes {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-global-radius);
+  padding: 2.5rem;
+  margin: 3rem 0;
+}
+
+.outcomesTitle {
+  text-align: center;
+  color: var(--ifm-heading-color);
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.outcomesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.outcomeItem {
+  background: var(--ifm-card-background-color);
+  padding: 1.5rem;
+  border-radius: var(--ifm-global-radius);
+  border-left: 5px solid var(--ifm-color-primary);
+  box-shadow: var(--ifm-global-shadow-lw);
+  color: var(--ifm-font-color-base);
+  font-weight: 500;
+}

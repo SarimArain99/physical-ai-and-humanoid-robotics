@@ -1,0 +1,26 @@
+# --- Python Basics ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environment (Very Important to Ignore) ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Environment Variables (CRITICAL SECURITY) ---
+.env
+.env.local
+.env.*
+
+# --- IDE Settings ---
+.vscode/
+.idea/
+
+# --- Logs ---
+*.log
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db

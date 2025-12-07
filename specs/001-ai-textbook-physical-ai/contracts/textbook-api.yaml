@@ -1,0 +1,642 @@
+openapi: 3.0.3
+info:
+  title: AI-Native Textbook API
+  description: API for the Physical AI & Humanoid Robotics textbook application
+  version: 1.0.0
+  contact:
+    name: Textbook Development Team
+    email: textbook@panaversity.org
+
+servers:
+  - url: https://api.textbook.panaversity.org
+    description: Production server
+  - url: https://staging-api.textbook.panaversity.org
+    description: Staging server
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with Better Auth integration
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticates user and returns session token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      summary: User logout
+      description: Invalidates the current user session
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /profile:
+    get:
+      summary: Get user profile
+      description: Retrieves the current user's profile information
+      tags:
+        - Profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      summary: Update user profile
+      description: Updates the current user's profile information
+      tags:
+        - Profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters:
+    get:
+      summary: List all textbook chapters
+      description: Retrieves a list of all textbook chapters with basic information
+      tags:
+        - Chapters
+      parameters:
+        - name: module
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ros2, digital_twin, ai_robot_brain, vla]
+          description: Filter chapters by module
+        - name: week
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter chapters by week number
+      responses:
+        '200':
+          description: List of chapters retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChapterSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /chapters/{chapterId}:
+    get:
+      summary: Get chapter content
+      description: Retrieves the full content of a specific chapter
+      tags:
+        - Chapters
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the chapter
+      responses:
+        '200':
+          description: Chapter content retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chapters/{chapterId}/translate:
+    post:
+      summary: Translate chapter to Urdu
+      description: Translates the content of a chapter to Urdu
+      tags:
+        - Translation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the chapter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_language:
+                  type: string
+                  default: ur
+                  description: Target language code (currently only supports 'ur' for Urdu)
+      responses:
+        '200':
+          description: Chapter translated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterTranslation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chapters/{chapterId}/personalize:
+    post:
+      summary: Get personalized chapter content
+      description: Retrieves chapter content adjusted based on user profile
+      tags:
+        - Personalization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the chapter
+      responses:
+        '200':
+          description: Personalized chapter content retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/query:
+    post:
+      summary: Ask a question to the RAG chatbot
+      description: Sends a question to the RAG system and gets a response based on textbook content
+      tags:
+        - Chat
+      security:
+        - BearerAuth: []  # Optional - anonymous queries allowed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatQuery'
+      responses:
+        '200':
+          description: Chat response generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /chat/query-selected:
+    post:
+      summary: Ask about selected text to the RAG chatbot
+      description: Sends a question about specific selected text to the RAG system
+      tags:
+        - Chat
+      security:
+        - BearerAuth: []  # Optional - anonymous queries allowed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectedTextQuery'
+      responses:
+        '200':
+          description: Chat response generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's password
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: User's full name
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          format: password
+          description: User's password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for authentication
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        name:
+          type: string
+          description: User's full name
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique profile identifier
+        user_id:
+          type: string
+          format: uuid
+          description: Reference to the user
+        programming_experience:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          description: User's programming skill level
+        robotics_background:
+          type: string
+          enum: [none, basic, intermediate, expert]
+          description: User's robotics experience
+        hardware_access:
+          type: object
+          properties:
+            gpu_capability:
+              type: string
+              enum: [none, basic, mid, high]
+            robot_access:
+              type: string
+              enum: [none, simulation_only, physical_robot]
+            development_environment:
+              type: string
+              enum: [windows, macos, linux]
+        preferred_language:
+          type: string
+          enum: [en, ur]
+          default: en
+          description: Default content language preference
+        learning_goals:
+          type: string
+          description: User's specific learning objectives
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        programming_experience:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        robotics_background:
+          type: string
+          enum: [none, basic, intermediate, expert]
+        hardware_access:
+          type: object
+          properties:
+            gpu_capability:
+              type: string
+              enum: [none, basic, mid, high]
+            robot_access:
+              type: string
+              enum: [none, simulation_only, physical_robot]
+            development_environment:
+              type: string
+              enum: [windows, macos, linux]
+        preferred_language:
+          type: string
+          enum: [en, ur]
+        learning_goals:
+          type: string
+
+    ChapterSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique chapter identifier
+        title:
+          type: string
+          description: Chapter title
+        slug:
+          type: string
+          description: URL-friendly identifier
+        module:
+          type: string
+          enum: [ros2, digital_twin, ai_robot_brain, vla]
+          description: Module the chapter belongs to
+        week_number:
+          type: integer
+          description: Week number in the course (1-13)
+        created_at:
+          type: string
+          format: date-time
+
+    ChapterDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        module:
+          type: string
+          enum: [ros2, digital_twin, ai_robot_brain, vla]
+        week_number:
+          type: integer
+        content:
+          type: string
+          description: Markdown content of the chapter
+        learning_objectives:
+          type: array
+          items:
+            type: string
+        prerequisites:
+          type: array
+          items:
+            type: string
+        exercises:
+          type: array
+          items:
+            type: object
+        review_questions:
+          type: array
+          items:
+            type: object
+        further_reading:
+          type: array
+          items:
+            type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChapterTranslation:
+      type: object
+      properties:
+        original_chapter_id:
+          type: string
+          format: uuid
+        target_language:
+          type: string
+          description: Target language code
+        translated_content:
+          type: string
+          description: Translated chapter content in Markdown
+        created_at:
+          type: string
+          format: date-time
+
+    ChatQuery:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: The user's question
+          minLength: 5
+          maxLength: 2000
+
+    SelectedTextQuery:
+      type: object
+      required:
+        - query
+        - selected_text
+      properties:
+        query:
+          type: string
+          description: The user's question about the selected text
+          minLength: 5
+          maxLength: 2000
+        selected_text:
+          type: string
+          description: The text that was selected by the user
+          maxLength: 5000
+
+    ChatResponse:
+      type: object
+      properties:
+        query_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the query
+        response:
+          type: string
+          description: The chatbot's response
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confidence score for the response
+        source_documents:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              chapter_id:
+                type: string
+                format: uuid
+              relevance_score:
+                type: number
+        created_at:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid request parameters"
+              details:
+                type: object
+    Unauthorized:
+      description: Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+    NotFound:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Resource not found"
+    Conflict:
+      description: Resource conflict (e.g., duplicate email)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Email already exists"
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Rate limit exceeded, please try again later"
