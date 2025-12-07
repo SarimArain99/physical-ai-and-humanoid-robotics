@@ -1,56 +1,41 @@
-import React, { useState } from 'react';
-import Login from './Login';
-import Register from './Register';
+import React from "react";
+import Login from "./Login";
+import Register from "./Register";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
-const AuthModal = ({ isOpen, onClose }) => {
-  const [isLoginView, setIsLoginView] = useState(true);
+const AuthModalContent = ({ isOpen, onClose }) => {
+  const [view, setView] = React.useState("login"); // 'login' or 'register'
 
   if (!isOpen) return null;
 
   return (
-    <div className="auth-modal-wrapper">
-      <div className="auth-modal-overlay" onClick={onClose} />
-      <div className="auth-modal-content">
-        {isLoginView ? (
+    <div className="auth-modal-overlay">
+      <div className="auth-modal-container">
+        <button className="auth-modal-close" onClick={onClose}>
+          ×
+        </button>
+
+        {view === "login" ? (
           <Login
-            onSwitchToRegister={() => setIsLoginView(false)}
+            onSwitchToRegister={() => setView("register")}
             onClose={onClose}
           />
         ) : (
           <Register
-            onSwitchToLogin={() => setIsLoginView(true)}
+            onSwitchToLogin={() => setView("login")}
             onClose={onClose}
           />
         )}
       </div>
-      <style jsx>{`
-        .auth-modal-wrapper {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .auth-modal-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .auth-modal-content {
-          position: relative;
-          z-index: 1001;
-        }
-      `}</style>
     </div>
+  );
+};
+
+const AuthModal = (props) => {
+  return (
+    <BrowserOnly fallback={null}>
+      {() => <AuthModalContent {...props} />}
+    </BrowserOnly>
   );
 };
 
