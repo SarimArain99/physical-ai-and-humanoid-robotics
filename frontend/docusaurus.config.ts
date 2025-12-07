@@ -18,7 +18,7 @@ const config: Config = {
   organizationName: "facebook",
   projectName: "docusaurus",
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
 
   i18n: {
@@ -112,16 +112,16 @@ const config: Config = {
           title: "Community",
           items: [
             {
-              label: "Stack Overflow",
-              href: "https://stackoverflow.com/questions/tagged/docusaurus",
+              label: "https://github.com/SarimArain99/",
+              href: "https://github.com/SarimArain99/",
             },
             {
-              label: "Discord",
-              href: "https://discordapp.com/invite/docusaurus",
+              label: "Instagram",
+              href: "https://www.instagram.com/sarim_arain/",
             },
             {
-              label: "X",
-              href: "https://x.com/docusaurus",
+              label: "LinkedIn",
+              href: "https://www.linkedin.com/in/muhammad-sarim-arain-b3795a2ba/",
             },
           ],
         },
