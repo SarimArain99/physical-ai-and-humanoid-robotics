@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 const LevelButton = () => {
+  // 🛡️ SAFETY CHECK: If running on server during build, render nothing
+  if (!ExecutionEnvironment.canUseDOM) {
+    return null;
+  }
+
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isSimplified, setIsSimplified] = useState(false);
 
-  // Hide if not logged in OR if user is already Pro
+  // Hide if not logged in OR if user is already "pro"
   if (!user || !user.proficiency || user.proficiency === "pro") {
     return null;
   }
@@ -28,7 +34,8 @@ const LevelButton = () => {
       for (let i = 0; i < elementsArray.length; i++) {
         const element = elementsArray[i];
         const originalText = element.innerText;
-        // Skip short text
+
+        // Skip short text to save API calls
         if (originalText.trim().length < 20) continue;
 
         try {
@@ -47,7 +54,7 @@ const LevelButton = () => {
           const data = await response.json();
           if (data.content) {
             element.innerText = data.content;
-            element.style.color = "#a8d5ff"; // Visual cue
+            element.style.color = "#a8d5ff"; // Visual cue for simplified text
             element.style.borderLeft = "3px solid #8b5cf6";
             element.style.paddingLeft = "10px";
           }

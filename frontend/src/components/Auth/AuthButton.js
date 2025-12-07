@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import AuthModal from "./AuthModal";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 const AuthButton = () => {
+  // 🛡️ SAFETY CHECK: If running on server during build, render nothing
+  if (!ExecutionEnvironment.canUseDOM) {
+    return null;
+  }
+
   const { user, logout, loading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
 

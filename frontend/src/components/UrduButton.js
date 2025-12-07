@@ -1,21 +1,25 @@
 import React, { useState } from "react";
-// 1. Import the Auth Hook
 import { useAuth } from "./Auth/AuthProvider";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 const UrduButton = () => {
-  // 2. Get the current user status
-  const { user } = useAuth();
+  // 🛡️ SAFETY CHECK: If running on server during build, render nothing
+  if (!ExecutionEnvironment.canUseDOM) {
+    return null;
+  }
 
+  const { user } = useAuth();
   const [isUrdu, setIsUrdu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // 3. SECURITY CHECK: If no user, hide the button completely
+  // Hide button if user is not logged in
   if (!user) {
     return null;
   }
 
   const handleTranslate = async () => {
+    // If already translated, reload to reset
     if (isUrdu) {
       window.location.reload();
       return;
@@ -25,6 +29,7 @@ const UrduButton = () => {
     setProgress(0);
 
     try {
+      // Select all text content
       const contentElements = document.querySelectorAll(
         ".markdown p, .markdown h1, .markdown h2, .markdown h3, .markdown li"
       );
@@ -42,6 +47,7 @@ const UrduButton = () => {
         const element = elementsArray[i];
         const originalText = element.innerText;
 
+        // Skip very short text
         if (originalText.trim().length < 2) continue;
 
         try {
@@ -70,6 +76,7 @@ const UrduButton = () => {
           console.error("Chunk failed", err);
         }
 
+        // Update progress bar
         setProgress(Math.round(((i + 1) / total) * 100));
       }
 
