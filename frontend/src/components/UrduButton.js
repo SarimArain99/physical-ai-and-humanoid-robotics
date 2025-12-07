@@ -1,53 +1,40 @@
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+import BrowserOnly from "@docusaurus/BrowserOnly"; // 🟢 Import BrowserOnly
 
-const UrduButton = () => {
-  // 🛡️ SAFETY CHECK: If running on server during build, render nothing
-  if (!ExecutionEnvironment.canUseDOM) {
-    return null;
-  }
-
+// 1. Create the Logic Component (Internal)
+const UrduButtonContent = () => {
   const { user } = useAuth();
   const [isUrdu, setIsUrdu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Hide button if user is not logged in
-  if (!user) {
-    return null;
-  }
+  // If not logged in, render nothing
+  if (!user) return null;
 
   const handleTranslate = async () => {
-    // If already translated, reload to reset
     if (isUrdu) {
       window.location.reload();
       return;
     }
-
     setLoading(true);
     setProgress(0);
 
     try {
-      // Select all text content
       const contentElements = document.querySelectorAll(
         ".markdown p, .markdown h1, .markdown h2, .markdown h3, .markdown li"
       );
-
       if (contentElements.length === 0) {
         alert("No content found to translate.");
         setLoading(false);
         return;
       }
-
       const elementsArray = Array.from(contentElements);
       const total = elementsArray.length;
 
       for (let i = 0; i < total; i++) {
         const element = elementsArray[i];
         const originalText = element.innerText;
-
-        // Skip very short text
         if (originalText.trim().length < 2) continue;
 
         try {
@@ -59,9 +46,7 @@ const UrduButton = () => {
               body: JSON.stringify({ text: originalText }),
             }
           );
-
           const data = await response.json();
-
           if (data.translation) {
             element.innerText = data.translation;
             element.style.direction = "rtl";
@@ -73,17 +58,14 @@ const UrduButton = () => {
             element.style.lineHeight = "1.8";
           }
         } catch (err) {
-          console.error("Chunk failed", err);
+          console.error(err);
         }
-
-        // Update progress bar
         setProgress(Math.round(((i + 1) / total) * 100));
       }
-
       setIsUrdu(true);
     } catch (error) {
       console.error(error);
-      alert("Translation failed. Check backend.");
+      alert("Translation failed.");
     } finally {
       setLoading(false);
       setProgress(0);
@@ -102,6 +84,13 @@ const UrduButton = () => {
         ? "🇺🇸 English"
         : "🇵🇰 Urdu"}
     </button>
+  );
+};
+
+// 2. Export the Safe Wrapper
+const UrduButton = () => {
+  return (
+    <BrowserOnly fallback={null}>{() => <UrduButtonContent />}</BrowserOnly>
   );
 };
 

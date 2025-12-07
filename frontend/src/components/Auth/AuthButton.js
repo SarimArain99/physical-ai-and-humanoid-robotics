@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "./AuthProvider";
 import AuthModal from "./AuthModal";
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+import BrowserOnly from "@docusaurus/BrowserOnly"; // 🟢 Import
 
-const AuthButton = () => {
-  // 🛡️ SAFETY CHECK: If running on server during build, render nothing
-  if (!ExecutionEnvironment.canUseDOM) {
-    return null;
-  }
-
+// 1. Logic Component
+const AuthButtonContent = () => {
   const { user, logout, loading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debugging: Watch the console to see if user data arrives
-  useEffect(() => {
-    console.log("AuthButton User State:", user);
-  }, [user]);
-
   const handleLogout = async () => {
     await logout();
-    window.location.reload(); // Refresh to clear state completely
+    window.location.reload();
   };
 
   if (loading) {
@@ -36,7 +27,6 @@ const AuthButton = () => {
   return (
     <>
       {user ? (
-        // 🟢 LOGGED IN VIEW
         <div className="auth-dropdown">
           <button className="auth-user-button">
             <span className="auth-user-name">{getDisplayName()}</span>
@@ -44,7 +34,6 @@ const AuthButton = () => {
               ▼
             </span>
           </button>
-
           <div className="auth-dropdown-content">
             <div className="auth-user-email-display">{user.email}</div>
             <a href="/profile" className="auth-dropdown-item">
@@ -56,14 +45,19 @@ const AuthButton = () => {
           </div>
         </div>
       ) : (
-        // 🔴 LOGGED OUT VIEW
         <button className="auth-button" onClick={() => setIsModalOpen(true)}>
           Sign In
         </button>
       )}
-
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
+  );
+};
+
+// 2. Safe Wrapper
+const AuthButton = () => {
+  return (
+    <BrowserOnly fallback={null}>{() => <AuthButtonContent />}</BrowserOnly>
   );
 };
 
