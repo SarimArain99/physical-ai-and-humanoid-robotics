@@ -45,11 +45,14 @@ const UrduButton = () => {
         if (originalText.trim().length < 2) continue;
 
         try {
-          const response = await fetch("http://localhost:8000/translate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: originalText }),
-          });
+          const response = await fetch(
+            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: originalText }),
+            }
+          );
 
           const data = await response.json();
 

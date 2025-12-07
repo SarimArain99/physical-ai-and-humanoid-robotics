@@ -32,14 +32,17 @@ const LevelButton = () => {
         if (originalText.trim().length < 20) continue;
 
         try {
-          const response = await fetch("http://localhost:8000/adjust-content", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: originalText,
-              target_level: user.proficiency,
-            }),
-          });
+          const response = await fetch(
+            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: originalText,
+                target_level: user.proficiency,
+              }),
+            }
+          );
 
           const data = await response.json();
           if (data.content) {

@@ -103,19 +103,22 @@ const ChatWidget = () => {
 
     try {
       // ✅ Corrected Backend URL and Auth Header
-      const response = await fetch("http://localhost:8000/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            session?.session?.accessToken || session?.accessToken || ""
-          }`,
-        },
-        body: JSON.stringify({
-          query: inputValue,
-          selected_text: selectedText,
-        }),
-      });
+      const response = await fetch(
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              session?.session?.accessToken || session?.accessToken || ""
+            }`,
+          },
+          body: JSON.stringify({
+            query: inputValue,
+            selected_text: selectedText,
+          }),
+        }
+      );
 
       if (!response.ok) {
         if (response.status === 401)
@@ -332,7 +335,7 @@ const ChatWidget = () => {
 
         /* Toggle Button */
         .chat-toggle-button {
-          background-color: #2AC2A1; /* Accent Color */
+          background-color: #2ac2a1; /* Accent Color */
           color: #1e2a38;
           border: none;
           border-radius: 50%;

@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Manually fetch the session using the stored token
       const response = await fetch(
-        "http://localhost:8000/api/auth/get-session",
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/get-session",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Manual Fetch for complete control
       const response = await fetch(
-        "http://localhost:8000/api/auth/sign-in/email",
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/sign-in/email",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, name, password,proficiency) => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/sign-up", {
+      const response = await fetch("https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, password, proficiency }),
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/api/auth/profile/update",
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/profile/update",
         {
           method: "POST",
           headers: {
