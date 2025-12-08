@@ -11,6 +11,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 4. Copy the rest of the app code
 COPY . .
 
-# 5. Command to run the app
-# (Railway will automatically override the port, which is good)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# 🟢 THE FIX: Use "sh -c" to allow $PORT to be read correctly
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
