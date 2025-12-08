@@ -99,8 +99,8 @@ const UrduButtonContent = () => {
         {loading
           ? `Translating ${progress}%`
           : isUrdu
-          ? "🇺🇸 English"
-          : "🇵🇰 Urdu"}
+          ? "US-English"
+          : "PK-Urdu"}
       </button>
 
       {/* 🟢 EMBEDDED STYLES: This forces the style to load immediately */}
