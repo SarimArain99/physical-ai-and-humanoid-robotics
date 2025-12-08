@@ -4,9 +4,44 @@
  * work well for content-centric websites.
  */
 
-/* 1. GLOBAL VARIABLES (The Professional Green Theme) */
+/* 1. GLOBAL VARIABLES (Base Theme - Professional Dark Blue) */
 :root {
-  --ifm-color-primary: #2ecc71;
+  --ifm-color-primary: #2ECC71;
+  --ifm-color-primary-dark: #29b765;
+  --ifm-color-primary-darker: #27ad5f;
+  --ifm-color-primary-darkest: #208e4e;
+  --ifm-color-primary-light: #48d683;
+  --ifm-color-primary-lighter: #55da8d;
+  --ifm-color-primary-lightest: #7ce4a8;
+  
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
+  
+  /* Force Dark Blue Background Globally */
+  --ifm-background-color: #1E2A38;
+  --ifm-background-surface-color: #151e29;
+  --ifm-font-color-base: #ffffff;
+  --ifm-link-color: #2ECC71;
+  
+  /* Navbar & Footer Defaults */
+  --ifm-navbar-background-color: #151e29;
+  --ifm-footer-background-color: #0f161f;
+}
+
+/* 2. DARK MODE (Standard) */
+[data-theme='dark'] {
+  --ifm-color-primary: #2ECC71;
+  --ifm-background-color: #1E2A38;
+  --ifm-background-surface-color: #151e29;
+  --ifm-navbar-background-color: #151e29;
+  --ifm-footer-background-color: #0f161f;
+  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
+}
+
+/* 3. LIGHT MODE (Forced Dark Theme) */
+/* This overrides Docusaurus's default white theme so it looks exactly like dark mode */
+[data-theme='light'] {
+  --ifm-color-primary: #2ECC71;
   --ifm-color-primary-dark: #29b765;
   --ifm-color-primary-darker: #27ad5f;
   --ifm-color-primary-darkest: #208e4e;
@@ -14,35 +49,24 @@
   --ifm-color-primary-lighter: #55da8d;
   --ifm-color-primary-lightest: #7ce4a8;
 
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
-
-  /* Force Dark Blue Background Globally */
-  --ifm-background-color: #1e2a38;
-  --ifm-background-surface-color: #151e29;
-  --ifm-font-color-base: #ffffff;
-}
-
-/* 2. DARK MODE OVERRIDES (Ensures consistency) */
-[data-theme="dark"] {
-  --ifm-color-primary: #2ecc71;
-  --ifm-background-color: #1e2a38;
-  --ifm-background-surface-color: #151e29;
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
-}
-
-/* 3. LIGHT MODE OVERRIDES (Force Dark Theme even if user toggle is wrong) */
-[data-theme="light"] {
-  --ifm-color-primary: #2ecc71;
-  --ifm-background-color: #1e2a38;
+  --ifm-background-color: #1E2A38;
   --ifm-background-surface-color: #151e29;
   --ifm-font-color-base: #ffffff;
   --ifm-navbar-background-color: #151e29;
+  --ifm-footer-background-color: #0f161f;
+  
+  /* Fix link colors in light mode */
+  --ifm-link-color: #2ECC71;
+  --ifm-menu-color: #ffffff;
+  --ifm-color-content-secondary: #a3b3c2; /* Subtext color */
+  
+  /* Code blocks in light mode */
+  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
 }
 
 /* 4. GENERAL UTILITIES */
 body {
-  background-color: #1e2a38 !important;
+  background-color: #1E2A38 !important;
   color: white !important;
 }
 
@@ -54,7 +78,7 @@ body {
 /* Code block styling */
 .code-example {
   background-color: #151e29;
-  border: 1px solid #2c3e50;
+  border: 1px solid #2C3E50;
   border-radius: 6px;
   padding: 16px;
   overflow: auto;
@@ -74,12 +98,12 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e2a38;
+  background: #1E2A38; 
 }
 ::-webkit-scrollbar-thumb {
-  background: #2c3e50;
+  background: #2C3E50; 
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2ecc71;
+  background: #2ECC71; 
 }
