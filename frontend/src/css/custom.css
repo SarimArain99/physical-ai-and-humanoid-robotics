@@ -4,81 +4,62 @@
  * work well for content-centric websites.
  */
 
-/* 1. GLOBAL VARIABLES (Base Theme - Professional Dark Blue) */
+/* 1. LIGHT MODE (Default) */
 :root {
-  --ifm-color-primary: #2ECC71;
+  /* Brand Color (Green) - Same for both modes */
+  --ifm-color-primary: #2ecc71;
   --ifm-color-primary-dark: #29b765;
   --ifm-color-primary-darker: #27ad5f;
   --ifm-color-primary-darkest: #208e4e;
   --ifm-color-primary-light: #48d683;
   --ifm-color-primary-lighter: #55da8d;
   --ifm-color-primary-lightest: #7ce4a8;
-  
+
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
-  
-  /* Force Dark Blue Background Globally */
-  --ifm-background-color: #1E2A38;
-  --ifm-background-surface-color: #151e29;
-  --ifm-font-color-base: #ffffff;
-  --ifm-link-color: #2ECC71;
-  
-  /* Navbar & Footer Defaults */
-  --ifm-navbar-background-color: #151e29;
-  --ifm-footer-background-color: #0f161f;
+
+  /* Light Mode Specifics */
+  --ifm-background-color: #ffffff; /* White Background */
+  --ifm-background-surface-color: #f6f8fa; /* Light Gray for cards */
+  --ifm-font-color-base: #1c1e21; /* Dark Text for readability */
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #f5f6f7;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-link-color: #2ecc71;
 }
 
-/* 2. DARK MODE (Standard) */
-[data-theme='dark'] {
-  --ifm-color-primary: #2ECC71;
-  --ifm-background-color: #1E2A38;
-  --ifm-background-surface-color: #151e29;
+/* 2. DARK MODE (Your Custom Dark Blue) */
+[data-theme="dark"] {
+  /* Keep the Green Brand Color */
+  --ifm-color-primary: #2ecc71;
+
+  /* Your Custom Dark Blue Palette */
+  --ifm-background-color: #1e2a38; /* Your Dark Blue */
+  --ifm-background-surface-color: #151e29; /* Slightly darker for cards */
+  --ifm-font-color-base: #ffffff; /* White Text */
+
   --ifm-navbar-background-color: #151e29;
   --ifm-footer-background-color: #0f161f;
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
-}
 
-/* 3. LIGHT MODE (Forced Dark Theme) */
-/* This overrides Docusaurus's default white theme so it looks exactly like dark mode */
-[data-theme='light'] {
-  --ifm-color-primary: #2ECC71;
-  --ifm-color-primary-dark: #29b765;
-  --ifm-color-primary-darker: #27ad5f;
-  --ifm-color-primary-darkest: #208e4e;
-  --ifm-color-primary-light: #48d683;
-  --ifm-color-primary-lighter: #55da8d;
-  --ifm-color-primary-lightest: #7ce4a8;
-
-  --ifm-background-color: #1E2A38;
-  --ifm-background-surface-color: #151e29;
-  --ifm-font-color-base: #ffffff;
-  --ifm-navbar-background-color: #151e29;
-  --ifm-footer-background-color: #0f161f;
-  
-  /* Fix link colors in light mode */
-  --ifm-link-color: #2ECC71;
-  --ifm-menu-color: #ffffff;
-  --ifm-color-content-secondary: #a3b3c2; /* Subtext color */
-  
-  /* Code blocks in light mode */
   --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
 }
 
-/* 4. GENERAL UTILITIES */
+/* 3. GENERAL UTILITIES (Dynamic) */
+/* We remove the !important overrides here so the toggle works */
 body {
-  background-color: #1E2A38 !important;
-  color: white !important;
+  background-color: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Content spacing for the textbook */
+/* Content spacing */
 .robotics-content {
   margin-top: 2rem;
 }
 
-/* Code block styling */
+/* Code block styling - Dynamic based on theme */
 .code-example {
-  background-color: #151e29;
-  border: 1px solid #2C3E50;
+  background-color: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 6px;
   padding: 16px;
   overflow: auto;
@@ -92,18 +73,18 @@ body {
   z-index: 9999;
 }
 
-/* Scrollbar Styling (Sleek Dark Look) */
+/* Scrollbar Styling - Dynamic */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #1E2A38; 
+  background: var(--ifm-background-color);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2C3E50; 
+  background: var(--ifm-color-emphasis-300);
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2ECC71; 
+  background: var(--ifm-color-primary);
 }
