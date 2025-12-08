@@ -6,7 +6,7 @@ const Register = ({ onSwitchToLogin, onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [proficiency, setProficiency] = useState("beginner"); // Default
+  const [proficiency, setProficiency] = useState("beginner");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +15,6 @@ const Register = ({ onSwitchToLogin, onClose }) => {
     setError("");
     setLoading(true);
 
-    // Pass proficiency to the updated register function
     const result = await register(email, name, password, proficiency);
 
     if (result.success) {
@@ -40,6 +39,7 @@ const Register = ({ onSwitchToLogin, onClose }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            placeholder="John Doe"
           />
         </div>
 
@@ -50,6 +50,7 @@ const Register = ({ onSwitchToLogin, onClose }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            placeholder="name@example.com"
           />
         </div>
 
@@ -60,29 +61,25 @@ const Register = ({ onSwitchToLogin, onClose }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            placeholder="••••••••"
           />
         </div>
 
-        {/* Proficiency Dropdown */}
         <div className="auth-input-group">
-          <label htmlFor="proficiency">Proficiency Level</label>
+          <label>Proficiency Level</label>
           <select
-            id="proficiency"
             value={proficiency}
             onChange={(e) => setProficiency(e.target.value)}
-            disabled={loading}
             className="auth-select"
           >
-            <option value="beginner">Beginner (New to AI/Robotics)</option>
-            <option value="intermediate">
-              Intermediate (Engineering Student)
-            </option>
-            <option value="pro">Pro (Researcher/Developer)</option>
+            <option value="beginner">Beginner (New to AI)</option>
+            <option value="intermediate">Intermediate (Student)</option>
+            <option value="pro">Pro (Researcher)</option>
           </select>
         </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>
-          {loading ? "Creating Account..." : "Register"}
+          {loading ? "Creating..." : "Register"}
         </button>
       </form>
 
@@ -94,6 +91,21 @@ const Register = ({ onSwitchToLogin, onClose }) => {
           </button>
         </p>
       </div>
+
+      {/* 🟢 EMBEDDED STYLES (Reusing same styles as Login + Select style) */}
+      <style>{`
+        .auth-form-container h2 { margin-top: 0; margin-bottom: 20px; color: #fff; text-align: center; }
+        .auth-error { background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-size: 14px; }
+        .auth-input-group { margin-bottom: 1.2rem; }
+        .auth-input-group label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; font-weight: 500; }
+        .auth-input-group input, .auth-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: white; font-size: 16px; }
+        .auth-input-group input:focus, .auth-select:focus { border-color: #2ECC71; outline: none; }
+        .auth-submit-btn { width: 100%; padding: 12px; background-color: #2ECC71; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .auth-submit-btn:hover { background-color: #22c55e; }
+        .auth-submit-btn:disabled { opacity: 0.7; }
+        .auth-footer { margin-top: 2rem; text-align: center; font-size: 14px; color: #94a3b8; }
+        .auth-link-btn { background: none; border: none; color: #2ECC71; cursor: pointer; font-weight: bold; padding: 0 4px; }
+      `}</style>
     </div>
   );
 };
