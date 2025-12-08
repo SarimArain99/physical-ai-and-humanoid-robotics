@@ -69,8 +69,8 @@ app = FastAPI(lifespan=lifespan)
 # --- FIX 1: CORS MUST BE EXPLICIT FOR AUTH TO WORK ---
 app.add_middleware(
     CORSMiddleware,
-    # REPLACE "*" with your actual frontend URL (usually localhost:3000)
-    allow_origins=["http://localhost:3000", "https://physical-ai-and-humanoid-robotics-omega.vercel.app"], 
+    # This Regex allows http AND https from ANY website
+    allow_origin_regex="https?://.*", 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
