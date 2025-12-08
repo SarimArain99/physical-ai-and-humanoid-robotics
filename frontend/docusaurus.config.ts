@@ -26,9 +26,6 @@ const config: Config = {
     locales: ["en"],
   },
 
-  // 🔴 REMOVED: Invalid 'devServer' block inside customFields.
-  // Docusaurus does not support proxy configuration here.
-
   presets: [
     [
       "classic",

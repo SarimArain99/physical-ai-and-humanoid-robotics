@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthProvider";
-import {css} from frontend/src/css/custom.css
 
 const Login = ({ onSwitchToRegister, onClose }) => {
   const { login } = useAuth();
