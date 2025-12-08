@@ -112,7 +112,7 @@ const config: Config = {
           title: "Community",
           items: [
             {
-              label: "https://github.com/SarimArain99/",
+              label: "Github",
               href: "https://github.com/SarimArain99/",
             },
             {

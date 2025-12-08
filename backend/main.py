@@ -70,7 +70,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     # REPLACE "*" with your actual frontend URL (usually localhost:3000)
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["http://localhost:3000", "https://physical-ai-and-humanoid-robotics-omega.vercel.app"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
