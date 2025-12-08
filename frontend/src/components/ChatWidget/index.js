@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../Auth/AuthProvider";
-import BrowserOnly from "@docusaurus/BrowserOnly"; // 🟢 Import
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 // 1. The Logic Component
 const ChatWidgetContent = () => {
@@ -49,12 +49,12 @@ const ChatWidgetContent = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // ✅ Safe Token Access
             Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
           },
+          // 🟢 FIX: Renamed 'message' to 'query' to match Backend
           body: JSON.stringify({
-            message: input,
-            history: newMessages.slice(-5), // Send last 5 messages for context
+            query: input, // <--- CHANGED THIS
+            selected_text: "", // <--- Added empty string for safety
           }),
         }
       );
@@ -129,7 +129,7 @@ const ChatWidgetContent = () => {
         </div>
       )}
 
-      {/* Basic CSS within the component to ensure it looks okay instantly */}
+      {/* Basic CSS */}
       <style jsx>{`
         .chat-widget-wrapper {
           position: fixed;
@@ -237,7 +237,7 @@ const ChatWidgetContent = () => {
   );
 };
 
-// 2. The Safe Wrapper
+// Safe Wrapper
 const ChatWidget = () => {
   return (
     <BrowserOnly fallback={null}>{() => <ChatWidgetContent />}</BrowserOnly>
