@@ -48,233 +48,104 @@ const ProfileContent = () => {
     }
   };
 
-  // --- INLINE STYLES OBJECTS (Guaranteed to work) ---
-  const styles = {
-    wrapper: {
-      display: "flex",
-      justifyContent: "center",
-      padding: "4rem 1rem",
-      backgroundColor: "#151e29", // Dark background for page
-      minHeight: "85vh",
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    },
-    card: {
-      backgroundColor: "#1E2A38", // Dark Blue Card
-      padding: "2.5rem",
-      borderRadius: "16px",
-      width: "100%",
-      maxWidth: "600px",
-      boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-      border: "1px solid #2C3E50",
-      color: "#ffffff",
-    },
-    header: {
-      display: "flex",
-      alignItems: "center",
-      gap: "20px",
-      marginBottom: "20px",
-    },
-    avatar: {
-      width: "70px",
-      height: "70px",
-      background: "linear-gradient(135deg, #2ECC71, #27ae60)",
-      borderRadius: "50%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "32px",
-      fontWeight: "bold",
-      color: "#1E2A38",
-    },
-    h2: { margin: 0, color: "white", fontSize: "24px" },
-    email: { color: "#94a3b8", margin: "4px 0 8px 0", fontSize: "14px" },
-    badge: {
-      backgroundColor: "#8b5cf6",
-      color: "white",
-      padding: "4px 10px",
-      borderRadius: "12px",
-      fontSize: "11px",
-      fontWeight: "bold",
-      textTransform: "uppercase",
-    },
-    divider: {
-      border: 0,
-      height: "1px",
-      background: "#2C3E50",
-      margin: "20px 0",
-    },
-    label: {
-      display: "block",
-      color: "#94a3b8",
-      fontSize: "12px",
-      textTransform: "uppercase",
-      marginBottom: "5px",
-      fontWeight: "600",
-    },
-    fieldValue: {
-      fontSize: "16px",
-      color: "white",
-      backgroundColor: "rgba(255,255,255,0.05)",
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #2C3E50",
-      marginBottom: "18px",
-    },
-    input: {
-      width: "100%",
-      padding: "12px",
-      backgroundColor: "#0f172a",
-      border: "1px solid #334155",
-      borderRadius: "8px",
-      color: "white",
-      fontSize: "15px",
-      marginBottom: "18px",
-      outline: "none",
-    },
-    btnPrimary: {
-      width: "100%",
-      backgroundColor: "#2ECC71",
-      color: "#1E2A38",
-      border: "none",
-      padding: "12px",
-      borderRadius: "8px",
-      fontWeight: "bold",
-      cursor: "pointer",
-      fontSize: "16px",
-      marginTop: "10px",
-    },
-    btnSecondary: {
-      background: "transparent",
-      color: "#94a3b8",
-      border: "1px solid #475569",
-      padding: "10px 20px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      marginTop: "10px",
-    },
-    alert: {
-      backgroundColor: "rgba(46, 204, 113, 0.2)",
-      color: "#2ECC71",
-      padding: "12px",
-      borderRadius: "8px",
-      textAlign: "center",
-      border: "1px solid #2ECC71",
-      marginBottom: "20px",
-    },
-    h3: {
-      color: "#2ECC71",
-      marginBottom: "20px",
-      borderBottom: "2px solid #2ECC71",
-      display: "inline-block",
-      paddingBottom: "5px",
-    },
-  };
-
   if (loading)
     return (
-      <div style={{ ...styles.wrapper, color: "white" }}>
-        Loading Profile...
+      <div style={{ padding: "50px", textAlign: "center", color: "white" }}>
+        Loading...
       </div>
     );
   if (!user) return null;
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
+    <div id="force-profile-page">
+      <div id="force-profile-card">
         {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.avatar}>
+        <div className="profile-header">
+          <div className="profile-avatar">
             {user.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
           <div>
-            <h2 style={styles.h2}>{user.name || "User"}</h2>
-            <p style={styles.email}>{user.email}</p>
-            <span style={styles.badge}>{user.proficiency || "Beginner"}</span>
+            <h2>{user.name || "User"}</h2>
+            <p className="email-text">{user.email}</p>
+            <span className="badge">{user.proficiency || "Beginner"}</span>
           </div>
         </div>
 
-        {message && <div style={styles.alert}>{message}</div>}
-        <hr style={styles.divider} />
+        {message && <div className="alert-box">{message}</div>}
+        <hr className="divider" />
 
         {/* View Mode */}
         {!isEditing ? (
-          <div>
-            <h3 style={styles.h3}>Learning Profile</h3>
+          <div className="view-mode">
+            <h3>Learning Profile</h3>
 
-            <div>
-              <label style={styles.label}>Technical Background</label>
-              <div style={styles.fieldValue}>
+            <div className="field-group">
+              <label>Technical Background</label>
+              <div className="value-box">
                 {user.technical_background || "Not set"}
               </div>
             </div>
 
-            <div>
-              <label style={styles.label}>Hardware Access</label>
-              <div style={styles.fieldValue}>
+            <div className="field-group">
+              <label>Hardware Access</label>
+              <div className="value-box">
                 {user.hardware_access || "Not set"}
               </div>
             </div>
 
-            <div>
-              <label style={styles.label}>Learning Goals</label>
-              <div style={styles.fieldValue}>
+            <div className="field-group">
+              <label>Learning Goals</label>
+              <div className="value-box">
                 {user.learning_goals || "Not set"}
               </div>
             </div>
 
-            <button
-              style={styles.btnPrimary}
-              onClick={() => setIsEditing(true)}
-            >
+            <button className="btn-primary" onClick={() => setIsEditing(true)}>
               Edit Profile
             </button>
           </div>
         ) : (
           /* Edit Mode */
-          <form onSubmit={handleSubmit}>
-            <h3 style={styles.h3}>Edit Profile</h3>
+          <form onSubmit={handleSubmit} className="edit-mode">
+            <h3>Edit Profile</h3>
 
-            <div>
-              <label style={styles.label}>Technical Background</label>
+            <div className="field-group">
+              <label>Technical Background</label>
               <input
                 name="technical_background"
                 value={profileData.technical_background}
                 onChange={handleInputChange}
-                placeholder="e.g. CS Student, Hobbyist..."
-                style={styles.input}
+                placeholder="e.g. CS Student..."
               />
             </div>
 
-            <div>
-              <label style={styles.label}>Hardware Access</label>
+            <div className="field-group">
+              <label>Hardware Access</label>
               <input
                 name="hardware_access"
                 value={profileData.hardware_access}
                 onChange={handleInputChange}
-                placeholder="e.g. Arduino, Raspberry Pi, None"
-                style={styles.input}
+                placeholder="e.g. Arduino..."
               />
             </div>
 
-            <div>
-              <label style={styles.label}>Learning Goals</label>
+            <div className="field-group">
+              <label>Learning Goals</label>
               <input
                 name="learning_goals"
                 value={profileData.learning_goals}
                 onChange={handleInputChange}
-                placeholder="e.g. Build a walking robot"
-                style={styles.input}
+                placeholder="e.g. Robotics..."
               />
             </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button type="submit" style={styles.btnPrimary}>
+            <div className="btn-group">
+              <button type="submit" className="btn-primary">
                 Save Changes
               </button>
               <button
                 type="button"
-                style={styles.btnSecondary}
+                className="btn-secondary"
                 onClick={() => setIsEditing(false)}
               >
                 Cancel
@@ -283,6 +154,103 @@ const ProfileContent = () => {
           </form>
         )}
       </div>
+
+      {/* 🛑 STRONG CSS OVERRIDE 
+         Using ID selectors (#) forces these styles to apply over anything else.
+      */}
+      <style>{`
+        #force-profile-page {
+          display: flex;
+          justify-content: center;
+          padding: 4rem 1rem;
+          background-color: #151e29 !important;
+          min-height: 85vh;
+        }
+
+        #force-profile-card {
+          background-color: #1E2A38 !important;
+          padding: 2.5rem;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 600px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          border: 1px solid #2C3E50;
+          color: white !important;
+        }
+
+        #force-profile-card h2 { color: white !important; margin: 0; font-size: 24px; }
+        #force-profile-card h3 { color: #2ECC71 !important; margin-bottom: 20px; border-bottom: 2px solid #2ECC71; display: inline-block; }
+        
+        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        
+        .profile-avatar {
+          width: 70px; height: 70px;
+          background: linear-gradient(135deg, #2ECC71, #27ae60);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 32px; font-weight: bold; color: #1E2A38;
+        }
+
+        .email-text { color: #94a3b8 !important; margin: 5px 0 10px 0; font-size: 14px; }
+        
+        .badge {
+          background-color: #8b5cf6;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          text-transform: uppercase;
+          font-weight: bold;
+        }
+
+        .divider { border: 0; height: 1px; background: #2C3E50; margin: 20px 0; }
+
+        .field-group { margin-bottom: 18px; }
+        .field-group label {
+          display: block; color: #94a3b8; font-size: 12px; 
+          text-transform: uppercase; margin-bottom: 5px; font-weight: 600;
+        }
+
+        .value-box {
+          font-size: 16px; color: white;
+          background: rgba(255,255,255,0.05);
+          padding: 12px; border-radius: 8px;
+          border: 1px solid #2C3E50;
+        }
+
+        #force-profile-card input {
+          width: 100%; padding: 12px;
+          background-color: #0f172a !important;
+          border: 1px solid #334155 !important;
+          border-radius: 8px;
+          color: white !important;
+          font-size: 15px;
+          outline: none;
+        }
+        #force-profile-card input:focus { border-color: #2ECC71 !important; }
+
+        .btn-primary {
+          width: 100%; background-color: #2ECC71; color: #1E2A38;
+          border: none; padding: 12px; border-radius: 8px;
+          font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px;
+        }
+        .btn-primary:hover { background-color: #22c55e; }
+
+        .btn-secondary {
+          background: transparent; color: #94a3b8;
+          border: 1px solid #475569; padding: 10px 20px;
+          border-radius: 8px; cursor: pointer;
+        }
+        .btn-secondary:hover { color: white; border-color: white; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+
+        .alert-box {
+          background: rgba(46, 204, 113, 0.2);
+          color: #2ECC71; padding: 12px;
+          border-radius: 8px; text-align: center;
+          border: 1px solid #2ECC71; margin-bottom: 20px;
+        }
+      `}</style>
     </div>
   );
 };
