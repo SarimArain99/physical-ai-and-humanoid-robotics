@@ -1,159 +1,310 @@
-import React, { useState, useEffect } from "react";
-import Layout from "@theme/Layout";
-import { useAuth } from "../components/Auth/AuthProvider";
-import { useHistory } from "@docusaurus/router";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import React, { useState, useEffect } from 'react';
+import Layout from '@theme/Layout';
+import { useAuth } from '../components/Auth/AuthProvider';
+import { useHistory } from '@docusaurus/router';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
 const ProfileContent = () => {
   const { user, updateProfile, loading } = useAuth();
   const history = useHistory();
-
+  
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    technical_background: "",
-    hardware_access: "",
-    learning_goals: "",
+    technical_background: '',
+    hardware_access: '',
+    learning_goals: ''
   });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
 
+  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
-      history.push("/");
+      history.push('/');
     }
   }, [user, loading, history]);
 
+  // Load user data
   useEffect(() => {
     if (user) {
       setProfileData({
-        technical_background: user.technical_background || "",
-        hardware_access: user.hardware_access || "",
-        learning_goals: user.learning_goals || "",
+        technical_background: user.technical_background || '',
+        hardware_access: user.hardware_access || '',
+        learning_goals: user.learning_goals || ''
       });
     }
   }, [user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
+    setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await updateProfile(profileData);
     if (result.success) {
-      setMessage("Profile updated successfully!");
-      setIsEditing(false);
+      setMessage('Profile updated successfully!');
+      setTimeout(() => setIsEditing(false), 1000);
     } else {
-      setMessage(result.message || "Failed to update");
+      setMessage(result.message || 'Failed to update');
     }
   };
 
-  if (loading) return <div className="profile-container">Loading...</div>;
+  if (loading) return <div className="profile-loading">Loading Profile...</div>;
   if (!user) return null;
 
   return (
-    <div className="profile-wrapper">
-      <div className="profile-card">
-        <h2>My Profile</h2>
-
-        <div className="profile-info">
-          <p>
-            <strong>Name:</strong> {user.name}
-          </p>
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
-          <p>
-            <strong>Level:</strong>{" "}
-            <span className="tag">{user.proficiency || "Beginner"}</span>
-          </p>
+    <div className="user-profile-wrapper">
+      <div className="user-profile-card">
+        
+        {/* Header Section */}
+        <div className="profile-header">
+           <div className="profile-avatar">
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+           </div>
+           <div className="profile-title-box">
+              <h2>{user.name || 'User'}</h2>
+              <p className="profile-email">{user.email}</p>
+              <span className="profile-badge">{user.proficiency || 'Beginner'}</span>
+           </div>
         </div>
 
-        {message && <div className="profile-msg">{message}</div>}
+        {/* Message Alert */}
+        {message && <div className="profile-alert">{message}</div>}
 
+        <hr className="profile-divider"/>
+
+        {/* View Mode */}
         {!isEditing ? (
-          <div className="profile-details">
-            <h3>Learning Preferences</h3>
-            <p>
-              <strong>Background:</strong>{" "}
-              {profileData.technical_background || "Not set"}
-            </p>
-            <p>
-              <strong>Hardware:</strong>{" "}
-              {profileData.hardware_access || "Not set"}
-            </p>
-            <p>
-              <strong>Goals:</strong> {profileData.learning_goals || "Not set"}
-            </p>
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>
-              Edit Profile
+         <div className="profile-view-mode">
+            <h3>Learning Profile</h3>
+            
+            <div className="profile-field">
+                <label>Technical Background</label>
+                <div className="field-value">{user.technical_background || 'Not set'}</div>
+            </div>
+            
+            <div className="profile-field">
+                <label>Hardware Access</label>
+                <div className="field-value">{user.hardware_access || 'Not set'}</div>
+            </div>
+            
+            <div className="profile-field">
+                <label>Learning Goals</label>
+                <div className="field-value">{user.learning_goals || 'Not set'}</div>
+            </div>
+
+            <button className="profile-btn-primary" onClick={() => setIsEditing(true)}>
+                Edit Profile
             </button>
-          </div>
+         </div>
         ) : (
-          <form onSubmit={handleSubmit} className="profile-form">
-            <div className="form-group">
-              <label>Technical Background</label>
-              <input
-                name="technical_background"
-                value={profileData.technical_background}
-                onChange={handleInputChange}
-                placeholder="e.g. CS Student, Hobbyist..."
-              />
+         /* Edit Mode */
+         <form onSubmit={handleSubmit} className="profile-edit-form">
+            <h3>Edit Profile</h3>
+            
+            <div className="profile-form-group">
+                <label>Technical Background</label>
+                <input 
+                    name="technical_background" 
+                    value={profileData.technical_background} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g. CS Student, Hobbyist..." 
+                />
             </div>
-            <div className="form-group">
-              <label>Hardware Access</label>
-              <input
-                name="hardware_access"
-                value={profileData.hardware_access}
-                onChange={handleInputChange}
-                placeholder="e.g. Arduino, Raspberry Pi, None"
-              />
+            
+            <div className="profile-form-group">
+                <label>Hardware Access</label>
+                <input 
+                    name="hardware_access" 
+                    value={profileData.hardware_access} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g. Arduino, Raspberry Pi, None" 
+                />
             </div>
-            <div className="form-group">
-              <label>Learning Goals</label>
-              <input
-                name="learning_goals"
-                value={profileData.learning_goals}
-                onChange={handleInputChange}
-                placeholder="e.g. Build a walking robot"
-              />
+            
+            <div className="profile-form-group">
+                <label>Learning Goals</label>
+                <input 
+                    name="learning_goals" 
+                    value={profileData.learning_goals} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g. Build a walking robot" 
+                />
             </div>
-            <div className="btn-group">
-              <button type="submit" className="btn-primary">
-                Save Changes
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
+            
+            <div className="profile-btn-group">
+                <button type="submit" className="profile-btn-primary">Save Changes</button>
+                <button type="button" className="profile-btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
             </div>
-          </form>
+         </form>
         )}
       </div>
 
-      {/* 🟢 EMBEDDED STYLES */}
+      {/* 🟢 FORCEFUL STYLES (No Conflicts) */}
       <style>{`
-        .profile-wrapper { display: flex; justify-content: center; padding: 4rem 1rem; background-color: #151e29; min-height: 80vh; }
-        .profile-card { background-color: #1E2A38; padding: 2.5rem; border-radius: 12px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #2C3E50; color: white; }
-        h2 { border-bottom: 2px solid #2ECC71; padding-bottom: 10px; margin-bottom: 20px; color: white; }
-        h3 { color: #2ECC71; margin-top: 20px; }
-        .profile-info p { margin: 8px 0; color: #cbd5e1; }
-        .tag { background-color: #8b5cf6; padding: 2px 8px; border-radius: 12px; font-size: 12px; color: white; }
-        .profile-msg { background: rgba(46, 204, 113, 0.2); color: #2ECC71; padding: 10px; border-radius: 6px; margin: 15px 0; text-align: center; }
+        /* Page Background */
+        .user-profile-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 4rem 1rem;
+            background-color: #151e29;
+            min-height: 85vh;
+            font-family: sans-serif;
+        }
+
+        /* The Main Card */
+        .user-profile-card {
+            background-color: #1E2A38 !important; /* Force Dark Blue */
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #2C3E50;
+            color: #ffffff;
+        }
+
+        /* Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #2ECC71, #27ae60);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #1E2A38;
+        }
+        .profile-title-box h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 24px;
+        }
+        .profile-email {
+            color: #94a3b8;
+            margin: 4px 0 8px 0;
+            font-size: 14px;
+        }
+        .profile-badge {
+            background-color: #8b5cf6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-divider {
+            border: 0;
+            height: 1px;
+            background: #2C3E50;
+            margin: 20px 0;
+        }
+
+        /* Fields (View Mode) */
+        .profile-view-mode h3, .profile-edit-form h3 {
+            color: #2ECC71;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2ECC71;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
         
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 14px; }
-        .form-group input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; }
-        .form-group input:focus { border-color: #2ECC71; outline: none; }
+        .profile-field { margin-bottom: 18px; }
+        .profile-field label {
+            display: block;
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .field-value {
+            font-size: 16px;
+            color: white;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #2C3E50;
+        }
+
+        /* Forms (Edit Mode) */
+        .profile-form-group { margin-bottom: 15px; }
+        .profile-form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        .profile-form-group input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .profile-form-group input:focus {
+            border-color: #2ECC71;
+        }
+
+        /* Buttons */
+        .profile-btn-primary {
+            width: 100%;
+            background-color: #2ECC71;
+            color: #1E2A38;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        .profile-btn-primary:hover { background-color: #22c55e; }
+
+        .profile-btn-secondary {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #475569;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .profile-btn-secondary:hover { color: white; border-color: white; }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-primary { background-color: #2ECC71; color: #1E2A38; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-primary:hover { background-color: #22c55e; }
-        .btn-secondary { background-color: transparent; color: #cbd5e1; border: 1px solid #475569; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-        .btn-secondary:hover { border-color: white; color: white; }
+        .profile-btn-group { display: flex; gap: 10px; }
+
+        .profile-alert {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ECC71;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #2ECC71;
+            margin-bottom: 20px;
+        }
+        .profile-loading {
+            color: white; 
+            text-align: center; 
+            margin-top: 50px;
+        }
       `}</style>
     </div>
   );
