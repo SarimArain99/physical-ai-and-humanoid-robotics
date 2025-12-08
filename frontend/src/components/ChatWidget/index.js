@@ -18,7 +18,6 @@ const SendIcon = () => (
     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
   </svg>
 );
-
 const CloseIcon = () => (
   <svg
     width="24"
@@ -34,7 +33,6 @@ const CloseIcon = () => (
     <line x1="6" y1="6" x2="18" y2="18"></line>
   </svg>
 );
-
 const RobotIcon = () => (
   <svg
     width="24"
@@ -54,7 +52,6 @@ const RobotIcon = () => (
   </svg>
 );
 
-// --- COMPONENT ---
 const ChatWidgetContent = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -72,14 +69,12 @@ const ChatWidgetContent = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen, loading]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-
     if (!user) {
       setMessages((prev) => [
         ...prev,
@@ -102,15 +97,10 @@ const ChatWidgetContent = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
           },
-          body: JSON.stringify({
-            query: input,
-            selected_text: "",
-          }),
+          body: JSON.stringify({ query: input, selected_text: "" }),
         }
       );
-
       const data = await response.json();
-
       if (data.response) {
         setMessages((prev) => [
           ...prev,
@@ -123,7 +113,6 @@ const ChatWidgetContent = () => {
         ]);
       }
     } catch (error) {
-      console.error(error);
       setMessages((prev) => [
         ...prev,
         {
@@ -149,7 +138,6 @@ const ChatWidgetContent = () => {
 
       {isOpen && (
         <div className="chat-window">
-          {/* Header */}
           <div className="chat-header">
             <div className="header-title">
               <RobotIcon />
@@ -160,7 +148,6 @@ const ChatWidgetContent = () => {
             </button>
           </div>
 
-          {/* Messages Area */}
           <div className="chat-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`message-row ${msg.role}`}>
@@ -174,8 +161,6 @@ const ChatWidgetContent = () => {
                 </div>
               </div>
             ))}
-
-            {/* Professional Loading State (Typing Indicator) */}
             {loading && (
               <div className="message-row assistant">
                 <div className="bot-avatar">
@@ -191,7 +176,6 @@ const ChatWidgetContent = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="chat-input-area">
             <input
               type="text"
@@ -212,231 +196,63 @@ const ChatWidgetContent = () => {
         </div>
       )}
 
-      {/* 🟢 ENHANCED STYLES */}
+      {/* 🟢 STYLES with MOBILE RESPONSIVENESS */}
       <style>{`
-        .chat-widget-wrapper {
-          position: fixed;
-          bottom: 25px;
-          right: 25px;
-          z-index: 9999;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        /* --- Toggle Button --- */
-        .chat-toggle-btn {
-          width: 65px;
-          height: 65px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #2ecc71, #27ae60);
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
-          transition: transform 0.2s, box-shadow 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .chat-toggle-btn:hover {
-          transform: scale(1.05);
-          box-shadow: 0 10px 30px rgba(46, 204, 113, 0.6);
-        }
-        .pulse-animation {
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-          70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-        }
-
-        /* --- Main Window --- */
-        .chat-window {
-          width: 380px;
-          height: 600px;
-          max-height: 80vh;
-          background-color: #1e2a38;
-          border-radius: 20px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-          display: flex;
-          flex-direction: column;
-          border: 1px solid #2c3e50;
-          overflow: hidden;
-          animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* --- Header --- */
-        .chat-header {
-          padding: 18px 20px;
-          background: linear-gradient(90deg, #2ecc71, #27ae60);
-          color: #1e2a38;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header-title {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-weight: 800;
-          font-size: 16px;
-        }
-        .close-btn {
-          background: rgba(255,255,255,0.2);
-          border: none;
-          border-radius: 50%;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: #1e2a38;
-          transition: background 0.2s;
-        }
-        .close-btn:hover { background: rgba(255,255,255,0.4); }
-
-        /* --- Messages Area --- */
-        .chat-messages {
-          flex: 1;
-          padding: 20px;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          background-color: #151e29;
-          scroll-behavior: smooth;
-        }
-        /* Custom Scrollbar */
-        .chat-messages::-webkit-scrollbar { width: 6px; }
-        .chat-messages::-webkit-scrollbar-track { background: #151e29; }
-        .chat-messages::-webkit-scrollbar-thumb { background: #2c3e50; border-radius: 3px; }
-
-        .message-row {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            animation: fadeIn 0.3s ease;
-        }
-        .message-row.user { justify-content: flex-end; }
+        .chat-widget-wrapper { position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        .bot-avatar {
-            width: 30px;
-            height: 30px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #2ecc71;
-            font-size: 12px;
-            flex-shrink: 0;
+        .chat-toggle-btn { width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; cursor: pointer; box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .chat-toggle-btn:hover { transform: scale(1.05); }
+        .pulse-animation { animation: pulse 2s infinite; }
+        
+        .chat-window { width: 380px; height: 600px; max-height: 80vh; background-color: #1e2a38; border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; border: 1px solid #2c3e50; overflow: hidden; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* 📱 MOBILE RESPONSIVENESS */
+        @media (max-width: 480px) {
+          .chat-widget-wrapper { bottom: 15px; right: 15px; }
+          .chat-window {
+            width: calc(100vw - 30px); /* Full width minus margin */
+            height: 70vh; /* Taller on mobile */
+            position: fixed;
+            bottom: 80px; /* Above the toggle button */
+            right: 15px;
+            left: 15px; /* Center it */
+          }
         }
 
-        .message-bubble {
-          padding: 12px 16px;
-          border-radius: 18px;
-          max-width: 80%;
-          line-height: 1.5;
-          font-size: 14px;
-          position: relative;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .message-bubble.assistant {
-          background-color: #2c3e50;
-          color: #e2e8f0;
-          border-bottom-left-radius: 4px;
-        }
-        .message-bubble.user {
-          background-color: #2ecc71;
-          color: #1e2a38;
-          border-bottom-right-radius: 4px;
-          font-weight: 500;
-        }
-
-        /* --- Typing Animation --- */
-        .message-bubble.typing {
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            min-height: 40px;
-        }
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #94a3b8;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
+        .chat-header { padding: 18px 20px; background: linear-gradient(90deg, #2ecc71, #27ae60); color: #1e2a38; display: flex; justify-content: space-between; align-items: center; }
+        .header-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+        .close-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1e2a38; }
+        
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #151e29; }
+        .message-row { display: flex; gap: 10px; align-items: flex-end; animation: fadeIn 0.3s ease; }
+        .message-row.user { justify-content: flex-end; }
+        .bot-avatar { width: 30px; height: 30px; background: #2c3e50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2ecc71; flex-shrink: 0; }
+        
+        .message-bubble { padding: 12px 16px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 14px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .message-bubble.assistant { background-color: #2c3e50; color: #e2e8f0; border-bottom-left-radius: 4px; }
+        .message-bubble.user { background-color: #2ecc71; color: #1e2a38; border-bottom-right-radius: 4px; font-weight: 500; }
+        
+        .message-bubble.typing { padding: 15px 20px; display: flex; align-items: center; gap: 4px; min-height: 40px; }
+        .typing-dot { width: 8px; height: 8px; background-color: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        /* --- Input Area --- */
-        .chat-input-area {
-          padding: 20px;
-          background-color: #1e2a38;
-          border-top: 1px solid #2c3e50;
-          display: flex;
-          gap: 10px;
-          align-items: center;
-        }
-        .chat-input-area input {
-          flex: 1;
-          padding: 12px 15px;
-          border-radius: 25px;
-          border: 1px solid #2c3e50;
-          background-color: #151e29;
-          color: white;
-          font-size: 14px;
-          transition: border-color 0.2s;
-        }
-        .chat-input-area input:focus {
-          outline: none;
-          border-color: #2ecc71;
-        }
-        .send-btn {
-          width: 45px;
-          height: 45px;
-          background-color: #2ecc71;
-          color: #1e2a38;
-          border: none;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.2s, background 0.2s;
-        }
-        .send-btn:hover:not(:disabled) {
-          background-color: #27ae60;
-          transform: scale(1.1);
-        }
-        .send-btn:disabled {
-          background-color: #2c3e50;
-          color: #94a3b8;
-          cursor: not-allowed;
-        }
-
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px) scale(0.95); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .chat-input-area { padding: 20px; background-color: #1e2a38; border-top: 1px solid #2c3e50; display: flex; gap: 10px; align-items: center; }
+        .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #2c3e50; background-color: #151e29; color: white; font-size: 14px; }
+        .chat-input-area input:focus { outline: none; border-color: #2ecc71; }
+        .send-btn { width: 45px; height: 45px; background-color: #2ecc71; color: #1e2a38; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .send-btn:hover:not(:disabled) { transform: scale(1.1); }
+        .send-btn:disabled { background-color: #2c3e50; color: #94a3b8; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
 };
 
-// Safe Wrapper
 const ChatWidget = () => {
   return (
     <BrowserOnly fallback={null}>{() => <ChatWidgetContent />}</BrowserOnly>
