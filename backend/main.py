@@ -80,10 +80,10 @@ app = FastAPI(lifespan=lifespan)
 # This Regex allows HTTP and HTTPS from ANY website (Vercel, localhost, etc.)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex="https?://.*", 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # 🟢 Allows ANY website (Vercel, localhost, etc.)
+    allow_credentials=False, # 🟢 Disable this (We use Bearer tokens, so we don't need it)
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers (Authorization, etc.)
 )
 
 # --- ROUTERS ---
