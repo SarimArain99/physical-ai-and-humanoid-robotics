@@ -1,12 +1,16 @@
+/* Minimal Custom CSS */
 :root {
   --ifm-color-primary: #2ecc71;
-}
-
-[data-theme="dark"] {
   --ifm-background-color: #1e2a38;
 }
 
-/* Fix for profile page to ensure dark background persists */
+[data-theme="light"] {
+  --ifm-background-color: #1e2a38; /* Force Dark in Light Mode */
+  --ifm-font-color-base: #ffffff;
+}
+
+/* Force dark background on the body tag itself */
 body {
-  background-color: #1e2a38;
+  background-color: #1e2a38 !important;
+  color: white !important;
 }
