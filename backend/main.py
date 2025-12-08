@@ -2,7 +2,6 @@ import os
 import sys
 
 # --- PATH FIX: Ensure backend is in python path ---
-# This prevents "ModuleNotFoundError" when running from different folders
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
@@ -10,8 +9,8 @@ if current_dir not in sys.path:
 
 import asyncio
 from contextlib import asynccontextmanager
-from typing import Dict, Any, AsyncGenerator
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from typing import Dict, Any, AsyncGenerator, Optional
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
@@ -21,11 +20,13 @@ from ingest import DocumentIngestor
 from src.database import create_tables
 from src.auth_better import router as auth_router
 import logging
+import uvicorn
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- DATA MODELS ---
 class QueryRequest(BaseModel):
     query: str
     selected_text: str = ""
@@ -33,53 +34,77 @@ class QueryRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
 
+class TranslateRequest(BaseModel):
+    text: str
+
+class ContentRequest(BaseModel):
+    text: str
+    target_level: str
+
+# --- LIFESPAN MANAGER (Startup/Shutdown) ---
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize resources on startup"""
-    # Initialize OpenAI client
+    # 1. Initialize OpenAI
     app.state.openai_client = OpenAI(api_key=settings.openai_api_key)
 
-    # Initialize Qdrant client
+    # 2. Initialize Qdrant
     app.state.qdrant_client = QdrantClient(
         url=settings.qdrant_url,
         api_key=settings.qdrant_api_key,
     )
 
-    # Verify collection exists
+    # 3. Verify Qdrant Connection
     try:
         app.state.qdrant_client.get_collection(settings.qdrant_collection_name)
-        logger.info(f"Connected to Qdrant collection: {settings.qdrant_collection_name}")
+        logger.info(f"✅ Connected to Qdrant collection: {settings.qdrant_collection_name}")
     except Exception as e:
-        logger.error(f"Could not connect to Qdrant collection: {e}")
-        # We don't raise here so the app can still start even if Qdrant is waking up
+        logger.error(f"⚠️ Could not connect to Qdrant collection: {e}")
+        # We pass here so the app doesn't crash if Qdrant is sleeping
         pass
 
-    # Create database tables
+    # 4. Create Database Tables
     try:
         create_tables()
-        logger.info("Database tables created successfully")
+        logger.info("✅ Database tables created successfully")
     except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
+        logger.error(f"❌ Error creating database tables: {e}")
         raise
 
     yield
 
+# --- APP CREATION ---
 app = FastAPI(lifespan=lifespan)
 
-# --- FIX 1: CORS MUST BE EXPLICIT FOR AUTH TO WORK ---
+# --- 🟢 NUCLEAR CORS FIX (MUST BE HERE) ---
+# This Regex allows HTTP and HTTPS from ANY website (Vercel, localhost, etc.)
 app.add_middleware(
     CORSMiddleware,
-    # This Regex allows http AND https from ANY website
     allow_origin_regex="https?://.*", 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- FIX 2: STANDARD PATH FOR AUTH ---
-# Changed prefix from "/auth" to "/api/auth" to match standard client config
+# --- ROUTERS ---
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 
+
+# --- 🟢 ROOT ENDPOINT (For Health Check) ---
+@app.get("/")
+async def root():
+    return {
+        "status": "online", 
+        "service": "Physical AI Backend", 
+        "cors": "open_to_world"
+    }
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
+# --- ENDPOINTS ---
 
 @app.post("/ingest")
 async def ingest_documents(background_tasks: BackgroundTasks):
@@ -154,43 +179,26 @@ async def chat_endpoint(request: QueryRequest):
 
     except Exception as e:
         logger.error(f"Error in chat endpoint: {e}")
-        # Return the actual error for debugging
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
-
-# --- NEW TRANSLATION ENDPOINT ---
-class TranslateRequest(BaseModel):
-    text: str
-
 @app.post("/translate")
-async def translate_text(
-    request: TranslateRequest, 
-    # Optional: Secure this if you want, or leave open for the demo
-    # authorization: Optional[str] = Header(None) 
-):
-    """
-    Translates technical text into Urdu using AI
-    """
+async def translate_text(request: TranslateRequest):
+    """Translates technical text into Urdu using AI"""
     try:
         openai_client = app.state.openai_client
         
-        # We use a specific system prompt to ensure technical terms remain clear
         system_prompt = (
             "You are a professional translator for a Robotics & AI textbook. "
             "Translate the following text into Urdu. "
             "Rules:\n"
             "1. Keep the tone academic and professional.\n"
-            "2. Do NOT translate technical terms like 'ROS', 'Python', 'Algorithm', 'Sensor', 'Actuator'. Keep them in English script or transliterate standardly.\n"
-            "3. Return ONLY the translated text, no extra conversational filler."
+            "2. Do NOT translate technical terms like 'ROS', 'Python', 'Algorithm', 'Sensor'. Keep them in English script.\n"
+            "3. Return ONLY the translated text."
         )
 
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini", # Use mini for speed and low cost
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.text}
@@ -205,26 +213,20 @@ async def translate_text(
     except Exception as e:
         logger.error(f"Translation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
-class ContentRequest(BaseModel):
-    text: str
-    target_level: str
+
 
 @app.post("/adjust-content")
 async def adjust_content_level(request: ContentRequest):
-    """
-    Rewrites text to match the user's proficiency level
-    """
+    """Rewrites text to match the user's proficiency level"""
     try:
         openai_client = app.state.openai_client
         
-        # Define prompts for different levels
         if request.target_level == "beginner":
-            instruction = "Rewrite this technical content for a high school student. Use simple analogies, avoid dense jargon, and explain concepts step-by-step. Keep it engaging."
+            instruction = "Rewrite this technical content for a high school student. Use simple analogies, avoid dense jargon."
         elif request.target_level == "intermediate":
-            instruction = "Rewrite this content for an undergraduate engineering student. Simplify the complex theory but keep the technical terms. Focus on practical understanding."
+            instruction = "Rewrite this content for an undergraduate engineering student. Simplify complex theory but keep technical terms."
         else:
-            return {"content": request.text} # Pro level needs no change
+            return {"content": request.text}
 
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
@@ -240,9 +242,13 @@ async def adjust_content_level(request: ContentRequest):
     except Exception as e:
         logger.error(f"Adjustment error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
 
+
+# --- RAILWAY & LOCAL EXECUTION ---
 if __name__ == "__main__":
-    import uvicorn
-    # Use reload=True for development to see changes instantly
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # Get port from environment variable (Railway sets this automatically)
+    # Default to 8080 if not set
+    port = int(os.environ.get("PORT", 8080))
+    
+    # Run the server
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
