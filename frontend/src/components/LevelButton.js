@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import { useAuth } from "./Auth/AuthProvider"; // 🟢 Import Auth
+import AuthModal from "./Auth/AuthModal"; // 🟢 Import Modal
 
 // --- ICONS ---
 const LevelIcon = () => (
@@ -34,15 +36,23 @@ const ChevronDown = () => (
 );
 
 const LevelButtonContent = () => {
+  const { user } = useAuth(); // 🟢 Get User Status
   const [isOpen, setIsOpen] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState("pro"); // Default to Pro (Original)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false); // 🟢 Modal State
+  const [currentLevel, setCurrentLevel] = useState("pro");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const handleLevelSelect = async (level) => {
     setIsOpen(false);
 
-    // 1. If PRO is selected, just reload to get original text back
+    // 🟢 1. SECURITY CHECK: Require Login
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    // 2. If PRO is selected, just reload to get original text back
     if (level === "pro") {
       if (currentLevel !== "pro") {
         window.location.reload();
@@ -50,7 +60,7 @@ const LevelButtonContent = () => {
       return;
     }
 
-    // 2. If Basic or Intermediate, call AI
+    // 3. If Basic or Intermediate, call AI
     setCurrentLevel(level);
     setLoading(true);
     setProgress(0);
@@ -124,45 +134,53 @@ const LevelButtonContent = () => {
   };
 
   return (
-    <div className="level-dropdown-container">
-      <button
-        className={`level-trigger-btn ${loading ? "loading" : ""}`}
-        onClick={() => !loading && setIsOpen(!isOpen)}
-      >
-        <LevelIcon />
-        <span>{getLabel()}</span>
-        {!loading && <ChevronDown />}
-      </button>
+    <>
+      <div className="level-dropdown-container">
+        <button
+          className={`level-trigger-btn ${loading ? "loading" : ""}`}
+          onClick={() => !loading && setIsOpen(!isOpen)}
+        >
+          <LevelIcon />
+          <span>{getLabel()}</span>
+          {!loading && <ChevronDown />}
+        </button>
 
-      {isOpen && (
-        <div className="level-menu">
-          <button
-            className="level-item"
-            onClick={() => handleLevelSelect("beginner")}
-          >
-            <span className="dot basic"></span> Basic
-            <span className="sub"> (Explain Like I'm 5)</span>
-          </button>
+        {isOpen && (
+          <div className="level-menu">
+            <button
+              className="level-item"
+              onClick={() => handleLevelSelect("beginner")}
+            >
+              <span className="dot basic"></span> Basic
+              <span className="sub"> (Explain Like I'm 5)</span>
+            </button>
 
-          <button
-            className="level-item"
-            onClick={() => handleLevelSelect("intermediate")}
-          >
-            <span className="dot intermediate"></span> Intermediate
-            <span className="sub"> (For Students)</span>
-          </button>
+            <button
+              className="level-item"
+              onClick={() => handleLevelSelect("intermediate")}
+            >
+              <span className="dot intermediate"></span> Intermediate
+              <span className="sub"> (For Students)</span>
+            </button>
 
-          <button
-            className="level-item pro"
-            onClick={() => handleLevelSelect("pro")}
-          >
-            <span className="dot pro"></span> Pro
-            <span className="sub"> (Original Research)</span>
-          </button>
-        </div>
-      )}
+            <button
+              className="level-item pro"
+              onClick={() => handleLevelSelect("pro")}
+            >
+              <span className="dot pro"></span> Pro
+              <span className="sub"> (Original Research)</span>
+            </button>
+          </div>
+        )}
+      </div>
 
-      {/* 🟢 EMBEDDED STYLES */}
+      {/* 🟢 AUTH POPUP (Hidden by default) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* EMBEDDED STYLES */}
       <style>{`
         .level-dropdown-container {
           position: relative;
@@ -245,7 +263,7 @@ const LevelButtonContent = () => {
             to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 
