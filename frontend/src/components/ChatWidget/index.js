@@ -132,7 +132,7 @@ const ChatWidgetContent = () => {
           className="chat-toggle-btn pulse-animation"
           onClick={() => setIsOpen(true)}
         >
-          <span style={{ fontSize: "24px" }}>💬</span>
+          <span style={{ fontSize: "24px" }}>🤖</span>
         </button>
       )}
 
