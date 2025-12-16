@@ -318,7 +318,7 @@ app = FastAPI(lifespan=lifespan)
 # Allowed origins - configurable via environment variable
 ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:3001,https://physical-ai-textbook.vercel.app"
+    "http://localhost:3000,http://localhost:3001,https://physical-ai-and-humanoid-robotics-omega.vercel.app/"
 ).split(",")
 
 app.add_middleware(
