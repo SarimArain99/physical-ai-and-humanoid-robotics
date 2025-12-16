@@ -314,19 +314,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 # --- APP CREATION ---
 app = FastAPI(lifespan=lifespan)
 
-# --- CORS Configuration (Secure) ---
-# Allowed origins - configurable via environment variable
-ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:3001,https://physical-ai-and-humanoid-robotics-omega.vercel.app/"
-).split(",")
+# --- CORS Configuration (FIXED) ---
+# We define specific origins. Note NO trailing slashes for Vercel.
+env_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://physical-ai-and-humanoid-robotics-omega.vercel.app",
+    "https://physical-ai-and-humanoid-robotics-production.up.railway.app"
+]
+# Combine and filter empty strings
+origins = [o.strip() for o in env_origins if o.strip()] + default_origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # Restricted to specific frontend domains
-    allow_credentials=False,  # Using Bearer tokens, not cookies
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
-    allow_headers=["Authorization", "Content-Type", "Accept"],  # Explicit headers
+    allow_origins=origins,    # Allows the listed origins
+    allow_credentials=True,   # <--- CRITICAL: Must be True for Auth to work
+    allow_methods=["*"],      # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],      # Allows all headers (Authorization, etc.)
 )
 
 # --- ROUTERS ---
