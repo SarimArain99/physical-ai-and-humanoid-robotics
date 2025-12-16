@@ -34,49 +34,98 @@ const UrduButtonContent = () => {
       }
 
       const elementsArray = Array.from(contentElements);
-      const total = elementsArray.length;
 
-      for (let i = 0; i < total; i++) {
-        const element = elementsArray[i];
+      // Filter valid elements and collect texts for batching
+      const validElements = [];
+      const textsToTranslate = [];
+
+      for (const element of elementsArray) {
         const originalText = element.innerText;
-
         // Skip very short text or code blocks
         if (originalText.trim().length < 2) continue;
         if (element.closest("pre") || element.closest("code")) continue;
 
+        validElements.push(element);
+        textsToTranslate.push(originalText);
+      }
+
+      const total = textsToTranslate.length;
+      if (total === 0) {
+        alert("No translatable content found.");
+        setLoading(false);
+        return;
+      }
+
+      // Process in batches of 10 for better performance (T137)
+      const BATCH_SIZE = 10;
+      let processed = 0;
+
+      for (let batchStart = 0; batchStart < total; batchStart += BATCH_SIZE) {
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, total);
+        const batchTexts = textsToTranslate.slice(batchStart, batchEnd);
+        const batchElements = validElements.slice(batchStart, batchEnd);
+
         try {
           const response = await fetch(
-            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate",
+            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate/batch",
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                // Optional: Send token if you want to track usage later
-                // 'Authorization': `Bearer ${localStorage.getItem("auth_token")}`
               },
-              body: JSON.stringify({ text: originalText }),
+              body: JSON.stringify({ texts: batchTexts }),
             }
           );
 
           const data = await response.json();
 
-          if (data.translation) {
-            element.innerText = data.translation;
-            // Apply Urdu Styling
-            element.style.direction = "rtl";
-            element.style.fontFamily =
-              "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
-            element.style.textAlign = "right";
-            element.style.color = "#2ECC71";
-            element.style.fontSize = "1.2em";
-            element.style.lineHeight = "1.8";
+          if (data.translations && Array.isArray(data.translations)) {
+            // Apply translations to elements
+            data.translations.forEach((translation, idx) => {
+              if (translation && batchElements[idx]) {
+                batchElements[idx].innerText = translation;
+                // Apply Urdu Styling
+                batchElements[idx].style.direction = "rtl";
+                batchElements[idx].style.fontFamily =
+                  "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
+                batchElements[idx].style.textAlign = "right";
+                batchElements[idx].style.color = "#2ECC71";
+                batchElements[idx].style.fontSize = "1.2em";
+                batchElements[idx].style.lineHeight = "1.8";
+              }
+            });
           }
         } catch (err) {
-          console.error("Chunk failed", err);
+          console.error("Batch translation failed, falling back to individual:", err);
+          // Fallback: translate individually if batch fails
+          for (let i = 0; i < batchTexts.length; i++) {
+            try {
+              const response = await fetch(
+                "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text: batchTexts[i] }),
+                }
+              );
+              const data = await response.json();
+              if (data.translation && batchElements[i]) {
+                batchElements[i].innerText = data.translation;
+                batchElements[i].style.direction = "rtl";
+                batchElements[i].style.fontFamily = "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
+                batchElements[i].style.textAlign = "right";
+                batchElements[i].style.color = "#2ECC71";
+                batchElements[i].style.fontSize = "1.2em";
+                batchElements[i].style.lineHeight = "1.8";
+              }
+            } catch (innerErr) {
+              console.error("Individual translation failed", innerErr);
+            }
+          }
         }
 
-        // Update progress bar
-        setProgress(Math.round(((i + 1) / total) * 100));
+        processed += batchTexts.length;
+        setProgress(Math.round((processed / total) * 100));
       }
 
       setIsUrdu(true);

@@ -12,11 +12,11 @@ const config: Config = {
     v4: true,
   },
 
-  url: "https://your-docusaurus-site.example.com",
+  url: "https://physical-ai-textbook.vercel.app",
   baseUrl: "/",
 
-  organizationName: "facebook",
-  projectName: "docusaurus",
+  organizationName: "SarimArain99",
+  projectName: "physical-ai-textbook",
 
   onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",

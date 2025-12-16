@@ -92,7 +92,7 @@ As a native Urdu speaker, I want to translate textbook chapters to Urdu, so I ca
 ### Functional Requirements
 
 - **FR-001**: System MUST provide a complete textbook covering all 13 weeks of the Physical AI & Humanoid Robotics course content
-- **FR-002**: System MUST deploy the textbook to a publicly accessible website using GitHub Pages
+- **FR-002**: System MUST deploy the textbook to a publicly accessible website (Vercel for frontend, Railway for backend)
 - **FR-003**: Users MUST be able to read all textbook content with proper formatting, diagrams, and code examples
 - **FR-004**: System MUST integrate a RAG chatbot that answers questions based on the textbook content
 - **FR-005**: System MUST allow users to ask questions about selected/highlighted text specifically
@@ -130,7 +130,7 @@ As a native Urdu speaker, I want to translate textbook chapters to Urdu, so I ca
 
 ### Measurable Outcomes
 
-- **SC-001**: Textbook successfully deploys to GitHub Pages and remains accessible 24/7 during the hackathon evaluation period
+- **SC-001**: Textbook successfully deploys to Vercel (frontend) and Railway (backend) and remains accessible 24/7 during the hackathon evaluation period
 - **SC-002**: Students can complete the entire 13-week course content by reading the textbook and following hands-on exercises
 - **SC-003**: Chatbot answers 90% of factual questions about the textbook content with accurate information
 - **SC-004**: Users can create accounts and log in successfully 99% of the time

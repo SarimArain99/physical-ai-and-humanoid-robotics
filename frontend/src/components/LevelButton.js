@@ -43,6 +43,21 @@ const LevelButtonContent = () => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  // FR-009: Load user's proficiency from profile on mount
+  React.useEffect(() => {
+    if (user && user.proficiency) {
+      // Map stored proficiency to level
+      const proficiencyMap = {
+        "beginner": "beginner",
+        "intermediate": "intermediate",
+        "advanced": "pro",
+        "pro": "pro"
+      };
+      const mappedLevel = proficiencyMap[user.proficiency] || "pro";
+      setCurrentLevel(mappedLevel);
+    }
+  }, [user]);
+
   const handleLevelSelect = async (level) => {
     setIsOpen(false);
 
@@ -71,53 +86,108 @@ const LevelButtonContent = () => {
         ".markdown p, .markdown li"
       );
       const elementsArray = Array.from(contentElements);
-      const total = elementsArray.length;
 
-      for (let i = 0; i < total; i++) {
-        const element = elementsArray[i];
+      // Filter valid elements and collect texts for batching (T138)
+      const validElements = [];
+      const textsToAdjust = [];
+
+      for (const element of elementsArray) {
         const originalText = element.innerText;
-
         // Skip short text or code
         if (originalText.trim().length < 30) continue;
         if (element.closest("pre") || element.closest("code")) continue;
 
+        validElements.push(element);
+        textsToAdjust.push(originalText);
+      }
+
+      const total = textsToAdjust.length;
+      if (total === 0) {
+        setLoading(false);
+        return;
+      }
+
+      // Process in batches of 10 for better performance (T138)
+      const BATCH_SIZE = 10;
+      let processed = 0;
+
+      for (let batchStart = 0; batchStart < total; batchStart += BATCH_SIZE) {
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, total);
+        const batchTexts = textsToAdjust.slice(batchStart, batchEnd);
+        const batchElements = validElements.slice(batchStart, batchEnd);
+
         try {
-          // Call your Backend
           const response = await fetch(
-            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content",
+            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content/batch",
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                text: originalText,
-                target_level: level, // 'beginner' (Basic) or 'intermediate'
+                texts: batchTexts,
+                target_level: level,
               }),
             }
           );
 
           const data = await response.json();
-          if (data.content) {
-            element.innerText = data.content;
 
-            // Visual Styling based on level
-            if (level === "beginner") {
-              element.style.color = "#a8d5ff"; // Light Blue for Basic
-              element.style.borderLeft = "3px solid #3b82f6";
-              element.style.paddingLeft = "10px";
-            } else {
-              element.style.color = "#e9d5ff"; // Light Purple for Intermediate
-              element.style.borderLeft = "3px solid #a855f7";
-              element.style.paddingLeft = "10px";
-            }
+          if (data.contents && Array.isArray(data.contents)) {
+            data.contents.forEach((content, idx) => {
+              if (content && batchElements[idx]) {
+                batchElements[idx].innerText = content;
+
+                // Visual Styling based on level
+                if (level === "beginner") {
+                  batchElements[idx].style.color = "#a8d5ff"; // Light Blue for Basic
+                  batchElements[idx].style.borderLeft = "3px solid #3b82f6";
+                  batchElements[idx].style.paddingLeft = "10px";
+                } else {
+                  batchElements[idx].style.color = "#e9d5ff"; // Light Purple for Intermediate
+                  batchElements[idx].style.borderLeft = "3px solid #a855f7";
+                  batchElements[idx].style.paddingLeft = "10px";
+                }
+              }
+            });
           }
         } catch (err) {
-          console.error(err);
+          console.error("Batch adjustment failed, falling back to individual:", err);
+          // Fallback: adjust individually if batch fails
+          for (let i = 0; i < batchTexts.length; i++) {
+            try {
+              const response = await fetch(
+                "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    text: batchTexts[i],
+                    target_level: level,
+                  }),
+                }
+              );
+              const data = await response.json();
+              if (data.content && batchElements[i]) {
+                batchElements[i].innerText = data.content;
+                if (level === "beginner") {
+                  batchElements[i].style.color = "#a8d5ff";
+                  batchElements[i].style.borderLeft = "3px solid #3b82f6";
+                  batchElements[i].style.paddingLeft = "10px";
+                } else {
+                  batchElements[i].style.color = "#e9d5ff";
+                  batchElements[i].style.borderLeft = "3px solid #a855f7";
+                  batchElements[i].style.paddingLeft = "10px";
+                }
+              }
+            } catch (innerErr) {
+              console.error("Individual adjustment failed", innerErr);
+            }
+          }
         }
 
-        // Update progress bar
-        setProgress(Math.round(((i + 1) / total) * 100));
+        processed += batchTexts.length;
+        setProgress(Math.round((processed / total) * 100));
       }
     } catch (error) {
       alert("Error adapting content.");

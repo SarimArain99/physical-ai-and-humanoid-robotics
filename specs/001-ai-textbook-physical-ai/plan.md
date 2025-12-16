@@ -12,8 +12,8 @@ This plan outlines the implementation of an AI-Native Textbook on Physical AI & 
 ## Technical Context
 
 **Language/Version**: Python 3.11, JavaScript/TypeScript, Markdown (for textbook content)
-**Primary Dependencies**: Docusaurus, OpenAI Agents SDK, FastAPI, Better Auth, Qdrant, Neon Postgres
-**Storage**: Neon Serverless Postgres for user profiles and authentication, Qdrant Cloud for vector storage for RAG system, GitHub Pages for textbook hosting
+**Primary Dependencies**: Docusaurus, OpenAI API (GPT-4o-mini, text-embedding-3-small), FastAPI, Better Auth, Qdrant, Neon Postgres
+**Storage**: Neon Serverless Postgres for user profiles and authentication, Qdrant Cloud for vector storage for RAG system, Vercel for textbook hosting
 **Testing**: pytest for backend services, Jest for frontend components, integration tests for RAG functionality
 **Target Platform**: Web application (browser-based textbook) with cloud backend services
 **Project Type**: Web application (frontend textbook + backend services)

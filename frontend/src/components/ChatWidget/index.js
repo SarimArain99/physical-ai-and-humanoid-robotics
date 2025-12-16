@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import ChatHistory from "./ChatHistory";
+import ChatSession from "./ChatSession";
 
 // --- ICONS (SVG) ---
 const SendIcon = () => (
@@ -51,10 +53,41 @@ const RobotIcon = () => (
     <line x1="16" y1="16" x2="16" y2="16"></line>
   </svg>
 );
+const HistoryIcon = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+);
+const NewChatIcon = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
 
 const ChatWidgetContent = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth(); // T195: Get auth loading state
   const [isOpen, setIsOpen] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false); // T178: Track auth state check
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -67,6 +100,18 @@ const ChatWidgetContent = () => {
   const [selectedText, setSelectedText] = useState("");
   const messagesEndRef = useRef(null);
 
+  // T170: Session management state
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [viewingSession, setViewingSession] = useState(false);
+
+  // T182: Enhanced loading states
+  const [operationLoading, setOperationLoading] = useState(null);
+
+  // T184: Error handling with retry
+  const [lastError, setLastError] = useState(null);
+  const [retryCallback, setRetryCallback] = useState(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -74,6 +119,91 @@ const ChatWidgetContent = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen, loading]);
+
+  // T173: Continue Last Chat - Load active session when widget opens
+  useEffect(() => {
+    if (user && isOpen && !currentSessionId) {
+      checkAndLoadActiveSession();
+    }
+  }, [user, isOpen]);
+
+  const checkAndLoadActiveSession = async () => {
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      // T210: Retry token fetch if user exists but token not found (race condition)
+      if (!token && user) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        token = localStorage.getItem("auth_token");
+      }
+
+      if (!token) {
+        console.warn("No auth token available for loading session");
+        return;
+      }
+
+      const response = await fetch(
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions?limit=1",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.sessions && data.sessions.length > 0) {
+          const lastSession = data.sessions[0];
+          // Only auto-load if it's the active session
+          if (lastSession.is_active) {
+            setCurrentSessionId(lastSession.id);
+            // Load messages from session
+            loadSessionMessages(lastSession.id);
+          }
+        }
+      } else if (response.status === 404) {
+        console.warn("Chat sessions endpoint not found (404)");
+        // Endpoint might not be deployed yet, fail gracefully
+      } else {
+        console.warn("Failed to load active session:", response.status);
+      }
+    } catch (error) {
+      console.error("Failed to check active session:", error);
+      // Fail silently - user can manually access history
+    }
+  };
+
+  const loadSessionMessages = async (sessionId) => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.messages && data.messages.length > 0) {
+          // Convert API messages to chat format
+          const chatMessages = data.messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+            selected_text: msg.selected_text,
+          }));
+          setMessages(chatMessages);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load session messages:", error);
+    }
+  };
 
   // Capture text selection from the page (FR-005)
   useEffect(() => {
@@ -84,7 +214,10 @@ const ChatWidgetContent = () => {
       if (text && text.length > 0 && text.length < 5000) {
         const anchorNode = selection?.anchorNode;
         // Check if selection is NOT inside the chat widget
-        if (anchorNode && !anchorNode.parentElement?.closest('.chat-widget-wrapper')) {
+        if (
+          anchorNode &&
+          !anchorNode.parentElement?.closest(".chat-widget-wrapper")
+        ) {
           setSelectedText(text);
         }
       }
@@ -108,11 +241,16 @@ const ChatWidgetContent = () => {
 
     // Include selected text context in the message if available
     const contextNote = selectedText
-      ? `\n\n[Context: "${selectedText.substring(0, 100)}${selectedText.length > 100 ? '...' : ''}"]`
+      ? `\n\n[Context: "${selectedText.substring(0, 100)}${
+          selectedText.length > 100 ? "..." : ""
+        }"]`
       : "";
     const displayMessage = input + contextNote;
 
-    const newMessages = [...messages, { role: "user", content: displayMessage }];
+    const newMessages = [
+      ...messages,
+      { role: "user", content: displayMessage },
+    ];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -128,7 +266,8 @@ const ChatWidgetContent = () => {
           },
           body: JSON.stringify({
             query: input,
-            selected_text: selectedText  // Now passes actual selected text (FR-005)
+            selected_text: selectedText, // Now passes actual selected text (FR-005)
+            session_id: currentSessionId, // T170: Include session ID for stateful chat
           }),
         }
       );
@@ -136,6 +275,12 @@ const ChatWidgetContent = () => {
       // Clear selected text after sending
       setSelectedText("");
       const data = await response.json();
+
+      // T170: Save session ID from response
+      if (data.session_id && user) {
+        setCurrentSessionId(data.session_id);
+      }
+
       if (data.response) {
         setMessages((prev) => [
           ...prev,
@@ -160,6 +305,305 @@ const ChatWidgetContent = () => {
     }
   };
 
+  // T170: Session management functions
+  const handleSelectSession = async (sessionId) => {
+    if (!sessionId) {
+      // New chat
+      startNewChat();
+      return;
+    }
+
+    // Load existing session
+    setViewingSession(true);
+    setCurrentSessionId(sessionId);
+    setShowHistory(false);
+  };
+
+  const handleMessagesLoaded = (loadedMessages) => {
+    // When viewing a session, replace current messages with loaded ones
+    setMessages(loadedMessages);
+    setViewingSession(false); // Return to chat mode after loading
+  };
+
+  const startNewChat = () => {
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Hello! I am your Physical AI assistant. How can I help you today? Tip: Select/highlight text on the page and ask me about it!",
+      },
+    ]);
+    setCurrentSessionId(null);
+    setShowHistory(false);
+    setViewingSession(false);
+  };
+
+  // T178: Enhanced auth state checking - Verify token validity
+  const checkAuthState = async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setAuthChecked(true);
+        return false;
+      }
+
+      // Verify token with backend
+      const response = await fetch(
+        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/verify",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 404) {
+        // Endpoint not found - backend might not have this endpoint yet
+        // Fall back to trusting the AuthProvider's user state
+        console.warn(
+          "/api/auth/verify endpoint not found, using AuthProvider state"
+        );
+        setAuthChecked(true);
+        return !!user;
+      }
+
+      if (!response.ok) {
+        // Token invalid, clear it
+        localStorage.removeItem("auth_token");
+        setAuthChecked(true);
+        return false;
+      }
+
+      setAuthChecked(true);
+      return true;
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setAuthChecked(true);
+      // On error, trust the AuthProvider state
+      return !!user;
+    }
+  };
+
+  // T178: Check auth state when widget opens
+  useEffect(() => {
+    if (isOpen && !authChecked) {
+      checkAuthState();
+    }
+  }, [isOpen, authChecked]);
+
+  // T179: Login prompt for anonymous users
+  const showLoginPrompt = (feature) => {
+    const loginUrl = "/login"; // Update with actual login page URL
+    const message = `Please sign in to access ${feature}`;
+
+    if (confirm(`${message}\n\nWould you like to go to the login page?`)) {
+      window.location.href = loginUrl;
+    }
+  };
+
+  const toggleHistory = () => {
+    if (!user) {
+      showLoginPrompt("chat history");
+      return;
+    }
+    setShowHistory(!showHistory);
+  };
+
+  // T174: Session title update
+  const updateSessionTitle = async (sessionId, newTitle) => {
+    if (!sessionId || !newTitle.trim()) return;
+
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}/title`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ title: newTitle }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update title");
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to update session title:", error);
+      alert("Failed to update session title");
+      return false;
+    }
+  };
+
+  // T184: Error handler with retry capability
+  const handleError = (error, operation, retryFn = null) => {
+    console.error(`Error in ${operation}:`, error);
+    setLastError({ operation, message: error.message });
+
+    if (retryFn) {
+      setRetryCallback(() => retryFn);
+    }
+
+    return false;
+  };
+
+  // T184: Retry last failed operation
+  const retryLastOperation = () => {
+    if (retryCallback) {
+      setLastError(null);
+      retryCallback();
+      setRetryCallback(null);
+    }
+  };
+
+  // T175: Delete session with T182/T183 enhancements
+  const deleteSession = async (sessionId) => {
+    if (!confirm("Delete this chat session? This cannot be undone.")) {
+      return false;
+    }
+
+    try {
+      // T182: Set loading state
+      setOperationLoading(`delete-${sessionId}`);
+
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete session");
+      }
+
+      // T183: Optimistic UI - Reset immediately
+      if (sessionId === currentSessionId) {
+        startNewChat();
+      }
+
+      return true;
+    } catch (error) {
+      // T184: Handle error with retry
+      return handleError(error, "delete session", () =>
+        deleteSession(sessionId)
+      );
+    } finally {
+      setOperationLoading(null);
+    }
+  };
+
+  // T176: Clear all history
+  const clearAllHistory = async () => {
+    if (
+      !confirm(
+        "Clear ALL chat history? This will delete all your conversations and cannot be undone."
+      )
+    ) {
+      return false;
+    }
+
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch("/api/chat/history", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to clear history");
+      }
+
+      const data = await response.json();
+      alert(data.message || "Chat history cleared successfully");
+
+      // Reset to new chat
+      startNewChat();
+      setShowHistory(false);
+
+      return true;
+    } catch (error) {
+      console.error("Failed to clear history:", error);
+      alert("Failed to clear chat history");
+      return false;
+    }
+  };
+
+  // T177: Export session
+  const exportSession = async (sessionId, format = "text") => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}/export?format=${format}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to export session");
+      }
+
+      const data = await response.json();
+
+      // Create and download file
+      const content =
+        format === "json"
+          ? JSON.stringify(data.content, null, 2)
+          : data.content;
+      const blob = new Blob([content], {
+        type: format === "json" ? "application/json" : "text/plain",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `chat-session-${sessionId.substring(0, 8)}.${
+        format === "json" ? "json" : "txt"
+      }`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      return true;
+    } catch (error) {
+      console.error("Failed to export session:", error);
+      alert("Failed to export chat session");
+      return false;
+    }
+  };
+
+  // T185: Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyboardShortcuts = (e) => {
+      // Ctrl+N or Cmd+N for new chat
+      if ((e.ctrlKey || e.metaKey) && e.key === "n" && user && isOpen) {
+        e.preventDefault();
+        startNewChat();
+      }
+      // Ctrl+H or Cmd+H for history
+      if ((e.ctrlKey || e.metaKey) && e.key === "h" && user && isOpen) {
+        e.preventDefault();
+        toggleHistory();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyboardShortcuts);
+    return () => window.removeEventListener("keydown", handleKeyboardShortcuts);
+  }, [user, isOpen, showHistory]);
+
   return (
     <div className="chat-widget-wrapper">
       {!isOpen && (
@@ -178,73 +622,124 @@ const ChatWidgetContent = () => {
               <RobotIcon />
               <span>AI Assistant</span>
             </div>
-            <button className="close-btn" onClick={() => setIsOpen(false)}>
-              <CloseIcon />
-            </button>
-          </div>
-
-          <div className="chat-messages">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`message-row ${msg.role}`}>
-                {msg.role === "assistant" && (
-                  <div className="bot-avatar">
-                    <RobotIcon />
-                  </div>
-                )}
-                <div className={`message-bubble ${msg.role}`}>
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            {loading && (
-              <div className="message-row assistant">
-                <div className="bot-avatar">
-                  <RobotIcon />
-                </div>
-                <div className="message-bubble assistant typing">
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Selected text indicator (FR-005) */}
-          {selectedText && (
-            <div className="selected-text-indicator">
-              <span className="indicator-icon">📝</span>
-              <span className="indicator-text">
-                Context: "{selectedText.substring(0, 50)}{selectedText.length > 50 ? '...' : ''}"
-              </span>
-              <button
-                className="clear-selection-btn"
-                onClick={() => setSelectedText("")}
-                title="Clear selection"
-              >
-                ✕
+            <div className="header-actions">
+              {/* T170: New Chat button */}
+              {user && !viewingSession && (
+                <button
+                  className="icon-btn"
+                  onClick={startNewChat}
+                  title="New chat"
+                >
+                  <NewChatIcon />
+                </button>
+              )}
+              {/* T170: History button */}
+              {user && !viewingSession && (
+                <button
+                  className="icon-btn"
+                  onClick={toggleHistory}
+                  title="Chat history"
+                >
+                  <HistoryIcon />
+                </button>
+              )}
+              <button className="close-btn" onClick={() => setIsOpen(false)}>
+                <CloseIcon />
               </button>
             </div>
-          )}
-
-          <div className="chat-input-area">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              placeholder={selectedText ? "Ask about selected text..." : "Ask a question..."}
-              disabled={loading}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={loading || !input.trim()}
-              className="send-btn"
-            >
-              <SendIcon />
-            </button>
           </div>
+
+          {/* T170: Show ChatHistory or ChatSession or regular chat */}
+          {showHistory ? (
+            <ChatHistory
+              onSelectSession={handleSelectSession}
+              onNewChat={startNewChat}
+              currentSessionId={currentSessionId}
+              onClose={() => setShowHistory(false)}
+              onDeleteSession={deleteSession}
+              onExportSession={exportSession}
+              onClearAll={clearAllHistory}
+              user={user} // T194: Pass user prop to ChatHistory
+              authLoading={authLoading} // T195: Pass auth loading state
+            />
+          ) : viewingSession ? (
+            <ChatSession
+              sessionId={currentSessionId}
+              onBack={() => setViewingSession(false)}
+              onMessagesLoaded={handleMessagesLoaded}
+            />
+          ) : (
+            <>
+              <div className="chat-messages">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`message-row ${msg.role}`}>
+                    {msg.role === "assistant" && (
+                      <div className="bot-avatar">
+                        <RobotIcon />
+                      </div>
+                    )}
+                    <div className={`message-bubble ${msg.role}`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="message-row assistant">
+                    <div className="bot-avatar">
+                      <RobotIcon />
+                    </div>
+                    <div className="message-bubble assistant typing">
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Selected text indicator (FR-005) */}
+              {selectedText && (
+                <div className="selected-text-indicator">
+                  <span className="indicator-icon">📝</span>
+                  <span className="indicator-text">
+                    Context: "{selectedText.substring(0, 50)}
+                    {selectedText.length > 50 ? "..." : ""}"
+                  </span>
+                  <button
+                    className="clear-selection-btn"
+                    onClick={() => setSelectedText("")}
+                    title="Clear selection"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* T170: Only show input area when in chat mode (not history/session view) */}
+              <div className="chat-input-area">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  placeholder={
+                    selectedText
+                      ? "Ask about selected text..."
+                      : "Ask a question..."
+                  }
+                  disabled={loading}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={loading || !input.trim()}
+                  className="send-btn"
+                >
+                  <SendIcon />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -273,6 +768,9 @@ const ChatWidgetContent = () => {
 
         .chat-header { padding: 18px 20px; background: linear-gradient(90deg, #2ecc71, #27ae60); color: #1e2a38; display: flex; justify-content: space-between; align-items: center; }
         .header-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        .icon-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1e2a38; transition: background-color 0.2s; }
+        .icon-btn:hover { background: rgba(255,255,255,0.3); }
         .close-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1e2a38; }
         
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #151e29; }

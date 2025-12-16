@@ -1,0 +1,47 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# --- Virtual Environment ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Environment Variables ---
+.env
+.env.local
+.env.*
+
+# --- Git ---
+.git/
+.gitignore
+
+# --- IDE Settings ---
+.vscode/
+.idea/
+
+# --- Logs ---
+*.log
+*.log*
+
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+
+# --- Dockerfiles ---
+Dockerfile*
+.dockerignore
+
+# --- Documentation ---
+README.md
+docs/
+*.md
