@@ -298,13 +298,36 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info(f"✅ Connected to Qdrant collection: {settings.qdrant_collection_name}")
     except Exception as e:
         logger.error(f"⚠️ Could not connect to Qdrant collection: {e}")
-        # We pass here so the app doesn't crash if Qdrant is sleeping
         pass
 
-    # 4. Create Database Tables
+    # 4. Create Database Tables & AUTO-FIX DATABASE
     try:
         create_tables()
         logger.info("✅ Database tables created successfully")
+
+        # --- AUTO-FIX: Add missing 'proficiency' column ---
+        try:
+            from sqlalchemy import text
+            # Get a temporary DB session just for this fix
+            db_gen = get_db()
+            db = next(db_gen)
+            
+            # Run the SQL to add the column safely
+            logger.info("🔧 Checking database schema...")
+            db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS proficiency VARCHAR(50) DEFAULT 'pro'"))
+            db.commit()
+            logger.info("✅ SUCCESS: Added/Verified 'proficiency' column.")
+            
+            # Close the temporary session
+            try:
+                next(db_gen)
+            except StopIteration:
+                pass
+        except Exception as e:
+             # If this fails, it might just mean the column exists or permission issue
+             logger.warning(f"⚠️ Database auto-fix note: {e}")
+        # --------------------------------------------------
+
     except Exception as e:
         logger.error(f"❌ Error creating database tables: {e}")
         raise
