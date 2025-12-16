@@ -20,11 +20,80 @@ from ingest import DocumentIngestor
 from src.database import create_tables
 from src.auth_better import router as auth_router
 import logging
+import json
+import uuid
+import time
+from functools import wraps
 import uvicorn
 
-# Set up logging
+# --- STRUCTURED LOGGING SETUP (FR-015) ---
+class JSONFormatter(logging.Formatter):
+    """JSON formatter for structured logging with correlation IDs."""
+
+    def format(self, record):
+        log_obj = {
+            "timestamp": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "correlation_id": getattr(record, 'correlation_id', None),
+        }
+        if record.exc_info:
+            log_obj["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_obj)
+
+
+# Set up structured logging
 logging.basicConfig(level=logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+logging.root.handlers = [handler]
 logger = logging.getLogger(__name__)
+
+
+# --- RETRY DECORATOR (FR-016) ---
+def with_retry(max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
+    """
+    Retry decorator with exponential backoff for external API calls.
+
+    Args:
+        max_retries: Maximum number of retry attempts
+        delay: Initial delay between retries in seconds
+        backoff: Multiplier for delay after each retry
+    """
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            current_delay = delay
+
+            for attempt in range(max_retries + 1):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_retries:
+                        logger.warning(
+                            f"Retry {attempt + 1}/{max_retries} for {func.__name__}: {e}",
+                            extra={"correlation_id": kwargs.get("correlation_id")}
+                        )
+                        await asyncio.sleep(current_delay)
+                        current_delay *= backoff
+                    else:
+                        logger.error(
+                            f"All {max_retries} retries failed for {func.__name__}: {e}",
+                            extra={"correlation_id": kwargs.get("correlation_id")}
+                        )
+
+            raise last_exception
+        return wrapper
+    return decorator
+
+
+# Generate correlation ID for request tracing
+def generate_correlation_id() -> str:
+    """Generate a unique correlation ID for request tracing."""
+    return str(uuid.uuid4())[:8]
 
 # --- DATA MODELS ---
 class QueryRequest(BaseModel):
@@ -76,14 +145,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 # --- APP CREATION ---
 app = FastAPI(lifespan=lifespan)
 
-# --- 🟢 NUCLEAR CORS FIX (MUST BE HERE) ---
-# This Regex allows HTTP and HTTPS from ANY website (Vercel, localhost, etc.)
+# --- CORS Configuration (Secure) ---
+# Allowed origins - configurable via environment variable
+ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001,https://physical-ai-textbook.vercel.app"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 🟢 Allows ANY website (Vercel, localhost, etc.)
-    allow_credentials=False, # 🟢 Disable this (We use Bearer tokens, so we don't need it)
-    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allows all headers (Authorization, etc.)
+    allow_origins=ALLOWED_ORIGINS,  # Restricted to specific frontend domains
+    allow_credentials=False,  # Using Bearer tokens, not cookies
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
+    allow_headers=["Authorization", "Content-Type", "Accept"],  # Explicit headers
 )
 
 # --- ROUTERS ---
@@ -121,26 +195,64 @@ async def ingest_documents(background_tasks: BackgroundTasks):
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: QueryRequest):
     """Chat endpoint that retrieves context from Qdrant and generates response"""
+    correlation_id = generate_correlation_id()
+    start_time = time.time()
+
+    logger.info(
+        f"Chat request received - query length: {len(request.query)}, has_selection: {bool(request.selected_text)}",
+        extra={"correlation_id": correlation_id}
+    )
+
     try:
         qdrant_client = app.state.qdrant_client
         openai_client = app.state.openai_client
 
         search_query = request.selected_text if request.selected_text else request.query
 
-        # Generate embedding
-        embedding_response = openai_client.embeddings.create(
-            input=search_query,
-            model="text-embedding-3-small"
-        )
+        # Generate embedding with retry logic (FR-016)
+        max_retries = 3
+        retry_delay = 1.0
+        embedding_response = None
+
+        for attempt in range(max_retries):
+            try:
+                embedding_response = openai_client.embeddings.create(
+                    input=search_query,
+                    model="text-embedding-3-small"
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Embedding retry {attempt + 1}/{max_retries}: {e}",
+                        extra={"correlation_id": correlation_id}
+                    )
+                    await asyncio.sleep(retry_delay * (2 ** attempt))
+                else:
+                    raise
+
         query_embedding = embedding_response.data[0].embedding
 
-        # Search Qdrant
-        search_results = qdrant_client.search(
-            collection_name=settings.qdrant_collection_name,
-            query_vector=query_embedding,
-            limit=5,
-            with_payload=True
-        )
+        # Search Qdrant with retry logic (FR-016)
+        search_results = None
+        for attempt in range(max_retries):
+            try:
+                search_results = qdrant_client.search(
+                    collection_name=settings.qdrant_collection_name,
+                    query_vector=query_embedding,
+                    limit=5,
+                    with_payload=True
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Qdrant search retry {attempt + 1}/{max_retries}: {e}",
+                        extra={"correlation_id": correlation_id}
+                    )
+                    await asyncio.sleep(retry_delay * (2 ** attempt))
+                else:
+                    raise
 
         # Context processing
         context_parts = []
@@ -151,6 +263,11 @@ async def chat_endpoint(request: QueryRequest):
             context_parts.append(full_text)
 
         context = "\n\n".join(context_parts)
+
+        logger.info(
+            f"Retrieved {len(search_results)} context chunks",
+            extra={"correlation_id": correlation_id}
+        )
 
         system_prompt = (
             "You are an expert on the Physical AI & Humanoid Robotics textbook. "

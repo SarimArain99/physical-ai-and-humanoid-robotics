@@ -24,8 +24,14 @@ from src.database import get_db
 
 router = APIRouter()
 
-# Secret for JWT tokens
-JWT_SECRET = os.getenv("BETTER_AUTH_SECRET", "fallback-secret-for-development")
+# Secret for JWT tokens - MUST be set in environment, no fallback for security
+JWT_SECRET = os.environ.get("BETTER_AUTH_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "CRITICAL: BETTER_AUTH_SECRET environment variable is not set. "
+        "This is required for secure JWT token generation. "
+        "Set it in your .env file or environment before starting the server."
+    )
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

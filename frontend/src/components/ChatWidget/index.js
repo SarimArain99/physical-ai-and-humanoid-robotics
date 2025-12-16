@@ -59,19 +59,42 @@ const ChatWidgetContent = () => {
     {
       role: "assistant",
       content:
-        "Hello! I am your Physical AI assistant. How can I help you today?",
+        "Hello! I am your Physical AI assistant. How can I help you today? Tip: Select/highlight text on the page and ask me about it!",
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen, loading]);
+
+  // Capture text selection from the page (FR-005)
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const text = selection?.toString().trim() || "";
+      // Only capture if text is from the main content area (not from chat widget)
+      if (text && text.length > 0 && text.length < 5000) {
+        const anchorNode = selection?.anchorNode;
+        // Check if selection is NOT inside the chat widget
+        if (anchorNode && !anchorNode.parentElement?.closest('.chat-widget-wrapper')) {
+          setSelectedText(text);
+        }
+      }
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -83,7 +106,13 @@ const ChatWidgetContent = () => {
       return;
     }
 
-    const newMessages = [...messages, { role: "user", content: input }];
+    // Include selected text context in the message if available
+    const contextNote = selectedText
+      ? `\n\n[Context: "${selectedText.substring(0, 100)}${selectedText.length > 100 ? '...' : ''}"]`
+      : "";
+    const displayMessage = input + contextNote;
+
+    const newMessages = [...messages, { role: "user", content: displayMessage }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -97,9 +126,15 @@ const ChatWidgetContent = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
           },
-          body: JSON.stringify({ query: input, selected_text: "" }),
+          body: JSON.stringify({
+            query: input,
+            selected_text: selectedText  // Now passes actual selected text (FR-005)
+          }),
         }
       );
+
+      // Clear selected text after sending
+      setSelectedText("");
       const data = await response.json();
       if (data.response) {
         setMessages((prev) => [
@@ -176,13 +211,30 @@ const ChatWidgetContent = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Selected text indicator (FR-005) */}
+          {selectedText && (
+            <div className="selected-text-indicator">
+              <span className="indicator-icon">📝</span>
+              <span className="indicator-text">
+                Context: "{selectedText.substring(0, 50)}{selectedText.length > 50 ? '...' : ''}"
+              </span>
+              <button
+                className="clear-selection-btn"
+                onClick={() => setSelectedText("")}
+                title="Clear selection"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="chat-input-area">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              placeholder="Ask a question..."
+              placeholder={selectedText ? "Ask about selected text..." : "Ask a question..."}
               disabled={loading}
             />
             <button
@@ -237,6 +289,13 @@ const ChatWidgetContent = () => {
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         
+        /* Selected text indicator (FR-005) */
+        .selected-text-indicator { padding: 8px 15px; background-color: #2c3e50; border-top: 1px solid #3d5266; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; }
+        .indicator-icon { font-size: 14px; }
+        .indicator-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a8d5ff; }
+        .clear-selection-btn { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .clear-selection-btn:hover { background-color: #3d5266; color: white; }
+
         .chat-input-area { padding: 20px; background-color: #1e2a38; border-top: 1px solid #2c3e50; display: flex; gap: 10px; align-items: center; }
         .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #2c3e50; background-color: #151e29; color: white; font-size: 14px; }
         .chat-input-area input:focus { outline: none; border-color: #2ecc71; }
