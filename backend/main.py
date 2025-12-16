@@ -10,7 +10,7 @@ if current_dir not in sys.path:
 import asyncio
 from contextlib import asynccontextmanager
 from typing import Dict, Any, AsyncGenerator, Optional
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
