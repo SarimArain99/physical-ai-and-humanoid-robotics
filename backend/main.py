@@ -270,7 +270,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
 
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
+        user_id = payload.get("user_id")  # Fixed: use "user_id" not "sub"
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         return user_id
@@ -409,7 +409,7 @@ async def chat_endpoint(
         try:
             token = authorization.replace("Bearer ", "")
             payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
-            user_id = payload.get("sub")
+            user_id = payload.get("user_id")  # Fixed: use "user_id" not "sub"
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             pass  # Continue as anonymous user if token invalid
 
