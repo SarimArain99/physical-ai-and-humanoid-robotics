@@ -12,6 +12,7 @@ import DocsVersionDropdownNavbarItem from "@theme/NavbarItem/DocsVersionDropdown
 import AuthButton from "@site/src/components/Auth/AuthButton"; // Adjust path if it's in components
 import UrduButton from "@site/src/components/UrduButton"; // 🟢 Check this path!
 import LevelButton from "@site/src/components/LevelButton";
+import ThemeToggle from "@site/src/theme/ThemeToggle";
 
 const ComponentTypes = {
   default: DefaultNavbarItem,
@@ -28,6 +29,7 @@ const ComponentTypes = {
   "custom-authButton": AuthButton,
   "custom-urduButton": UrduButton, // 🟢 This key matches docusaurus.config.ts
   "custom-levelButton": LevelButton,
+  "custom-themeToggle": ThemeToggle,
 };
 
 export default ComponentTypes;

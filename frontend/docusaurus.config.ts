@@ -93,7 +93,7 @@ const config: Config = {
         },
         // Theme switcher (dark/light/system)
         {
-          type: "colorModeToggle",
+          type: "custom-themeToggle",
           position: "right",
         },
         {
