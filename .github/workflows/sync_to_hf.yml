@@ -30,12 +30,15 @@ jobs:
         run: |
           # Copy backend files to HF Space root
           cp -r backend/* hf-space/
-          cp -r backend/.dockerignore hf-space/ 2>/dev/null || true
 
-          # Create a symlink so main.py works at root level
-          cd hf-space
-          # Ensure src directory is included
-          ls -la
+      - name: Add HF README
+        run: |
+          cp README_HF.md hf-space/README.md
+
+      - name: Copy Dockerfile to Space
+        run: |
+          cp Dockerfile hf-space/
+          cp .dockerignore hf-space/
 
       - name: Commit and push to Hugging Face
         run: |
