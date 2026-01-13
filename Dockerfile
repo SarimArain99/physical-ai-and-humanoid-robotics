@@ -1,5 +1,5 @@
 # Hugging Face Spaces Docker SDK Configuration
-# This Dockerfile builds the FastAPI backend from the backend/ directory
+# Files are synced from GitHub with backend/ content at root
 # Read the doc: https://huggingface.co/docs/hub/spaces-sdks-docker
 FROM python:3.11-slim
 
@@ -11,12 +11,12 @@ USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 WORKDIR /app
 
-# Copy and install requirements from backend directory
-COPY --chown=user backend/requirements.txt requirements.txt
+# Copy and install requirements (files are at root after sync)
+COPY --chown=user requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Copy application files from backend directory
-COPY --chown=user backend/ .
+# Copy application files (files are at root after sync)
+COPY --chown=user . .
 
 # HF Spaces Docker SDK uses port 7860 by default
 # Use ${PORT} variable which HF sets automatically, defaulting to 7860
