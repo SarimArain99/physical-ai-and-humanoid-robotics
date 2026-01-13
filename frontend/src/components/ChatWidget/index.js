@@ -5,6 +5,7 @@ import ChatHistory from "./ChatHistory";
 import ChatSession from "./ChatSession";
 import ChatIcon from "./ChatIcon";
 import "./ChatIcon.css";
+import { API_BASE_URL, chatUrls } from "../../config/api";
 
 // --- ICONS (SVG) ---
 const SendIcon = () => (
@@ -126,15 +127,12 @@ const ChatWidgetContent = () => {
         return;
       }
 
-      const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions?limit=1",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+      const response = await fetch(chatUrls.listSessions(1), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
           },
-        }
-      );
+        });
 
       if (response.ok) {
         const data = await response.json();
@@ -162,15 +160,12 @@ const ChatWidgetContent = () => {
   const loadSessionMessages = async (sessionId) => {
     try {
       const token = localStorage.getItem("auth_token");
-      const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+      const response = await fetch(chatUrls.getSession(sessionId), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
           },
-        }
-      );
+        });
 
       if (response.ok) {
         const data = await response.json();
@@ -240,21 +235,18 @@ const ChatWidgetContent = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+      const response = await fetch(chatUrls.chat(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
           },
-          body: JSON.stringify({
-            query: input,
-            selected_text: selectedText, // Now passes actual selected text (FR-005)
-            session_id: currentSessionId, // T170: Include session ID for stateful chat
+        body: JSON.stringify({
+          query: input,
+          selected_text: selectedText, // Now passes actual selected text (FR-005)
+          session_id: currentSessionId, // T170: Include session ID for stateful chat
           }),
-        }
-      );
+        });
 
       // Clear selected text after sending
       setSelectedText("");
@@ -333,7 +325,7 @@ const ChatWidgetContent = () => {
 
       // Verify token with backend
       const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/verify",
+        `${API_BASE_URL}/api/auth/verify`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -400,7 +392,7 @@ const ChatWidgetContent = () => {
     try {
       const token = localStorage.getItem("auth_token");
       const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}/title`,
+        chatUrls.updateTitle(sessionId),
         {
           method: "PATCH",
           headers: {
@@ -456,7 +448,7 @@ const ChatWidgetContent = () => {
 
       const token = localStorage.getItem("auth_token");
       const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}`,
+        chatUrls.deleteSession(sessionId),
         {
           method: "DELETE",
           headers: {
@@ -528,7 +520,7 @@ const ChatWidgetContent = () => {
     try {
       const token = localStorage.getItem("auth_token");
       const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}/export?format=${format}`,
+        chatUrls.exportSession(sessionId, format),
         {
           headers: {
             Authorization: `Bearer ${token}`,

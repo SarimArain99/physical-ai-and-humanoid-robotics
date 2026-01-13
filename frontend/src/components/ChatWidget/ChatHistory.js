@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { chatUrls } from '../../config/api';
 
 /**
  * ChatHistory Component - T168
@@ -95,7 +96,7 @@ const ChatHistory = ({
       // T181: Add pagination parameters
       const offset = (currentPage - 1) * sessionsPerPage;
       const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions?limit=${sessionsPerPage}&offset=${offset}`,
+        chatUrls.listSessions(sessionsPerPage, offset),
         {
           headers: {
             'Authorization': `Bearer ${token}`,

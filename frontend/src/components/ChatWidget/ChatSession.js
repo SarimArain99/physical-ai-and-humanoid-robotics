@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { chatUrls } from "../../config/api";
 
 /**
  * ChatSession Component - T169
@@ -46,7 +47,7 @@ const ChatSession = ({ sessionId, onBack, onMessagesLoaded }) => {
       }
 
       const response = await fetch(
-        `https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/chat/sessions/${sessionId}`,
+        chatUrls.getSession(sessionId),
         {
           headers: {
             Authorization: `Bearer ${token}`,

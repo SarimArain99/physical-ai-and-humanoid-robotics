@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { authUrls } from "../../config/api";
 // We don't import client here to avoid issues
 
 const AuthContext = createContext();
@@ -34,9 +35,8 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // ✅ Use Railway URL
       const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/get-session",
+        authUrls.getSession(),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/sign-in/email",
+        authUrls.signInEmail(),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, name, password, proficiency) => {
     try {
       const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/sign-up",
+        authUrls.signUp(),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "https://physical-ai-and-humanoid-robotics-production.up.railway.app/api/auth/profile/update",
+        authUrls.profileUpdate(),
         {
           method: "POST",
           headers: {
