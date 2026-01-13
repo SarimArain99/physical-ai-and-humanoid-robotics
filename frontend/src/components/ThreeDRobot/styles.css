@@ -1,0 +1,101 @@
+/**
+ * ThreeDRobot Component Styles
+ * Feature: 002-ui-improvements
+ * Task: T055
+ */
+
+.three-d-robot-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-surface, #151E29);
+  border-radius: var(--radius-xl, 0.75rem);
+  overflow: hidden;
+}
+
+.three-d-robot-interactive {
+  cursor: grab;
+}
+
+.three-d-robot-interactive:active {
+  cursor: grabbing;
+}
+
+.three-d-robot-interactive:focus {
+  outline: 2px solid var(--module-primary, #2ECC71);
+  outline-offset: 2px;
+}
+
+.three-d-robot-loading {
+  color: var(--color-text-secondary, #94A3B8);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+/* Fallback SVG */
+.three-d-robot-fallback-svg {
+  width: 100%;
+  height: 100%;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Canvas styling for WebGL */
+.three-d-robot-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-xl, 0.75rem);
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .three-d-robot-container {
+    max-width: 100%;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .three-d-robot-fallback-svg {
+    animation: none;
+  }
+
+  .three-d-robot-interactive {
+    cursor: default;
+  }
+}
+
+/* Performance mode - reduce effects */
+.performance-low .three-d-robot-container {
+  will-change: transform;
+}
+
+/* Glow effect for 3D canvas */
+.three-d-robot-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--radius-xl, 0.75rem);
+  box-shadow: inset 0 0 60px rgba(78, 205, 196, 0.1);
+  opacity: 0;
+  transition: opacity var(--duration-base, 300ms) var(--ease-out, ease-out);
+}
+
+.three-d-robot-container:hover::after {
+  opacity: 1;
+}
+
+/* Dark mode specific adjustments */
+[data-theme='dark'] .three-d-robot-container {
+  background: var(--color-bg-surface, #0f172a);
+}

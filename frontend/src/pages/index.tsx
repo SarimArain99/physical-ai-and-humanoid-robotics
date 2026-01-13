@@ -5,26 +5,54 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import Heading from '@theme/Heading';
+import HeroAnimation from '@site/src/components/HeroAnimation';
+import WeekCards from '@site/src/components/WeekCards';
+// T092: Lazy load ThreeDRobot for better performance
+import { lazy, Suspense } from 'react';
+
+const ThreeDRobot = lazy(() => import('@site/src/components/ThreeDRobot'));
 
 import styles from './index.module.css';
 
+/**
+ * Homepage Component
+ * Feature: 002-ui-improvements
+ * Task: T060 - Integrate ThreeDRobot into homepage hero section
+ */
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
-            Get Started with Physical AI
-          </Link>
+      <HeroAnimation staggerDelay={150}>
+        <div className="container">
+          <div className={styles.heroContent}>
+            <div className={styles.heroText}>
+              <Heading as="h1" className="hero__title">
+                {siteConfig.title}
+              </Heading>
+              <p className="hero__subtitle">{siteConfig.tagline}</p>
+              <div className={styles.buttons}>
+                <Link
+                  className="button button--secondary button--lg"
+                  to="/docs/intro">
+                  Get Started with Physical AI
+                </Link>
+              </div>
+            </div>
+            <div className={styles.heroVisual}>
+              <Suspense fallback={<div className={styles.threeRobotLoading}>Loading 3D Robot...</div>}>
+                <ThreeDRobot
+                  autoRotate={true}
+                  rotateSpeed={0.005}
+                  enableDrag={true}
+                  width={280}
+                  height={350}
+                />
+              </Suspense>
+            </div>
+          </div>
         </div>
-      </div>
+      </HeroAnimation>
     </header>
   );
 }
@@ -43,43 +71,7 @@ export default function Home(): ReactNode {
               Course Modules
             </Heading>
 
-            <div className={styles.weeksGrid}>
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Weeks 1-2</div>
-                <div className={styles.weekTitle}>Introduction to Physical AI</div>
-                <div className={styles.weekDescription}>Foundations of embodied intelligence and physical AI principles</div>
-              </div>
-
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Weeks 3-5</div>
-                <div className={styles.weekTitle}>ROS 2 Fundamentals</div>
-                <div className={styles.weekDescription}>Robot Operating System 2 for robot control and communication</div>
-              </div>
-
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Weeks 6-7</div>
-                <div className={styles.weekTitle}>Robot Simulation</div>
-                <div className={styles.weekDescription}>Gazebo and Unity for digital twin development</div>
-              </div>
-
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Weeks 8-10</div>
-                <div className={styles.weekTitle}>NVIDIA Isaac Platform</div>
-                <div className={styles.weekDescription}>AI-powered perception and navigation with Isaac Sim/ROS</div>
-              </div>
-
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Weeks 11-12</div>
-                <div className={styles.weekTitle}>Humanoid Robot Development</div>
-                <div className={styles.weekDescription}>Kinematics, dynamics, and control for bipedal robots</div>
-              </div>
-
-              <div className={styles.weekCard}>
-                <div className={styles.weekNumber}>Week 13</div>
-                <div className={styles.weekTitle}>Conversational Robotics</div>
-                <div className={styles.weekDescription}>Vision-Language-Action systems for natural interaction</div>
-              </div>
-            </div>
+            <WeekCards />
           </div>
         </section>
 

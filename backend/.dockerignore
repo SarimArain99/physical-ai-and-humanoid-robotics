@@ -32,16 +32,19 @@ ENV/
 .coverage
 htmlcov/
 .tox/
+test_*.py
+check_*.py
+*_test.py
+
+# --- Development Scripts ---
+run_ingestion.sh
+start_server.sh
+ingest.py
 
 # --- OS Files ---
 .DS_Store
 Thumbs.db
 
 # --- Dockerfiles ---
-Dockerfile*
+# Note: Keep README.md for Hugging Face Spaces metadata
 .dockerignore
-
-# --- Documentation ---
-README.md
-docs/
-*.md

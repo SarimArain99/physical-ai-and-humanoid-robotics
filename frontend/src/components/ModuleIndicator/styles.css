@@ -1,0 +1,184 @@
+/**
+ * Module Indicator Styles
+ * Feature: 002-ui-improvements
+ * Task: T033
+ */
+
+.module-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background: var(--color-bg-surface, #f5f7fa);
+  border: 1px solid var(--color-border, #e1e4e8);
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-semibold, 600);
+  transition: all var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.module-indicator-compact {
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  font-size: var(--text-xs, 0.75rem);
+}
+
+.module-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--module-primary, #2ecc71);
+  box-shadow: 0 0 0 2px var(--module-primary-bg, rgba(46, 204, 113, 0.2));
+  transition: transform var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.module-indicator:hover .module-indicator-dot {
+  transform: scale(1.2);
+}
+
+.module-indicator-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.module-indicator-name {
+  color: var(--color-text-primary, #1a202c);
+}
+
+.module-indicator-description {
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--font-normal, 400);
+  color: var(--color-text-secondary, #4a5568);
+}
+
+/* Module-specific colors */
+.module-indicator-ros2 {
+  border-color: var(--module-ros2, #ff6b35);
+}
+.module-indicator-ros2 .module-indicator-dot {
+  background: var(--module-ros2, #ff6b35);
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.module-indicator-digitalTwin {
+  border-color: var(--module-digitalTwin, #00bfa5);
+}
+.module-indicator-digitalTwin .module-indicator-dot {
+  background: var(--module-digitalTwin, #00bfa5);
+  box-shadow: 0 0 0 2px rgba(0, 191, 165, 0.2);
+}
+
+.module-indicator-isaac {
+  border-color: var(--module-isaac, #76b900);
+}
+.module-indicator-isaac .module-indicator-dot {
+  background: var(--module-isaac, #76b900);
+  box-shadow: 0 0 0 2px rgba(118, 185, 0, 0.2);
+}
+
+.module-indicator-vla {
+  border-color: var(--module-vla, #e91e63);
+}
+.module-indicator-vla .module-indicator-dot {
+  background: var(--module-vla, #e91e63);
+  box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.2);
+}
+
+/* Module Badge */
+.module-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background: var(--module-primary, #2ecc71);
+  color: white;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--font-semibold, 600);
+  border-radius: var(--radius-base, 0.25rem);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.module-badge-ros2 {
+  background: var(--module-ros2, #ff6b35);
+}
+.module-badge-digitalTwin {
+  background: var(--module-digitalTwin, #00bfa5);
+}
+.module-badge-isaac {
+  background: var(--module-isaac, #76b900);
+}
+.module-badge-vla {
+  background: var(--module-vla, #e91e63);
+}
+
+/* Module Progress */
+.module-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem);
+  background: var(--color-bg-surface, #f5f7fa);
+  border: 1px solid var(--color-border, #e1e4e8);
+  border-radius: var(--radius-lg, 0.5rem);
+}
+
+.module-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.module-progress-name {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-text-primary, #1a202c);
+}
+
+.module-progress-percent {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-semibold, 600);
+  color: var(--module-primary, #2ecc71);
+}
+
+.module-progress-bar {
+  height: 6px;
+  background: var(--color-bg-tertiary, #e2e8f0);
+  border-radius: var(--radius-full, 9999px);
+  overflow: hidden;
+}
+
+.module-progress-fill {
+  height: 100%;
+  background: var(--module-primary, #2ecc71);
+  border-radius: var(--radius-full, 9999px);
+  transition: width var(--duration-normal, 300ms) var(--ease-out, ease-out);
+}
+
+.module-progress-ros2 .module-progress-fill {
+  background: var(--module-ros2, #ff6b35);
+}
+.module-progress-digitalTwin .module-progress-fill {
+  background: var(--module-digitalTwin, #00bfa5);
+}
+.module-progress-isaac .module-progress-fill {
+  background: var(--module-isaac, #76b900);
+}
+.module-progress-vla .module-progress-fill {
+  background: var(--module-vla, #e91e63);
+}
+
+.module-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-secondary, #4a5568);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .module-indicator,
+  .module-indicator-dot,
+  .module-progress-fill {
+    transition: none;
+  }
+}

@@ -11,17 +11,76 @@
   overflow: hidden;
   /* Uses Docusaurus Primary Color with a subtle gradient */
   background: linear-gradient(
-    135deg, 
-    var(--ifm-color-primary-darker) 0%, 
+    135deg,
+    var(--ifm-color-primary-darker) 0%,
     var(--ifm-color-primary-lighter) 100%
   );
   color: #fff; /* Always white text on the primary background */
   box-shadow: 0 4px 20px #0000001a;
 }
 
+/* Hero content layout for 3D robot integration */
+.heroContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  min-height: 400px;
+}
+
+.heroText {
+  flex: 1;
+  max-width: 500px;
+  text-align: left;
+}
+
+.heroText .hero__title {
+  margin-bottom: 1rem;
+}
+
+.heroText .hero__subtitle {
+  margin-bottom: 1.5rem;
+}
+
+.heroVisual {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* T092: Loading state for lazy-loaded 3D robot */
+.threeRobotLoading {
+  width: 280px;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ifm-card-background-color);
+  border-radius: 12px;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.875rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 3rem 1.5rem;
+  }
+
+  .heroContent {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .heroText {
+    text-align: center;
   }
 }
 

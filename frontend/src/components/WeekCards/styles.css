@@ -1,0 +1,245 @@
+/**
+ * Week Cards Styles
+ * Feature: 002-ui-improvements
+ * Task: T018
+ */
+
+/* Container */
+.week-cards-container {
+  width: 100%;
+  margin: var(--space-8) 0;
+}
+
+/* Grid layout */
+.week-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
+}
+
+@media (max-width: 768px) {
+  .week-cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+/* Individual card */
+.week-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transition: all var(--duration-base) var(--ease-out);
+  overflow: hidden;
+}
+
+/* Card hover effects */
+.week-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--module-primary);
+  box-shadow: var(--shadow-xl), 0 0 30px var(--module-primary, #2ECC71)20;
+}
+
+.week-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--module-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.week-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Module-specific colors */
+.week-card-ros2:hover {
+  border-color: #FF6B35;
+  box-shadow: var(--shadow-xl), 0 0 30px #FF6B3530;
+}
+
+.week-card-ros2::before {
+  background: #FF6B35;
+}
+
+.week-card-digitalTwin:hover {
+  border-color: #4ECDC4;
+  box-shadow: var(--shadow-xl), 0 0 30px #4ECDC430;
+}
+
+.week-card-digitalTwin::before {
+  background: #4ECDC4;
+}
+
+.week-card-isaac:hover {
+  border-color: #A855F7;
+  box-shadow: var(--shadow-xl), 0 0 30px #A855F730;
+}
+
+.week-card-isaac::before {
+  background: #A855F7;
+}
+
+.week-card-vla:hover {
+  border-color: #FF0844;
+  box-shadow: var(--shadow-xl), 0 0 30px #FF084440;
+}
+
+.week-card-vla::before {
+  background: #FF0844;
+}
+
+/* Card header */
+.week-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.week-card-number {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: var(--module-primary, #2ECC71);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.week-card-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-success);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+}
+
+/* Card title */
+.week-card-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  line-height: var(--leading-tight);
+}
+
+/* Card description */
+.week-card-description {
+  flex: 1;
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* Card footer */
+.week-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+
+.week-card-module {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: var(--font-medium);
+}
+
+.week-card-arrow {
+  font-size: var(--text-lg);
+  color: var(--module-primary, #2ECC71);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.week-card:hover .week-card-arrow {
+  transform: translateX(4px);
+}
+
+/* Completed state */
+.week-card-completed {
+  border-color: var(--color-success);
+}
+
+.week-card-completed .week-card-number {
+  background: var(--color-success);
+}
+
+/* Glow effect on hover (module-specific) */
+.week-card-ros2:hover .week-card-arrow {
+  color: #FF6B35;
+  text-shadow: 0 0 10px #FF6B35;
+}
+
+.week-card-digitalTwin:hover .week-card-arrow {
+  color: #4ECDC4;
+  text-shadow: 0 0 10px #4ECDC4;
+}
+
+.week-card-isaac:hover .week-card-arrow {
+  color: #A855F7;
+  text-shadow: 0 0 10px #A855F7;
+}
+
+.week-card-vla:hover .week-card-arrow {
+  color: #FF0844;
+  text-shadow: 0 0 10px #FF0844;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .week-card {
+    transition: none;
+  }
+
+  .week-card:hover {
+    transform: none;
+  }
+
+  .week-card::before {
+    transition: none;
+  }
+
+  .week-card:hover::before {
+    transform: none;
+  }
+
+  .week-card-arrow {
+    transition: none;
+  }
+}
+
+/* Focus styles for accessibility */
+.week-card:focus {
+  outline: 2px solid var(--module-primary);
+  outline-offset: 2px;
+}
+
+.week-card:focus-visible {
+  outline: 2px solid var(--module-primary);
+  outline-offset: 2px;
+}

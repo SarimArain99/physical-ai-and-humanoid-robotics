@@ -1,0 +1,322 @@
+/**
+ * VisualEffects Component Styles
+ * Feature: 002-ui-improvements
+ * Task: T082
+ */
+
+/* Particle Canvas */
+.particleCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-index-fixed, 1030) - 1;
+  opacity: 0.6;
+}
+
+/* Scroll Animation States */
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Animation Types */
+.animated {
+  transition: opacity var(--duration-base, 300ms) var(--ease-out, ease-out),
+              transform var(--duration-base, 300ms) var(--ease-out, ease-out);
+}
+
+/* Fade Up Animation */
+.fade-up {
+  transform: translateY(30px);
+}
+
+.fade-up.visible {
+  transform: translateY(0);
+}
+
+/* Fade Down Animation */
+.fade-down {
+  transform: translateY(-30px);
+}
+
+.fade-down.visible {
+  transform: translateY(0);
+}
+
+/* Fade Left Animation */
+.fade-left {
+  transform: translateX(30px);
+}
+
+.fade-left.visible {
+  transform: translateX(0);
+}
+
+/* Fade Right Animation */
+.fade-right {
+  transform: translateX(-30px);
+}
+
+.fade-right.visible {
+  transform: translateX(0);
+}
+
+/* Scale Animation */
+.scale-up {
+  transform: scale(0.9);
+}
+
+.scale-up.visible {
+  transform: scale(1);
+}
+
+/* Rotate Animation */
+.rotate-in {
+  transform: rotate(-5deg) scale(0.95);
+}
+
+.rotate-in.visible {
+  transform: rotate(0) scale(1);
+}
+
+/* Flip Animation */
+.flip-in {
+  transform: perspective(1000px) rotateX(-10deg);
+  transform-origin: center top;
+}
+
+.flip-in.visible {
+  transform: perspective(1000px) rotateX(0);
+}
+
+/* Bounce Animation */
+.bounce-in {
+  transform: scale(0.3);
+  animation: bounceIn var(--duration-base, 300ms) var(--ease-out, ease-out) forwards;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Glow Effect */
+.glow-on-scroll {
+  transition: box-shadow var(--duration-base, 300ms) var(--ease-out, ease-out);
+}
+
+.glow-on-scroll.visible {
+  box-shadow: var(--glow-md, 0 0 20px rgba(46, 204, 113, 0.5));
+}
+
+/* Magnetic Hover Effect */
+.magnetic {
+  transition: transform var(--duration-base, 300ms) var(--ease-out, ease-out);
+}
+
+.magnetic:hover {
+  transform: scale(1.05);
+}
+
+/* Tilt Effect (applied via JS) */
+.tilt {
+  transform-style: preserve-3d;
+  transition: transform var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.tilt:hover {
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+}
+
+/* Shimmer Effect for loading */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}
+
+/* Pulse Glow Effect */
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--module-primary, #2ECC71);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--module-primary, #2ECC71),
+                0 0 30px var(--module-primary, #2ECC71);
+  }
+}
+
+/* Floating Animation */
+.floating {
+  animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Typewriter Effect (for text) */
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--module-primary, #2ECC71);
+  animation: typing 3s steps(40) 1s forwards, blink 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* Reveal Animation */
+.reveal {
+  position: relative;
+  overflow: hidden;
+}
+
+.reveal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg-surface, #151E29);
+  transform: translateX(-101%);
+  transition: transform var(--duration-slow, 500ms) var(--ease-out, ease-out);
+}
+
+.reveal.visible::after {
+  transform: translateX(0);
+}
+
+/* Counter Animation (for numbers) */
+.counter {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .animated,
+  .fade-up,
+  .fade-down,
+  .fade-left,
+  .fade-right,
+  .scale-up,
+  .rotate-in,
+  .flip-in,
+  .magnetic,
+  .tilt,
+  .glow-on-scroll {
+    transition: none;
+    transform: none !important;
+  }
+
+  .particleCanvas {
+    display: none;
+  }
+
+  .shimmer::before,
+  .pulse-glow,
+  .floating,
+  .typewriter {
+    animation: none;
+  }
+
+  .reveal::after {
+    transition: none;
+  }
+
+  /* Always show content */
+  .hidden {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Performance Mode */
+.performance-low .particleCanvas {
+  opacity: 0.3;
+}
+
+.performance-low .animated {
+  transition: opacity var(--duration-instant, 50ms) linear;
+}
+
+/* Module-specific glow effects */
+[data-module='ros2'] .glow-on-scroll.visible {
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+}
+
+[data-module='digitalTwin'] .glow-on-scroll.visible {
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+}
+
+[data-module='isaac'] .glow-on-scroll.visible {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+[data-module='vla'] .glow-on-scroll.visible {
+  box-shadow: 0 0 20px rgba(255, 8, 68, 0.5);
+}

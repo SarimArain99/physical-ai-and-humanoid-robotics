@@ -1,0 +1,130 @@
+/**
+ * Page Transition Styles
+ * Feature: 002-ui-improvements
+ * Task: T046
+ */
+
+.page-transition {
+  position: relative;
+  width: 100%;
+}
+
+/* Fade transition */
+.page-transition-fade {
+  opacity: 0;
+  transition: opacity var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-fade.page-transition-visible {
+  opacity: 1;
+}
+
+/* Slide up transition */
+.page-transition-slideUp {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--transition-duration, 300ms) ease-out,
+              transform var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-slideUp.page-transition-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide down transition */
+.page-transition-slideDown {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity var(--transition-duration, 300ms) ease-out,
+              transform var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-slideDown.page-transition-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide left transition */
+.page-transition-slideLeft {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity var(--transition-duration, 300ms) ease-out,
+              transform var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-slideLeft.page-transition-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Slide right transition */
+.page-transition-slideRight {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity var(--transition-duration, 300ms) ease-out,
+              transform var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-slideRight.page-transition-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Scale transition */
+.page-transition-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity var(--transition-duration, 300ms) ease-out,
+              transform var(--transition-duration, 300ms) ease-out;
+}
+
+.page-transition-scale.page-transition-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Route change spinner */
+.route-change-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border, #e2e8f0);
+  border-top-color: var(--module-primary, #2ecc71);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .page-transition-fade,
+  .page-transition-slideUp,
+  .page-transition-slideDown,
+  .page-transition-slideLeft,
+  .page-transition-slideRight,
+  .page-transition-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .spinner-ring {
+    animation: none;
+    border-top-color: var(--module-primary, #2ecc71);
+  }
+}

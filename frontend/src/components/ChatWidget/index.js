@@ -3,6 +3,8 @@ import { useAuth } from "../Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import ChatHistory from "./ChatHistory";
 import ChatSession from "./ChatSession";
+import ChatIcon from "./ChatIcon";
+import "./ChatIcon.css";
 
 // --- ICONS (SVG) ---
 const SendIcon = () => (
@@ -33,24 +35,6 @@ const CloseIcon = () => (
   >
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-const RobotIcon = () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="11" width="18" height="10" rx="2"></rect>
-    <circle cx="12" cy="5" r="2"></circle>
-    <path d="M12 7v4"></path>
-    <line x1="8" y1="16" x2="8" y2="16"></line>
-    <line x1="16" y1="16" x2="16" y2="16"></line>
   </svg>
 );
 const HistoryIcon = () => (
@@ -610,16 +594,17 @@ const ChatWidgetContent = () => {
         <button
           className="chat-toggle-btn pulse-animation"
           onClick={() => setIsOpen(true)}
+          aria-label="Open AI Assistant"
         >
-          <span style={{ fontSize: "24px" }}>🤖</span>
+          <ChatIcon />
         </button>
       )}
 
       {isOpen && (
-        <div className="chat-window">
+        <div className="chat-window" role="dialog" aria-label="AI Assistant Chat" aria-modal="false">
           <div className="chat-header">
             <div className="header-title">
-              <RobotIcon />
+              <span className="chat-icon-wrapper"><ChatIcon /></span>
               <span>AI Assistant</span>
             </div>
             <div className="header-actions">
@@ -629,6 +614,7 @@ const ChatWidgetContent = () => {
                   className="icon-btn"
                   onClick={startNewChat}
                   title="New chat"
+                  aria-label="Start new chat"
                 >
                   <NewChatIcon />
                 </button>
@@ -639,11 +625,16 @@ const ChatWidgetContent = () => {
                   className="icon-btn"
                   onClick={toggleHistory}
                   title="Chat history"
+                  aria-label="View chat history"
                 >
                   <HistoryIcon />
                 </button>
               )}
-              <button className="close-btn" onClick={() => setIsOpen(false)}>
+              <button
+                className="close-btn"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close chat"
+              >
                 <CloseIcon />
               </button>
             </div>
@@ -670,12 +661,12 @@ const ChatWidgetContent = () => {
             />
           ) : (
             <>
-              <div className="chat-messages">
+              <div className="chat-messages" role="log" aria-live="polite" aria-atomic="false" aria-busy={loading}>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`message-row ${msg.role}`}>
                     {msg.role === "assistant" && (
                       <div className="bot-avatar">
-                        <RobotIcon />
+                        <span className="chat-icon-wrapper"><ChatIcon /></span>
                       </div>
                     )}
                     <div className={`message-bubble ${msg.role}`}>
@@ -686,7 +677,7 @@ const ChatWidgetContent = () => {
                 {loading && (
                   <div className="message-row assistant">
                     <div className="bot-avatar">
-                      <RobotIcon />
+                      <span className="chat-icon-wrapper"><ChatIcon /></span>
                     </div>
                     <div className="message-bubble assistant typing">
                       <div className="typing-dot"></div>
@@ -710,6 +701,7 @@ const ChatWidgetContent = () => {
                     className="clear-selection-btn"
                     onClick={() => setSelectedText("")}
                     title="Clear selection"
+                    aria-label="Clear selected text context"
                   >
                     ✕
                   </button>
@@ -729,11 +721,13 @@ const ChatWidgetContent = () => {
                       : "Ask a question..."
                   }
                   disabled={loading}
+                  aria-label="Type your message"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={loading || !input.trim()}
                   className="send-btn"
+                  aria-label="Send message"
                 >
                   <SendIcon />
                 </button>
@@ -747,8 +741,9 @@ const ChatWidgetContent = () => {
       <style>{`
         .chat-widget-wrapper { position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        .chat-toggle-btn { width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; cursor: pointer; box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .chat-toggle-btn { width: 65px; height: 65px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; padding: 0; }
         .chat-toggle-btn:hover { transform: scale(1.05); }
+        .chat-toggle-btn:focus-visible { outline: 2px solid var(--module-primary, #2ecc71); outline-offset: 2px; }
         .pulse-animation { animation: pulse 2s infinite; }
         
         .chat-window { width: 380px; height: 600px; max-height: 80vh; background-color: #1e2a38; border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; border: 1px solid #2c3e50; overflow: hidden; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -768,15 +763,19 @@ const ChatWidgetContent = () => {
 
         .chat-header { padding: 18px 20px; background: linear-gradient(90deg, #2ecc71, #27ae60); color: #1e2a38; display: flex; justify-content: space-between; align-items: center; }
         .header-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+        .header-title .chat-icon-wrapper { transform: scale(0.7); }
         .header-actions { display: flex; gap: 8px; align-items: center; }
         .icon-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1e2a38; transition: background-color 0.2s; }
         .icon-btn:hover { background: rgba(255,255,255,0.3); }
+        .icon-btn:focus-visible { outline: 2px solid #1e2a38; outline-offset: 2px; }
         .close-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1e2a38; }
-        
+        .close-btn:focus-visible { outline: 2px solid #1e2a38; outline-offset: 2px; }
+
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #151e29; }
         .message-row { display: flex; gap: 10px; align-items: flex-end; animation: fadeIn 0.3s ease; }
         .message-row.user { justify-content: flex-end; }
-        .bot-avatar { width: 30px; height: 30px; background: #2c3e50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2ecc71; flex-shrink: 0; }
+        .bot-avatar { width: 30px; height: 30px; background: #2c3e50; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+        .bot-avatar .chat-icon-wrapper { transform: scale(0.6); }
         
         .message-bubble { padding: 12px 16px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 14px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .message-bubble.assistant { background-color: #2c3e50; color: #e2e8f0; border-bottom-left-radius: 4px; }
@@ -796,15 +795,23 @@ const ChatWidgetContent = () => {
 
         .chat-input-area { padding: 20px; background-color: #1e2a38; border-top: 1px solid #2c3e50; display: flex; gap: 10px; align-items: center; }
         .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #2c3e50; background-color: #151e29; color: white; font-size: 14px; }
-        .chat-input-area input:focus { outline: none; border-color: #2ecc71; }
+        .chat-input-area input:focus { outline: none; border-color: #2ecc71; box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2); }
         .send-btn { width: 45px; height: 45px; background-color: #2ecc71; color: #1e2a38; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .send-btn:hover:not(:disabled) { transform: scale(1.1); }
-        .send-btn:disabled { background-color: #2c3e50; color: #94a3b8; }
-        
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+        .send-btn:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+        .send-btn:disabled { background-color: #2c3e50; color: #94a3b8; cursor: not-allowed; }
+
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          .chat-toggle-btn, .send-btn, .icon-btn, .close-btn { transition: none; }
+          .message-row, .chat-window { animation: none; }
+          .typing-dot { animation: none; }
+          .pulse-animation { animation: none; }
+        }
       `}</style>
     </div>
   );

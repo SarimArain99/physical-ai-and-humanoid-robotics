@@ -1,3 +1,15 @@
+---
+title: AI-Native Book Backend
+emoji: 📚
+colorFrom: blue
+colorTo: purple
+sdk: docker
+sdk_version: "3.11"
+pinned: false
+license: mit
+---
+
+
 # AI-Native Textbook on Physical AI & Humanoid Robotics
 
 This repository contains an AI-native, interactive textbook for teaching **Physical AI & Humanoid Robotics**. The project is part of the Hackathon I challenge and implements all technical, pedagogical, and functional requirements as outlined in the hackathon brief.

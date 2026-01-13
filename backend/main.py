@@ -337,14 +337,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 # --- APP CREATION ---
 app = FastAPI(lifespan=lifespan)
 
-# --- CORS Configuration (FIXED) ---
+# --- CORS Configuration (Hugging Face Spaces Compatible) ---
 # We define specific origins. Note NO trailing slashes for Vercel.
 env_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
 default_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://physical-ai-and-humanoid-robotics-omega.vercel.app",
-    "https://physical-ai-and-humanoid-robotics-production.up.railway.app"
+    # Add your Hugging Face Space URL here:
+    # "https://YOUR_USERNAME-physical-ai-backend.hf.space"
 ]
 # Combine and filter empty strings
 origins = [o.strip() for o in env_origins if o.strip()] + default_origins

@@ -1,0 +1,124 @@
+openapi: 3.0.3
+info:
+  title: Physical AI Backend API
+  description: |
+    RAG-powered chatbot backend for the Physical AI & Humanoid Robotics textbook.
+    Deployed on Hugging Face Spaces.
+  version: 1.0.0
+  contact:
+    name: Physical AI Team
+
+servers:
+  - url: https://your-username-physical-ai-backend.hf.space
+    description: Hugging Face Spaces production URL
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: health
+    description: Health check and monitoring endpoints
+  - name: config
+    description: Configuration and deployment status
+
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Returns basic service status
+      tags: [health]
+      responses:
+        '200':
+          description: Service is online
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: online
+                  service:
+                    type: string
+                    example: Physical AI Backend
+                  cors:
+                    type: string
+                    example: open_to_world
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns service health status
+      tags: [health]
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health/circuits:
+    get:
+      summary: Circuit breaker status
+      description: Returns status of circuit breakers for external services
+      tags: [health]
+      operationId: circuitStatus
+      responses:
+        '200':
+          description: Circuit status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  openai:
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum: [closed, open, half_open]
+                        description: Circuit state
+                      failure_count:
+                        type: integer
+                        description: Number of consecutive failures
+                  qdrant:
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum: [closed, open, half_open]
+                      failure_count:
+                        type: integer
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message
+        status_code:
+          type: integer
+          description: HTTP status code
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token from Better Auth
+
+security:
+  - BearerAuth: []

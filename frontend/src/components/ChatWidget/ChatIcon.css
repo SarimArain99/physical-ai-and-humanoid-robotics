@@ -1,0 +1,278 @@
+/**
+ * Chat Icon Styles
+ * Feature: 002-ui-improvements
+ * Task: T024
+ */
+
+/* Icon container */
+.chat-icon-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chat-icon-container:hover {
+  transform: scale(1.1);
+}
+
+.chat-icon-container:active {
+  transform: scale(1.05);
+}
+
+/* Focus styles */
+.chat-icon-container:focus-visible {
+  outline: 2px solid var(--module-primary, #2ECC71);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+/* SVG icon */
+.chat-icon-svg {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* Robot head parts */
+.robot-head {
+  transition: fill var(--duration-fast) var(--ease-out);
+}
+
+.robot-eye {
+  transition: all var(--duration-base) var(--ease-in-out);
+}
+
+.chat-icon-container:hover .robot-eye-left {
+  animation: blinkLeft 3s infinite;
+}
+
+.chat-icon-container:hover .robot-eye-right {
+  animation: blinkRight 3s infinite 0.1s;
+}
+
+@keyframes blinkLeft {
+  0%, 90%, 100% {
+    r: 1.5;
+  }
+  95% {
+    r: 0.2;
+  }
+}
+
+@keyframes blinkRight {
+  0%, 90%, 100% {
+    r: 1.5;
+  }
+  95% {
+    r: 0.2;
+  }
+}
+
+/* Antenna */
+.robot-antenna {
+  transition: stroke var(--duration-fast) var(--ease-out);
+}
+
+.robot-antenna-tip {
+  animation: antennaPulse 2s ease-in-out infinite;
+}
+
+@keyframes antennaPulse {
+  0%, 100% {
+    r: 1;
+    opacity: 1;
+  }
+  50% {
+    r: 1.2;
+    opacity: 0.8;
+  }
+}
+
+/* Mouth transitions */
+.robot-mouth {
+  transition: d var(--duration-base) var(--ease-bounce);
+}
+
+/* Open state */
+.chat-icon-open .chat-icon-svg {
+  transform: rotate(0deg);
+}
+
+.chat-icon-open .robot-mouth-smile {
+  animation: smileIn 0.3s ease-out;
+}
+
+@keyframes smileIn {
+  0% {
+    d: path('M 9 14 L 15 14');
+  }
+  100% {
+    d: path('M 8 14 Q 12 17 16 14');
+  }
+}
+
+/* Pulsing glow effect */
+.chat-icon-pulse::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-full);
+  background: var(--module-primary, #2ECC71);
+  opacity: 0;
+  animation: pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Additional glow ring */
+.chat-icon-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, var(--module-primary, #2ECC71) 0%, transparent 70%);
+  opacity: 0.2;
+  animation: glowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.3;
+  }
+}
+
+/* Unread badge */
+.chat-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--color-error, #EF4444);
+  color: white;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: badgePopIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes badgePopIn {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Mounted animation */
+.chat-icon-mounted.chat-icon-container {
+  animation: iconSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes iconSlideUp {
+  0% {
+    transform: translateY(20px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Minimal chat icon */
+.minimal-chat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.minimal-chat-icon:hover {
+  transform: scale(1.05);
+}
+
+.minimal-chat-icon svg {
+  display: block;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .chat-icon-container,
+  .minimal-chat-icon {
+    transition: none;
+  }
+
+  .chat-icon-container:hover,
+  .minimal-chat-icon:hover {
+    transform: none;
+  }
+
+  .robot-eye,
+  .robot-antenna-tip,
+  .chat-icon-pulse::after,
+  .chat-icon-glow,
+  .chat-icon-badge,
+  .chat-icon-mounted.chat-icon-container {
+    animation: none !important;
+  }
+
+  .robot-mouth {
+    transition: none;
+  }
+}
+
+/* Module-specific colors */
+.chat-icon-container[data-module="ros2"] .chat-icon-glow,
+.chat-icon-container[data-module="ros2"]::after {
+  --module-primary: #FF6B35;
+}
+
+.chat-icon-container[data-module="digitalTwin"] .chat-icon-glow,
+.chat-icon-container[data-module="digitalTwin"]::after {
+  --module-primary: #4ECDC4;
+}
+
+.chat-icon-container[data-module="isaac"] .chat-icon-glow,
+.chat-icon-container[data-module="isaac"]::after {
+  --module-primary: #A855F7;
+}
+
+.chat-icon-container[data-module="vla"] .chat-icon-glow,
+.chat-icon-container[data-module="vla"]::after {
+  --module-primary: #FF0844;
+}

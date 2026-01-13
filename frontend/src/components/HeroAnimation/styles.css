@@ -1,0 +1,144 @@
+/**
+ * Hero Animation Styles
+ * Feature: 002-ui-improvements
+ * Task: T016
+ */
+
+/* Container */
+.hero-animation-container {
+  position: relative;
+}
+
+.hero-animation-container.hero-disabled * {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Individual animated items */
+.hero-item {
+  opacity: 0;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.hero-item.visible {
+  opacity: 1;
+}
+
+/* Animation variants */
+.hero-item.slideUp {
+  transform: translateY(20px);
+}
+
+.hero-item.slideUp.visible {
+  transform: translateY(0);
+}
+
+.hero-item.slideDown {
+  transform: translateY(-20px);
+}
+
+.hero-item.slideDown.visible {
+  transform: translateY(0);
+}
+
+.hero-item.slideLeft {
+  transform: translateX(20px);
+}
+
+.hero-item.slideLeft.visible {
+  transform: translateX(0);
+}
+
+.hero-item.slideRight {
+  transform: translateX(-20px);
+}
+
+.hero-item.slideRight.visible {
+  transform: translateX(0);
+}
+
+.hero-item.scale {
+  transform: scale(0.95);
+}
+
+.hero-item.scale.visible {
+  transform: scale(1);
+}
+
+.hero-item.fade {
+  transform: none;
+}
+
+/* Hero animate classes for direct application */
+.hero-animate-slideUp,
+.hero-animate-slideDown,
+.hero-animate-slideInLeft,
+.hero-animate-slideInRight,
+.hero-animate-scaleIn,
+.hero-animate-fadeIn {
+  opacity: 0;
+  transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.hero-animate-slideUp {
+  transform: translateY(30px);
+}
+
+.hero-animate-slideDown {
+  transform: translateY(-30px);
+}
+
+.hero-animate-slideInLeft {
+  transform: translateX(-30px);
+}
+
+.hero-animate-slideInRight {
+  transform: translateX(30px);
+}
+
+.hero-animate-scaleIn {
+  transform: scale(0.9);
+}
+
+.hero-animate-fadeIn {
+  transform: none;
+}
+
+/* Visible state */
+.hero-animate-slideUp.hero-animate-visible,
+.hero-animate-slideDown.hero-animate-visible,
+.hero-animate-slideInLeft.hero-animate-visible,
+.hero-animate-slideInRight.hero-animate-visible,
+.hero-animate-scaleIn.hero-animate-visible,
+.hero-animate-fadeIn.hero-animate-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 200ms; }
+.stagger-4 { animation-delay: 300ms; }
+.stagger-5 { animation-delay: 400ms; }
+.stagger-6 { animation-delay: 500ms; }
+.stagger-7 { animation-delay: 600ms; }
+.stagger-8 { animation-delay: 700ms; }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .hero-animation-container *,
+  .hero-item,
+  .hero-animate-slideUp,
+  .hero-animate-slideDown,
+  .hero-animate-slideInLeft,
+  .hero-animate-slideInRight,
+  .hero-animate-scaleIn,
+  .hero-animate-fadeIn {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
