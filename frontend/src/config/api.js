@@ -1,14 +1,21 @@
 /**
  * Backend API Configuration
  * Update this file to change the backend URL
+ *
+ * IMPORTANT: Using Object.freeze() to prevent webpack from modifying the URL
+ * during minification. Without this, 'https://' can get stripped.
  */
+const API_CONFIG = Object.freeze({
+  BASE_URL: 'https://sarimarain-ai-native-book.hf.space'
+});
 
-export const API_BASE_URL = 'https://sarimarain-ai-native-book.hf.space';
+export const API_BASE_URL = API_CONFIG.BASE_URL;
 
-// Helper function to build API URLs
+// Helper function to build API URLs - ensures protocol is preserved
 export const buildApiUrl = (path) => {
-  const url = `${API_BASE_URL}/api/${path}`.replace(/\/+/g, '/');
-  return url;
+  // Use URL constructor to ensure absolute URL
+  const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, '');
+  return `${baseUrl}/api/${path}`.replace(/\/+/g, '/');
 };
 
 // Auth endpoints
@@ -29,13 +36,13 @@ export const chatUrls = {
   deleteSession: (sessionId) => buildApiUrl(`chat/sessions/${sessionId}`),
   exportSession: (sessionId, format = 'json') =>
     buildApiUrl(`chat/sessions/${sessionId}/export?format=${format}`),
-  chat: () => `${API_BASE_URL}/chat`,
+  chat: () => `${API_CONFIG.BASE_URL}/chat`,
 };
 
 // Content endpoints (Railway-specific, may not be available on HF)
 export const contentUrls = {
-  adjustContentBatch: () => `${API_BASE_URL}/adjust-content/batch`,
-  adjustContent: () => `${API_BASE_URL}/adjust-content`,
-  translateBatch: () => `${API_BASE_URL}/translate/batch`,
-  translate: () => `${API_BASE_URL}/translate`,
+  adjustContentBatch: () => `${API_CONFIG.BASE_URL}/adjust-content/batch`,
+  adjustContent: () => `${API_CONFIG.BASE_URL}/adjust-content`,
+  translateBatch: () => `${API_CONFIG.BASE_URL}/translate/batch`,
+  translate: () => `${API_CONFIG.BASE_URL}/translate`,
 };
