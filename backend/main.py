@@ -16,7 +16,13 @@ from pydantic import BaseModel
 from openai import OpenAI
 from qdrant_client import QdrantClient
 from config import settings
-from ingest import DocumentIngestor
+# Lazy import ingest module (only needed for /ingest endpoint, not always available)
+try:
+    from ingest import DocumentIngestor
+    INGEST_AVAILABLE = True
+except ImportError:
+    INGEST_AVAILABLE = False
+    DocumentIngestor = None
 from src.database import create_tables, get_db
 from src.auth_better import router as auth_router, JWT_SECRET, ALGORITHM
 from src.services.chat_service import ChatService
@@ -381,6 +387,11 @@ async def health_check():
 @app.post("/ingest")
 async def ingest_documents(background_tasks: BackgroundTasks):
     """Ingest all documents from the docs folder into Qdrant"""
+    if not INGEST_AVAILABLE:
+        raise HTTPException(
+            status_code=501,
+            detail="Document ingestion not available. Run ingest.py locally."
+        )
     try:
         ingestor = DocumentIngestor()
         background_tasks.add_task(ingestor.ingest_documents)
