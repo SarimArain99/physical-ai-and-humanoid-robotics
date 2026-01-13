@@ -91,6 +91,11 @@ const config: Config = {
           type: "custom-authButton",
           position: "right",
         },
+        // Theme switcher (dark/light/system)
+        {
+          type: "colorModeToggle",
+          position: "right",
+        },
         {
           href: "https://github.com/SarimArain99",
           label: "GitHub",
