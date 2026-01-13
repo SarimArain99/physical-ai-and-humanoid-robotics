@@ -20,31 +20,28 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Clone Hugging Face Space
-        run: |
-          git clone https://huggingface.co/spaces/sarimarain/ai-native-book hf-space
-          cd hf-space
-          rm -rf *
-
-      - name: Copy backend files to Space
-        run: |
-          # Copy backend files to HF Space root
-          cp -r backend/* hf-space/
-
-      - name: Add HF README
-        run: |
-          cp README_HF.md hf-space/README.md
-
-      - name: Copy Dockerfile to Space
-        run: |
-          cp Dockerfile hf-space/
-          cp .dockerignore hf-space/
-
-      - name: Commit and push to Hugging Face
-        run: |
-          cd hf-space
-          git add .
-          git diff --quiet && git diff --staged --quiet || git commit -m "Sync from GitHub: ${{ github.sha }}"
-          git push https://${{ secrets.HF_TOKEN }}@huggingface.co/spaces/sarimarain/ai-native-book main
+      - name: Sync to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 1. Setup the Temp directory
+          mkdir hf_sync
+
+          # 2. Copy backend files into the temp directory
+          # Note: Adjust 'backend/' if your folder name is different
+          cp -r backend/* hf_sync/
+          [ -f backend/.dockerignore ] && cp backend/.dockerignore hf_sync/ || true
+
+          # 3. Copy root-level files needed for HF Space
+          cp Dockerfile hf_sync/
+          cp README_HF.md hf_sync/README.md
+
+          # 4. Initialize Git in the temp directory
+          cd hf_sync
+          git init -b main
+          git add .
+          git commit -m "Sync from GitHub: ${{ github.sha }}"
+
+          # 5. Push to Hugging Face using the token in the URL
+          # Replace 'sarimarain' with your HF username if different
+          git push --force https://sarimarain:$HF_TOKEN@huggingface.co/spaces/sarimarain/ai-native-book main
