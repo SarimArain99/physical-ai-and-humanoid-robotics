@@ -1,20 +1,25 @@
 /**
  * Backend API Configuration
- *
- * IMPORTANT: The URL is split into parts to prevent webpack from removing
- * the protocol during minification. Docusaurus/webpack strips 'https://' from
- * string literals, so we construct it dynamically.
  */
 
-// Split protocol to prevent webpack removal
-const PROTOCOL = 'https' + ':' + '//';
+// Constructing the URL to ensure it is absolute and recognized by browsers/webpack
+const PROTOCOL = 'https://';
 const DOMAIN = 'sarimarain-ai-native-book.hf.space';
 
+// Ensure NO trailing slash here
 export const API_BASE_URL = PROTOCOL + DOMAIN;
 
-// Helper function to build API URLs
+/**
+ * Helper function to build API URLs.
+ * It ensures that the protocol 'https://' remains untouched while
+ * cleaning up double slashes in the path.
+ */
 export const buildApiUrl = (path) => {
-  return `${API_BASE_URL}/api/${path}`.replace(/\/+/g, '/');
+  // We build the path, then clean up any internal double slashes (//)
+  // but protect the one in 'https://'
+  const fullUrl = `${API_BASE_URL}/api/${path}`;
+  const parts = fullUrl.split('://');
+  return parts[0] + '://' + parts[1].replace(/\/+/g, '/');
 };
 
 // Auth endpoints
@@ -38,7 +43,7 @@ export const chatUrls = {
   chat: () => `${API_BASE_URL}/chat`,
 };
 
-// Content endpoints (Railway-specific, may not be available on HF)
+// Content endpoints
 export const contentUrls = {
   adjustContentBatch: () => `${API_BASE_URL}/adjust-content/batch`,
   adjustContent: () => `${API_BASE_URL}/adjust-content`,
