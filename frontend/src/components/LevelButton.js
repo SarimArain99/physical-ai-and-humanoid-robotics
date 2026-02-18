@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
+import { contentUrls } from "../../config/api";
 import "./LevelButton.css";
 
 // --- ICONS ---
@@ -126,7 +127,7 @@ const LevelButtonContent = () => {
 
         try {
           const response = await fetch(
-            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content/batch",
+            contentUrls.adjustContentBatch(),
             {
               method: "POST",
               headers: {
@@ -165,7 +166,7 @@ const LevelButtonContent = () => {
           for (let i = 0; i < batchTexts.length; i++) {
             try {
               const response = await fetch(
-                "https://physical-ai-and-humanoid-robotics-production.up.railway.app/adjust-content",
+                contentUrls.adjustContent(),
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

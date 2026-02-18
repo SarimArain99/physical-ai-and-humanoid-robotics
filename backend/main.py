@@ -783,7 +783,10 @@ async def batch_translate_text(request: BatchTranslateRequest):
             system_prompt = (
                 "You are a professional translator for a Robotics & AI textbook. "
                 "Translate the following text into Urdu. "
-                "Keep technical terms like 'ROS', 'Python', 'Algorithm' in English."
+                "Rules:\n"
+                "1. Keep the tone academic and professional.\n"
+                "2. Do NOT translate technical terms like 'ROS', 'Python', 'Algorithm', 'Sensor'. Keep them in English script.\n"
+                "3. Return ONLY the translated text."
             )
 
             response = openai_client.chat.completions.create(

@@ -8,6 +8,7 @@
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import { contentUrls } from "../../config/api";
 import "./UrduButton.css";
 
 const UrduButtonContent = () => {
@@ -75,7 +76,7 @@ const UrduButtonContent = () => {
 
         try {
           const response = await fetch(
-            "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate/batch",
+            contentUrls.translateBatch(),
             {
               method: "POST",
               headers: {
@@ -109,7 +110,7 @@ const UrduButtonContent = () => {
           for (let i = 0; i < batchTexts.length; i++) {
             try {
               const response = await fetch(
-                "https://physical-ai-and-humanoid-robotics-production.up.railway.app/translate",
+                contentUrls.translate(),
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
