@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
-import { contentUrls } from "../../config/api";
+import { contentUrls } from "../config/api";
 import "./LevelButton.css";
 
 // --- ICONS ---

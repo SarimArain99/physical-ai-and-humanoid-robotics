@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import { contentUrls } from "../../config/api";
+import { contentUrls } from "../config/api";
 import "./UrduButton.css";
 
 const UrduButtonContent = () => {
