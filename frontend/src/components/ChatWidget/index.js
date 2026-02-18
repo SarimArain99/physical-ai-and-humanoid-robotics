@@ -3,8 +3,11 @@ import { useAuth } from "../Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import ChatHistory from "./ChatHistory";
 import ChatSession from "./ChatSession";
-import ChatIcon from "./ChatIcon";
-import "./ChatIcon.css";
+import EnhancedChatIcon from "./ChatIcon.enhanced";
+import "./ChatIcon.enhanced.css";
+
+// Use EnhancedChatIcon as ChatIcon for consistency
+const ChatIcon = EnhancedChatIcon;
 import { API_BASE_URL, chatUrls } from "../../config/api";
 
 // --- ICONS (SVG) ---
@@ -85,6 +88,10 @@ const ChatWidgetContent = () => {
   const [selectedText, setSelectedText] = useState("");
   const messagesEndRef = useRef(null);
 
+  // Streaming typing effect state
+  const [typingMessage, setTypingMessage] = useState(null);
+  const [streamedContent, setStreamedContent] = useState("");
+
   // T170: Session management state
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -103,7 +110,36 @@ const ChatWidgetContent = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isOpen, loading]);
+  }, [messages, isOpen, loading, streamedContent]);
+
+  // Streaming typing effect hook
+  useEffect(() => {
+    if (!typingMessage) return;
+
+    const fullText = typingMessage.content;
+    let index = 0;
+    const typingSpeed = 15; // ms per character
+
+    const typeNextChar = () => {
+      if (index < fullText.length) {
+        setStreamedContent(fullText.slice(0, index + 1));
+        index++;
+        setTimeout(typeNextChar, typingSpeed);
+      } else {
+        // Done typing - add to messages and clear state
+        setMessages((prev) => [...prev, typingMessage]);
+        setTypingMessage(null);
+        setStreamedContent("");
+      }
+    };
+
+    typeNextChar();
+
+    return () => {
+      // Cleanup if component unmounts or message changes
+      setStreamedContent("");
+    };
+  }, [typingMessage]);
 
   // T173: Continue Last Chat - Load active session when widget opens
   useEffect(() => {
@@ -258,10 +294,8 @@ const ChatWidgetContent = () => {
       }
 
       if (data.response) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.response },
-        ]);
+        // Use streaming typing effect instead of instant display
+        setTypingMessage({ role: "assistant", content: data.response });
       } else {
         setMessages((prev) => [
           ...prev,
@@ -666,7 +700,19 @@ const ChatWidgetContent = () => {
                     </div>
                   </div>
                 ))}
-                {loading && (
+                {/* Streaming typing effect message */}
+                {typingMessage && streamedContent && (
+                  <div className="message-row assistant">
+                    <div className="bot-avatar">
+                      <span className="chat-icon-wrapper"><ChatIcon /></span>
+                    </div>
+                    <div className="message-bubble assistant streaming">
+                      {streamedContent}
+                      <span className="typing-cursor"></span>
+                    </div>
+                  </div>
+                )}
+                {loading && !typingMessage && (
                   <div className="message-row assistant">
                     <div className="bot-avatar">
                       <span className="chat-icon-wrapper"><ChatIcon /></span>
@@ -777,7 +823,13 @@ const ChatWidgetContent = () => {
         .typing-dot { width: 8px; height: 8px; background-color: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        
+
+        /* Streaming typing effect */
+        .message-bubble.streaming { display: flex; align-items: flex-start; gap: 2px; }
+        .typing-cursor { display: inline-block; width: 2px; height: 16px; background-color: #2ecc71; animation: blink 0.8s infinite; margin-left: 2px; flex-shrink: 0; }
+
+        @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
         /* Selected text indicator (FR-005) */
         .selected-text-indicator { padding: 8px 15px; background-color: #2c3e50; border-top: 1px solid #3d5266; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; }
         .indicator-icon { font-size: 14px; }
@@ -802,6 +854,7 @@ const ChatWidgetContent = () => {
           .chat-toggle-btn, .send-btn, .icon-btn, .close-btn { transition: none; }
           .message-row, .chat-window { animation: none; }
           .typing-dot { animation: none; }
+          .typing-cursor { animation: none; }
           .pulse-animation { animation: none; }
         }
       `}</style>

@@ -2,12 +2,8 @@
  * Backend API Configuration
  */
 
-// Constructing the URL to ensure it is absolute and recognized by browsers/webpack
-const PROTOCOL = 'https://';
-const DOMAIN = 'sarimarain-ai-native-book.hf.space';
-
-// Ensure NO trailing slash here
-export const API_BASE_URL = PROTOCOL + DOMAIN;
+// Use environment variable for flexibility, fallback to localhost for development
+export const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
 /**
  * Helper function to build API URLs.

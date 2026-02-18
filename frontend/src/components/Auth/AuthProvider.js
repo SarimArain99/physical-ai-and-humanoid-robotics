@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
         setUser(data.user);
         return { success: true };
       }
-      return { success: true };
+      return { success: false, message: "No token received" };
     } catch (error) {
       return { success: false, message: error.message };
     }

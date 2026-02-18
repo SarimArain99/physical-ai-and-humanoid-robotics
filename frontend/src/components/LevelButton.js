@@ -1,13 +1,21 @@
+/**
+ * Level Button Component
+ * Feature: 002-ui-improvements
+ * Task: Unified navbar button system
+ *
+ * Content difficulty selector (Basic/Intermediate/Pro) with unified styling.
+ */
 import React, { useState } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import { useAuth } from "./Auth/AuthProvider"; // 🟢 Import Auth
-import AuthModal from "./Auth/AuthModal"; // 🟢 Import Modal
+import { useAuth } from "./Auth/AuthProvider";
+import AuthModal from "./Auth/AuthModal";
+import "./LevelButton.css";
 
 // --- ICONS ---
 const LevelIcon = () => (
   <svg
-    width="20"
-    height="20"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -20,14 +28,15 @@ const LevelIcon = () => (
     <line x1="6" y1="20" x2="6" y2="16"></line>
   </svg>
 );
+
 const ChevronDown = () => (
   <svg
-    width="14"
-    height="14"
+    width="12"
+    height="12"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="3"
+    strokeWidth="2.5"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
@@ -36,17 +45,16 @@ const ChevronDown = () => (
 );
 
 const LevelButtonContent = () => {
-  const { user } = useAuth(); // 🟢 Get User Status
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false); // 🟢 Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentLevel, setCurrentLevel] = useState("pro");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // FR-009: Load user's proficiency from profile on mount
+  // Load user's proficiency from profile on mount
   React.useEffect(() => {
     if (user && user.proficiency) {
-      // Map stored proficiency to level
       const proficiencyMap = {
         "beginner": "beginner",
         "intermediate": "intermediate",
@@ -61,13 +69,13 @@ const LevelButtonContent = () => {
   const handleLevelSelect = async (level) => {
     setIsOpen(false);
 
-    // 🟢 1. SECURITY CHECK: Require Login
+    // SECURITY CHECK: Require Login
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
 
-    // 2. If PRO is selected, just reload to get original text back
+    // If PRO is selected, just reload to get original text back
     if (level === "pro") {
       if (currentLevel !== "pro") {
         window.location.reload();
@@ -75,7 +83,7 @@ const LevelButtonContent = () => {
       return;
     }
 
-    // 3. If Basic or Intermediate, call AI
+    // If Basic or Intermediate, call AI
     setCurrentLevel(level);
     setLoading(true);
     setProgress(0);
@@ -87,7 +95,7 @@ const LevelButtonContent = () => {
       );
       const elementsArray = Array.from(contentElements);
 
-      // Filter valid elements and collect texts for batching (T138)
+      // Filter valid elements and collect texts for batching
       const validElements = [];
       const textsToAdjust = [];
 
@@ -107,7 +115,7 @@ const LevelButtonContent = () => {
         return;
       }
 
-      // Process in batches of 10 for better performance (T138)
+      // Process in batches of 10 for better performance
       const BATCH_SIZE = 10;
       let processed = 0;
 
@@ -199,141 +207,75 @@ const LevelButtonContent = () => {
   const getLabel = () => {
     if (loading) return `${progress}%`;
     if (currentLevel === "beginner") return "Basic";
-    if (currentLevel === "intermediate") return "Inter.";
+    if (currentLevel === "intermediate") return "Int.";
     return "Pro";
   };
 
+  const getDotColor = () => {
+    if (currentLevel === "beginner") return "#3b82f6"; // Blue
+    if (currentLevel === "intermediate") return "#a855f7"; // Purple
+    return "#2ECC71"; // Green
+  };
+
   return (
-    <>
-      <div className="level-dropdown-container">
-        <button
-          className={`level-trigger-btn ${loading ? "loading" : ""}`}
-          onClick={() => !loading && setIsOpen(!isOpen)}
-        >
-          <LevelIcon />
-          <span>{getLabel()}</span>
-          {!loading && <ChevronDown />}
-        </button>
+    <div className="level-dropdown">
+      <button
+        className={`navbar-btn navbar-btn--accent level-trigger ${loading ? "navbar-btn--loading" : ""}`}
+        onClick={() => !loading && setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+      >
+        <span className="level-icon"><LevelIcon /></span>
+        <span className="navbar-btn__label">{getLabel()}</span>
+        {!loading && <span className="level-chevron"><ChevronDown /></span>}
+        {!loading && <span className="level-dot" style={{ backgroundColor: getDotColor() }} />}
+      </button>
 
-        {isOpen && (
-          <div className="level-menu">
-            <button
-              className="level-item"
-              onClick={() => handleLevelSelect("beginner")}
-            >
-              <span className="dot basic"></span> Basic
-              <span className="sub"> (Explain Like I'm 5)</span>
-            </button>
+      {isOpen && (
+        <div className="level-menu" role="menu">
+          <button
+            className="level-menu-item"
+            onClick={() => handleLevelSelect("beginner")}
+            role="menuitem"
+          >
+            <span className="level-menu-dot level-menu-dot--basic"></span>
+            <span className="level-menu-text">
+              <span className="level-menu-label">Basic</span>
+              <span className="level-menu-sub">Explain Like I'm 5</span>
+            </span>
+          </button>
 
-            <button
-              className="level-item"
-              onClick={() => handleLevelSelect("intermediate")}
-            >
-              <span className="dot intermediate"></span> Intermediate
-              <span className="sub"> (For Students)</span>
-            </button>
+          <button
+            className="level-menu-item"
+            onClick={() => handleLevelSelect("intermediate")}
+            role="menuitem"
+          >
+            <span className="level-menu-dot level-menu-dot--intermediate"></span>
+            <span className="level-menu-text">
+              <span className="level-menu-label">Intermediate</span>
+              <span className="level-menu-sub">For Students</span>
+            </span>
+          </button>
 
-            <button
-              className="level-item pro"
-              onClick={() => handleLevelSelect("pro")}
-            >
-              <span className="dot pro"></span> Pro
-              <span className="sub"> (Original Research)</span>
-            </button>
-          </div>
-        )}
-      </div>
+          <button
+            className="level-menu-item"
+            onClick={() => handleLevelSelect("pro")}
+            role="menuitem"
+          >
+            <span className="level-menu-dot level-menu-dot--pro"></span>
+            <span className="level-menu-text">
+              <span className="level-menu-label">Pro</span>
+              <span className="level-menu-sub">Original Research</span>
+            </span>
+          </button>
+        </div>
+      )}
 
-      {/* 🟢 AUTH POPUP (Hidden by default) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
-
-      {/* EMBEDDED STYLES */}
-      <style>{`
-        .level-dropdown-container {
-          position: relative;
-          display: inline-block;
-          margin-left: 10px;
-        }
-
-        /* Trigger Button */
-        .level-trigger-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          background-color: #1e2a38;
-          border: 1px solid #8b5cf6;
-          color: #8b5cf6;
-          border-radius: 20px;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 13px;
-          transition: all 0.2s;
-          height: 36px;
-        }
-        .level-trigger-btn:hover {
-          background-color: #8b5cf6;
-          color: white;
-        }
-        .level-trigger-btn.loading {
-          opacity: 0.8;
-          cursor: wait;
-          background-color: #1e2a38;
-          color: #8b5cf6;
-        }
-
-        /* Dropdown Menu */
-        .level-menu {
-          position: absolute;
-          top: 110%;
-          right: 0;
-          width: 200px;
-          background-color: #151e29;
-          border: 1px solid #2c3e50;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          overflow: hidden;
-          z-index: 100;
-          animation: slideDown 0.2s ease;
-        }
-
-        .level-item {
-          display: flex;
-          align-items: center;
-          width: 100%;
-          padding: 12px 16px;
-          background: none;
-          border: none;
-          color: white;
-          text-align: left;
-          cursor: pointer;
-          font-size: 14px;
-          border-bottom: 1px solid #1e2a38;
-        }
-        .level-item:last-child { border-bottom: none; }
-        .level-item:hover { background-color: #1e2a38; }
-
-        .sub {
-          font-size: 11px;
-          color: #94a3b8;
-          margin-left: 4px;
-        }
-
-        /* Colored Dots */
-        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
-        .dot.basic { background-color: #3b82f6; }        /* Blue */
-        .dot.intermediate { background-color: #a855f7; } /* Purple */
-        .dot.pro { background-color: #2ecc71; }          /* Green */
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-    </>
+    </div>
   );
 };
 

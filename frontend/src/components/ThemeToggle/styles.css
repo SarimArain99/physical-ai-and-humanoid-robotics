@@ -1,0 +1,147 @@
+/**
+ * Theme Toggle Component Styles
+ * Feature: 002-ui-improvements
+ * Task: Working theme toggle (dark/light/system)
+ */
+
+/* Import unified navbar button styles */
+@import '../NavbarButton/styles.css';
+
+/* Theme toggle container */
+.theme-toggle-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+}
+
+/* Theme toggle button - inherits from navbar-btn--icon */
+.theme-toggle-btn {
+  color: var(--theme-toggle-color, #94A3B8);
+}
+
+.theme-toggle-btn:hover {
+  color: var(--theme-toggle-hover-color, #E2E8F0);
+}
+
+.theme-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Theme toggle dropdown menu */
+.theme-toggle-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  background-color: var(--theme-menu-bg, #1E2A38);
+  border: 1px solid var(--theme-menu-border, #2C3E50);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  z-index: 100;
+  animation: menuSlideIn 0.2s ease-out;
+}
+
+@keyframes menuSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Theme toggle menu items */
+.theme-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--theme-item-text, #FFFFFF);
+  font-size: 14px;
+  position: relative;
+}
+
+.theme-toggle-item:hover {
+  background-color: var(--theme-item-hover-bg, #2C3E50);
+}
+
+.theme-toggle-item.active {
+  background-color: var(--theme-item-active-bg, rgba(46, 204, 113, 0.1));
+  color: var(--theme-item-active-text, #2ECC71);
+}
+
+.theme-toggle-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.theme-toggle-item-label {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.theme-toggle-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-check-color, #2ECC71);
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .theme-toggle-menu {
+  --theme-menu-bg: #FFFFFF;
+  --theme-menu-border: #E2E8F0;
+  --theme-item-text: #1E293B;
+  --theme-item-hover-bg: #F1F5F9;
+}
+
+[data-theme="light"] .theme-toggle-btn {
+  --theme-toggle-color: #64748B;
+  --theme-toggle-hover-color: #1E293B;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .theme-toggle-menu {
+    min-width: 140px;
+    right: -8px;
+  }
+
+  .theme-toggle-item {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .theme-toggle-menu {
+    min-width: 130px;
+    right: -4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle-menu,
+  .theme-toggle-item {
+    animation: none;
+    transition: none;
+  }
+}

@@ -1,6 +1,14 @@
+/**
+ * Urdu Button Component
+ * Feature: 002-ui-improvements
+ * Task: Unified navbar button system
+ *
+ * Urdu/English language toggle with unified styling.
+ */
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import "./UrduButton.css";
 
 const UrduButtonContent = () => {
   const { user } = useAuth();
@@ -56,7 +64,7 @@ const UrduButtonContent = () => {
         return;
       }
 
-      // Process in batches of 10 for better performance (T137)
+      // Process in batches of 10 for better performance
       const BATCH_SIZE = 10;
       let processed = 0;
 
@@ -138,53 +146,31 @@ const UrduButtonContent = () => {
     }
   };
 
-  return (
-    <>
-      <button
-        className={`urdu-button ${loading ? "loading" : ""}`}
-        onClick={handleTranslate}
-        disabled={loading}
-      >
-        {loading
-          ? `Translating ${progress}%`
-          : isUrdu
-          ? "US-English"
-          : "PK-Urdu"}
-      </button>
+  const getLabel = () => {
+    if (loading) return `${progress}%`;
+    if (isUrdu) return "EN";
+    return "اردو"; // Urdu in Urdu script
+  };
 
-      {/* 🟢 EMBEDDED STYLES: This forces the style to load immediately */}
-      <style>{`
-        .urdu-button {
-          margin-left: 10px;
-          padding: 6px 14px;
-          border: 1px solid #2ECC71;
-          background-color: transparent;
-          color: #2ECC71;
-          border-radius: 20px;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 13px;
-          transition: all 0.2s;
-          display: inline-flex;
-          align-items: center;
-          white-space: nowrap;
-        }
-        .urdu-button:hover {
-          background-color: #2ECC71;
-          color: #1E2A38;
-          transform: translateY(-1px);
-        }
-        .urdu-button.loading {
-          opacity: 0.7;
-          cursor: wait;
-          border-color: #27ae60;
-        }
-      `}</style>
-    </>
+  const getIcon = () => {
+    if (isUrdu) return "🇬🇧"; // UK flag for English
+    return "🇵🇰"; // Pakistan flag for Urdu
+  };
+
+  return (
+    <button
+      className={`navbar-btn navbar-btn--secondary urdu-button ${loading ? "navbar-btn--loading" : ""}`}
+      onClick={handleTranslate}
+      disabled={loading}
+      title={isUrdu ? "Switch to English" : "Switch to Urdu translation"}
+      aria-label={isUrdu ? "Switch to English" : "Switch to Urdu"}
+    >
+      <span className="urdu-flag">{getIcon()}</span>
+      <span className="navbar-btn__label">{getLabel()}</span>
+    </button>
   );
 };
 
-// 🛡️ Safe Wrapper for Vercel Build
 const UrduButton = () => {
   return (
     <BrowserOnly fallback={null}>{() => <UrduButtonContent />}</BrowserOnly>

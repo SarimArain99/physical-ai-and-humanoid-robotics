@@ -1,0 +1,20 @@
+/**
+ * Urdu Button Component Styles
+ * Feature: 002-ui-improvements
+ * Task: Unified navbar button system
+ */
+
+/* Import unified navbar button styles */
+@import './NavbarButton/styles.css';
+
+.urdu-flag {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Hide label on mobile */
+@media (max-width: 768px) {
+  .urdu-button .navbar-btn__label {
+    display: none;
+  }
+}

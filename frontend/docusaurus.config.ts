@@ -8,9 +8,10 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Future flags
-  future: {
-    v4: true,
-  },
+  // v4 flag disabled for colorModeToggle compatibility
+  // future: {
+  //   v4: true,
+  // },
 
   url: "https://physical-ai-textbook.vercel.app",
   baseUrl: "/",
@@ -86,14 +87,14 @@ const config: Config = {
           type: "custom-urduButton",
           position: "right",
         },
+        // Theme toggle
+        {
+          type: "custom-themeToggle",
+          position: "right",
+        },
         // ✅ Your Login Link is Correct here
         {
           type: "custom-authButton",
-          position: "right",
-        },
-        // Theme switcher (dark/light/system)
-        {
-          type: "custom-themeToggle",
           position: "right",
         },
         {
