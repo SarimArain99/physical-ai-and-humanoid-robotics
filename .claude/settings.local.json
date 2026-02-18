@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__github__search_repositories",
+      "WebSearch"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "context7",
+    "playwright"
+  ],
+  "enableAllProjectMcpServers": true
+}

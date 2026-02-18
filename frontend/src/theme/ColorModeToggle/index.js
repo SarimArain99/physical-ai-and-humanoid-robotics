@@ -1,25 +1,16 @@
 /**
- * Theme Toggle Component
+ * Color Mode Toggle (Theme Switcher)
  *
- * Custom theme switcher for dark/light/system modes.
- * Swizzles the default ColorModeToggle to have more control.
+ * Swizzled default ColorModeToggle to customize behavior.
+ * This component cycles through light -> dark -> system modes.
  */
 
 import React from 'react';
-import { useColorMode } from '@docusaurus/theme-common';
+import { useColorMode, useThemeConfig } from '@docusaurus/theme-common';
 
-export default function ThemeToggle() {
+export default function ColorModeToggle() {
   const { colorMode, setColorMode } = useColorMode();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Avoid hydration mismatch
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+  const { minification } = useThemeConfig();
 
   const cycleColorMode = () => {
     if (colorMode === 'light') {
@@ -32,19 +23,25 @@ export default function ThemeToggle() {
   };
 
   const getIcon = () => {
-    if (colorMode === 'light') {
-      return '🌙'; // Moon
-    } else if (colorMode === 'dark') {
-      return '☀️'; // Sun
-    } else {
-      return '💻'; // Computer/System
+    switch (colorMode) {
+      case 'light':
+        return '\u{1F311}'; // 🌑 New moon (click to go dark)
+      case 'dark':
+        return '\u{1F304}'; // 🌄 Sunrise (click to use system)
+      default: // system
+        return '\u{1F4BB}'; // 💻 Computer (click to go light)
     }
   };
 
   const getTitle = () => {
-    if (colorMode === 'light') return 'Switch to dark mode';
-    if (colorMode === 'dark') return 'Switch to system preference';
-    return 'Switch to light mode';
+    switch (colorMode) {
+      case 'light':
+        return 'Switch to dark mode';
+      case 'dark':
+        return 'Switch to system preference';
+      default:
+        return 'Switch to light mode';
+    }
   };
 
   return (
@@ -66,7 +63,7 @@ export default function ThemeToggle() {
       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
     >
-      <span style={{ marginRight: '0.3rem' }}>{getIcon()}</span>
+      {getIcon()}
     </button>
   );
 }

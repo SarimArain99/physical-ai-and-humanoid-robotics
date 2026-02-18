@@ -18,10 +18,55 @@
   padding: var(--space-4) 0;
 }
 
+/* --- RESPONSIVE BREAKPOINTS --- */
+/* Tablet */
+@media (max-width: 996px) {
+  .week-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .week-cards-grid {
     grid-template-columns: 1fr;
     gap: var(--space-4);
+  }
+
+  .week-card {
+    padding: var(--space-4);
+  }
+
+  .week-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .week-cards-grid {
+    gap: var(--space-3);
+  }
+
+  .week-card {
+    padding: var(--space-3);
+  }
+
+  .week-card-title {
+    font-size: var(--text-lg);
+  }
+
+  .week-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .week-card-arrow {
+    align-self: flex-end;
   }
 }
 

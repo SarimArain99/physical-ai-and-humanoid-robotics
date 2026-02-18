@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     # Other settings with defaults
     qdrant_collection_name: str = "claude-cli-db"
     docs_path: str = "../frontend/docs"
+    openai_model: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL",
+                                    description="OpenAI model for chat completions")
 
     # Pydantic v2 Config
     model_config = SettingsConfigDict(

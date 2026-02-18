@@ -317,21 +317,29 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             # Get a temporary DB session just for this fix
             db_gen = get_db()
             db = next(db_gen)
-            
-            # Run the SQL to add the column safely
-            logger.info("🔧 Checking database schema...")
-            db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS proficiency VARCHAR(50) DEFAULT 'pro'"))
-            db.commit()
-            logger.info("✅ SUCCESS: Added/Verified 'proficiency' column.")
-            
-            # Close the temporary session
-            try:
-                next(db_gen)
-            except StopIteration:
-                pass
+
+            # Check if column exists first to avoid unnecessary ALTER attempts
+            check_result = db.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'users' AND column_name = 'proficiency'
+                )
+            """)).scalar()
+
+            if not check_result:
+                # Column doesn't exist, add it
+                logger.info("🔧 Adding missing 'proficiency' column to database...")
+                db.execute(text("ALTER TABLE users ADD COLUMN proficiency VARCHAR(50) DEFAULT 'pro'"))
+                db.commit()
+                logger.info("✅ SUCCESS: Added 'proficiency' column.")
+            else:
+                logger.info("✅ 'proficiency' column already exists - no migration needed.")
+
+            # Close the temporary session properly
+            db.close()
         except Exception as e:
-             # If this fails, it might just mean the column exists or permission issue
-             logger.warning(f"⚠️ Database auto-fix note: {e}")
+             # If this fails, log with more context
+             logger.warning(f"⚠️ Database schema check/migration skipped: {type(e).__name__}: {e}")
         # --------------------------------------------------
 
     except Exception as e:
@@ -350,8 +358,8 @@ default_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://physical-ai-and-humanoid-robotics-omega.vercel.app",
-    # Add your Hugging Face Space URL here:
-    # "https://YOUR_USERNAME-physical-ai-backend.hf.space"
+    # Hugging Face Space URL
+    "https://sarimarain-ai-native-book.hf.space",
 ]
 # Combine and filter empty strings
 origins = [o.strip() for o in env_origins if o.strip()] + default_origins
@@ -528,7 +536,16 @@ async def chat_endpoint(
                 chat_service = ChatService(db)
                 session_with_messages = chat_service.get_session_messages(request.session_id, user_id)
                 # Get last N messages for context (limit to 10 to avoid token overflow)
-                recent_messages = session_with_messages.messages[-10:] if len(session_with_messages.messages) > 10 else session_with_messages.messages
+                total_messages = len(session_with_messages.messages)
+                if total_messages > 10:
+                    recent_messages = session_with_messages.messages[-10:]
+                    logger.warning(
+                        f"Context limited to last 10 of {total_messages} messages (older messages excluded to stay within token limits)",
+                        extra={"correlation_id": correlation_id}
+                    )
+                else:
+                    recent_messages = session_with_messages.messages
+
                 for msg in recent_messages:
                     conversation_history.append({
                         "role": msg.role.value if isinstance(msg.role, MessageRole) else msg.role,
@@ -569,7 +586,7 @@ async def chat_endpoint(
             messages.append({"role": "user", "content": user_message})
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=settings.openai_model,
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
@@ -673,7 +690,7 @@ async def translate_text(request: TranslateRequest):
         )
 
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.openai_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.text}
@@ -715,7 +732,7 @@ async def adjust_content_level(request: ContentRequest):
             return {"content": request.text}
 
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.openai_model,
             messages=[
                 {"role": "system", "content": f"You are a Physics & AI tutor. {instruction}"},
                 {"role": "user", "content": request.text}
@@ -766,11 +783,14 @@ async def batch_translate_text(request: BatchTranslateRequest):
             system_prompt = (
                 "You are a professional translator for a Robotics & AI textbook. "
                 "Translate the following text into Urdu. "
-                "Keep technical terms like 'ROS', 'Python', 'Algorithm' in English."
+                "Rules:\n"
+                "1. Keep the tone academic and professional.\n"
+                "2. Do NOT translate technical terms like 'ROS', 'Python', 'Algorithm', 'Sensor'. Keep them in English script.\n"
+                "3. Return ONLY the translated text."
             )
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=settings.openai_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text}
@@ -817,7 +837,7 @@ async def batch_adjust_content(request: BatchContentRequest):
                 continue
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=settings.openai_model,
                 messages=[
                     {"role": "system", "content": f"You are a Physics & AI tutor. {instruction}"},
                     {"role": "user", "content": text}

@@ -8,9 +8,10 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Future flags
-  future: {
-    v4: true,
-  },
+  // v4 flag disabled for colorModeToggle compatibility
+  // future: {
+  //   v4: true,
+  // },
 
   url: "https://physical-ai-textbook.vercel.app",
   baseUrl: "/",
@@ -33,20 +34,9 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+            "https://github.com/SarimArain99/physical-ai-textbook/tree/main/frontend/docs",
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ["rss", "atom"],
-            xslt: true,
-          },
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
-          onInlineTags: "warn",
-          onInlineAuthors: "warn",
-          onUntruncatedBlogPosts: "warn",
-        },
+        blog: false,  // Disabled blog functionality
         theme: {
           customCss: [
             "./src/css/custom.css",
@@ -86,14 +76,14 @@ const config: Config = {
           type: "custom-urduButton",
           position: "right",
         },
+        // Theme toggle
+        {
+          type: "custom-themeToggle",
+          position: "right",
+        },
         // ✅ Your Login Link is Correct here
         {
           type: "custom-authButton",
-          position: "right",
-        },
-        // Theme switcher (dark/light/system)
-        {
-          type: "custom-themeToggle",
           position: "right",
         },
         {
@@ -136,12 +126,8 @@ const config: Config = {
           title: "More",
           items: [
             {
-              label: "Blog",
-              to: "/blog",
-            },
-            {
               label: "GitHub",
-              href: "https://github.com/facebook/docusaurus",
+              href: "https://github.com/SarimArain99/physical-ai-textbook",
             },
           ],
         },
