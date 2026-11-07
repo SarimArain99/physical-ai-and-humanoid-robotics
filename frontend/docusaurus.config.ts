@@ -43,7 +43,7 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           editUrl:
-            "https://github.com/SarimArain99/physical-ai-and-humanoid-robotics/tree/main/frontend/docs",
+            "https://github.com/SarimArain99/physical-ai-and-humanoid-robotics/tree/main/frontend",
         },
         blog: false, // No blog — the footer must not link to one.
         theme: {

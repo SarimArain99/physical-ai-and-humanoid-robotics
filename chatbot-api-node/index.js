@@ -186,7 +186,7 @@ app.post("/api/chat", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: history,
       stream: true,
     });
@@ -230,7 +230,7 @@ app.post("/api/chat/selected", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: history,
       stream: true,
     });
@@ -271,7 +271,7 @@ app.post("/api/translate", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: text }
@@ -320,7 +320,7 @@ app.post("/api/personalize", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: text }
@@ -364,7 +364,7 @@ app.post("/api/quiz", async (req, res) => {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: text }
@@ -390,7 +390,7 @@ app.post("/api/flashcards", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: text }
@@ -479,7 +479,14 @@ app.post("/api/cache", async (req, res) => {
 // contextChars reports how much textbook text the RAG context holds —
 // 0 means the docs were not found at startup (check the docs path).
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", contextChars: textbookContext.length });
+  // Key presence only — never the value. "missing" explains at a glance
+  // why every AI endpoint returns "Error connecting to AI.".
+  res.json({
+    status: "ok",
+    contextChars: textbookContext.length,
+    openai: process.env.OPENAI_API_KEY ? "configured" : "missing",
+    model: "gpt-4o-mini",
+  });
 });
 
 // NOTE: the old /api/diagnostics endpoint was removed on purpose.

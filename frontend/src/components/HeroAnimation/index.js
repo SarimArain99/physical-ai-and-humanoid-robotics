@@ -52,8 +52,10 @@ export default function HeroAnimation({
       const delay = elements[index]?.delay || index * staggerDelay;
       const animType = elements[index]?.animation || animation;
 
-      // Set initial state
-      child.style.opacity = '0';
+      // Do NOT set inline opacity here: the .hero-animate-* classes
+      // already start at opacity 0, and an inline opacity: 0 beats the
+      // stylesheet's opacity: 1 on .hero-animate-visible, so children
+      // stayed invisible forever (the homepage hero bug).
       child.style.animationDelay = `${delay}ms`;
       child.classList.add(`hero-animate-${animType}`);
 
