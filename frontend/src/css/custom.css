@@ -88,3 +88,49 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ifm-color-primary);
 }
+
+/* 4. MOBILE */
+@media screen and (max-width: 996px) {
+  /* Keep the navbar on one line: icon only, no site title text. */
+  .navbar__title {
+    display: none;
+  }
+
+  .navbar__items {
+    gap: 0.25rem;
+  }
+
+  /* Long tables and code blocks scroll inside themselves,
+     never widen the page. */
+  .markdown table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .markdown pre {
+    max-width: 100%;
+  }
+
+  .markdown img,
+  .markdown svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .navbar {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Long URLs and paths in prose wrap instead of overflowing. */
+  .markdown {
+    overflow-wrap: break-word;
+  }
+
+  .footer__links {
+    margin-bottom: 1rem;
+  }
+}

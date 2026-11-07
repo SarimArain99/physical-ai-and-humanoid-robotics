@@ -452,12 +452,12 @@ class SystemIdentifier:
 
             # Estimate actuator bandwidth from frequency response
             # (would need sinusoidal input data for proper identification)
-            bandwidth = 10.0  # Hz (placeholder - would be identified properly)
+            bandwidth = 10.0  # Hz — example value; identify it from sinusoidal input data
 
             actuator_params = {
                 'delay': avg_delay,
                 'bandwidth': bandwidth,
-                'saturation_limit': 100.0  # Nm (placeholder)
+                'saturation_limit': 100.0  # Nm — example value; measure it from the actuator datasheet or step-response tests
             }
 
             self.identified_params['actuator_dynamics'] = actuator_params
@@ -1065,20 +1065,28 @@ class HumanoidSimToRealAdapter:
         return metrics
 
     def _test_balance_transfer(self, sim_policy, real_robot) -> float:
-        """Test if adapted balance control works on real robot"""
-        # Implementation would test balance control
-        # This is a simplified placeholder
-        return 0.85  # 85% success rate
+        """Test if adapted balance control works on real robot.
+
+        Example success rate for illustration — a real test runs the
+        adapted policy on the robot and measures how often it stays balanced.
+        """
+        return 0.85  # 85% success rate (example)
 
     def _test_gait_transfer(self, sim_policy, real_robot) -> float:
-        """Test if adapted gait works on real robot"""
-        # Implementation would test walking patterns
-        return 0.78  # 78% success rate
+        """Test if adapted gait works on real robot.
+
+        Example success rate for illustration — a real test runs the
+        adapted gait on the robot and measures successful steps.
+        """
+        return 0.78  # 78% success rate (example)
 
     def _test_obstacle_transfer(self, sim_policy, real_robot) -> float:
-        """Test if obstacle navigation transfers successfully"""
-        # Implementation would test obstacle avoidance
-        return 0.82  # 82% success rate
+        """Test if obstacle navigation transfers successfully.
+
+        Example success rate for illustration — a real test runs the
+        adapted policy through an obstacle course on the robot.
+        """
+        return 0.82  # 82% success rate (example)
 ```
 
 ## Evaluation and Validation

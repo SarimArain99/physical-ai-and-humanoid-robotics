@@ -2,6 +2,9 @@
 sidebar_position: 4
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ROS2_QUIZZES } from '@site/src/data/quizzes';
+
 # ROS 2 Services and Actions
 
 This chapter explores advanced communication patterns in ROS 2: services for synchronous request-response communication and actions for goal-oriented, long-running tasks.
@@ -569,6 +572,10 @@ Create a complete robotic system using services and actions:
 2. When would you use an action instead of a service?
 3. How do actions handle long-running tasks with feedback?
 4. What are the advantages of using parameters with services and actions?
+
+## Check Your Understanding
+
+<Quiz quizId="ros2-services" questions={ROS2_QUIZZES['ros2-services'].questions} />
 
 ## Further Reading
 

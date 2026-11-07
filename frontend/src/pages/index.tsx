@@ -6,18 +6,15 @@ import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import Heading from '@theme/Heading';
 import HeroAnimation from '@site/src/components/HeroAnimation';
+import HeroRobot from '@site/src/components/HeroRobot';
 import WeekCards from '@site/src/components/WeekCards';
-// T092: Lazy load ThreeDRobot for better performance
-import { lazy, Suspense } from 'react';
-
-const ThreeDRobot = lazy(() => import('@site/src/components/ThreeDRobot'));
 
 import styles from './index.module.css';
 
 /**
  * Homepage Component
- * Feature: 002-ui-improvements
- * Task: T060 - Integrate ThreeDRobot into homepage hero section
+ * The hero uses a static robot illustration (HeroRobot) — the old
+ * three.js loader never visibly rendered and showed a fake loading state.
  */
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
@@ -35,20 +32,12 @@ function HomepageHeader() {
                 <Link
                   className="button button--secondary button--lg"
                   to="/docs/intro">
-                  Get Started with Physical AI
+                  Start Reading
                 </Link>
               </div>
             </div>
             <div className={styles.heroVisual}>
-              <Suspense fallback={<div className={styles.threeRobotLoading}>Loading 3D Robot...</div>}>
-                <ThreeDRobot
-                  autoRotate={true}
-                  rotateSpeed={0.005}
-                  enableDrag={true}
-                  width={280}
-                  height={350}
-                />
-              </Suspense>
+              <HeroRobot width={280} height={350} />
             </div>
           </div>
         </div>

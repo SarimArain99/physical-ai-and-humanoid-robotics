@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import { useAuth } from "./Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import { contentUrls } from "../../config/api";
+import { translateTexts } from "../config/api";
 import "./UrduButton.css";
 
 const UrduButtonContent = () => {
@@ -65,82 +65,41 @@ const UrduButtonContent = () => {
         return;
       }
 
-      // Process in batches of 10 for better performance
-      const BATCH_SIZE = 10;
-      let processed = 0;
+      // Translate a few elements per API call (the backend translates one
+      // text per call and rate-limits AI requests). Elements that could
+      // not be translated keep their original English text.
+      const translations = await translateTexts(textsToTranslate, (pct) =>
+        setProgress(pct)
+      );
 
-      for (let batchStart = 0; batchStart < total; batchStart += BATCH_SIZE) {
-        const batchEnd = Math.min(batchStart + BATCH_SIZE, total);
-        const batchTexts = textsToTranslate.slice(batchStart, batchEnd);
-        const batchElements = validElements.slice(batchStart, batchEnd);
-
-        try {
-          const response = await fetch(
-            contentUrls.translateBatch(),
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ texts: batchTexts }),
-            }
-          );
-
-          const data = await response.json();
-
-          if (data.translations && Array.isArray(data.translations)) {
-            // Apply translations to elements
-            data.translations.forEach((translation, idx) => {
-              if (translation && batchElements[idx]) {
-                batchElements[idx].innerText = translation;
-                // Apply Urdu Styling
-                batchElements[idx].style.direction = "rtl";
-                batchElements[idx].style.fontFamily =
-                  "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
-                batchElements[idx].style.textAlign = "right";
-                batchElements[idx].style.color = "#2ECC71";
-                batchElements[idx].style.fontSize = "1.2em";
-                batchElements[idx].style.lineHeight = "1.8";
-              }
-            });
-          }
-        } catch (err) {
-          console.error("Batch translation failed, falling back to individual:", err);
-          // Fallback: translate individually if batch fails
-          for (let i = 0; i < batchTexts.length; i++) {
-            try {
-              const response = await fetch(
-                contentUrls.translate(),
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ text: batchTexts[i] }),
-                }
-              );
-              const data = await response.json();
-              if (data.translation && batchElements[i]) {
-                batchElements[i].innerText = data.translation;
-                batchElements[i].style.direction = "rtl";
-                batchElements[i].style.fontFamily = "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
-                batchElements[i].style.textAlign = "right";
-                batchElements[i].style.color = "#2ECC71";
-                batchElements[i].style.fontSize = "1.2em";
-                batchElements[i].style.lineHeight = "1.8";
-              }
-            } catch (innerErr) {
-              console.error("Individual translation failed", innerErr);
-            }
-          }
+      let translatedCount = 0;
+      translations.forEach((translation, idx) => {
+        const element = validElements[idx];
+        if (translation && element) {
+          translatedCount += 1;
+          element.innerText = translation;
+          // Apply Urdu styling
+          element.style.direction = "rtl";
+          element.style.fontFamily =
+            "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
+          element.style.textAlign = "right";
+          element.style.color = "#2ECC71";
+          element.style.fontSize = "1.2em";
+          element.style.lineHeight = "1.8";
         }
+      });
 
-        processed += batchTexts.length;
-        setProgress(Math.round((processed / total) * 100));
+      if (translatedCount === 0) {
+        alert("Translation failed. The translation service is unavailable right now — please try again later.");
+        setLoading(false);
+        setProgress(0);
+        return;
       }
 
       setIsUrdu(true);
     } catch (error) {
       console.error(error);
-      alert("Translation failed. Check backend.");
+      alert("Translation failed. The translation service is unavailable right now — please try again later.");
     } finally {
       setLoading(false);
       setProgress(0);

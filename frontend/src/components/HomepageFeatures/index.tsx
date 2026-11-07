@@ -15,8 +15,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/robot-svgrepo-com.svg').default,
     description: (
       <>
-        Move beyond chatbots. Learn how to deploy <strong>Vision-Language-Action (VLA)</strong> models
-        into physical hardware to perceive, reason, and act in the real world.
+        Learn how <strong>Vision-Language-Action (VLA)</strong> models help robots
+        perceive, reason, and act in the real world.
       </>
     ),
   },
@@ -25,8 +25,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/transfer-svgrepo-com.svg').default,
     description: (
       <>
-        Master the art of <strong>Digital Twins</strong>. Train robust policies in NVIDIA Isaac Sim
-        and Gazebo using Reinforcement Learning before deploying to real robots.
+        Use <strong>digital twins</strong> to train and test robot policies in NVIDIA Isaac Sim
+        and Gazebo before deploying them to real robots.
       </>
     ),
   },
@@ -35,8 +35,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/humanoid-svgrepo-com.svg').default,
     description: (
       <>
-        Build the full software stack: from <strong>ROS 2</strong> middleware and sensor fusion
-        to whole-body control and stable bipedal locomotion algorithms.
+        Work through the full software stack: <strong>ROS 2</strong> middleware and sensor fusion,
+        whole-body control, and bipedal locomotion.
       </>
     ),
   },

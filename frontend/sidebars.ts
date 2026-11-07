@@ -33,7 +33,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Weeks 6-7: Robot Simulation with Gazebo',
+      label: 'Weeks 6-7: Robot Simulation',
       items: [
         'week6/gazebo-simulation',
         'week7/nvidia-isaac-sim'

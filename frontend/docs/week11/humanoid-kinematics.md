@@ -429,31 +429,57 @@ class HumanoidInverseKinematics:
         return current_angles
 
     def compute_jacobian_leg(self, joint_angles: List[float], leg_side: str) -> np.ndarray:
-        """Compute Jacobian matrix for leg using analytical method"""
-        # This is a simplified Jacobian calculation
-        # In practice, you would compute the full analytical Jacobian
-        # or use numerical differentiation
+        """Compute the 6x6 Jacobian for the leg (foot linear + angular
+        velocity vs joint velocities) by central finite differences of
+        the forward kinematics above. Accurate enough for the IK examples
+        in this chapter; an analytic Jacobian is faster for real-time use."""
+        eps = 1e-6
+        angles = np.asarray(joint_angles, dtype=float)
+        jacobian = np.zeros((6, 6))
 
-        # Jacobian relates joint velocities to end-effector velocities
-        # J = [∂f/∂θ₁, ∂f/∂θ₂, ..., ∂f/∂θₙ]
-
-        jacobian = np.zeros((6, 6))  # 6 DOF leg, 6x6 Jacobian
-
-        # Simplified Jacobian computation
-        # In practice, this would use the full kinematic chain derivatives
         for i in range(6):
-            jacobian[:, i] = np.random.rand(6) * 0.1  # Placeholder values
+            plus = angles.copy()
+            plus[i] += eps
+            minus = angles.copy()
+            minus[i] -= eps
+            pose_plus = self.forward_kinematics_leg(plus.tolist(), leg_side)['foot']
+            pose_minus = self.forward_kinematics_leg(minus.tolist(), leg_side)['foot']
+
+            # Linear part: change in foot position
+            jacobian[:3, i] = (pose_plus[:3, 3] - pose_minus[:3, 3]) / (2 * eps)
+
+            # Angular part: change in foot orientation, as a rotation vector
+            angle, axis = self.rotation_matrix_to_axis_angle(
+                pose_plus[:3, :3] @ pose_minus[:3, :3].T
+            )
+            jacobian[3:, i] = axis * angle / (2 * eps)
 
         return jacobian
 
     def compute_jacobian_arm(self, joint_angles: List[float], arm_side: str) -> np.ndarray:
-        """Compute Jacobian matrix for arm"""
-        jacobian = np.zeros((6, 6))  # 6 DOF arm, 6x6 Jacobian
+        """Compute the 6x6 Jacobian for the arm (hand linear + angular
+        velocity vs joint velocities) by central finite differences of
+        the forward kinematics above."""
+        eps = 1e-6
+        angles = np.asarray(joint_angles, dtype=float)
+        jacobian = np.zeros((6, 6))
 
-        # Simplified Jacobian computation
-        # In practice, this would use the full kinematic chain derivatives
         for i in range(6):
-            jacobian[:, i] = np.random.rand(6) * 0.1  # Placeholder values
+            plus = angles.copy()
+            plus[i] += eps
+            minus = angles.copy()
+            minus[i] -= eps
+            pose_plus = self.forward_kinematics_arm(plus.tolist(), arm_side)['hand']
+            pose_minus = self.forward_kinematics_arm(minus.tolist(), arm_side)['hand']
+
+            # Linear part: change in hand position
+            jacobian[:3, i] = (pose_plus[:3, 3] - pose_minus[:3, 3]) / (2 * eps)
+
+            # Angular part: change in hand orientation, as a rotation vector
+            angle, axis = self.rotation_matrix_to_axis_angle(
+                pose_plus[:3, :3] @ pose_minus[:3, :3].T
+            )
+            jacobian[3:, i] = axis * angle / (2 * eps)
 
         return jacobian
 

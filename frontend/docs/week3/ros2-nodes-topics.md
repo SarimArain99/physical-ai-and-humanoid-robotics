@@ -2,6 +2,9 @@
 sidebar_position: 3
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ROS2_QUIZZES } from '@site/src/data/quizzes';
+
 # ROS 2 Architecture and Core Concepts: Nodes and Topics
 
 This chapter introduces the Robot Operating System 2 (ROS 2) architecture, focusing on the fundamental concepts of nodes and topics that form the backbone of robotic communication.
@@ -442,6 +445,12 @@ Create a complete ROS 2 system that demonstrates nodes and topics:
 2. How do Quality of Service settings affect communication in ROS 2?
 3. What are the advantages of using topics for robot communication?
 4. How do launch files simplify node management in complex systems?
+
+## Check Your Understanding
+
+<Quiz quizId="ros2-intro" questions={ROS2_QUIZZES['ros2-intro'].questions} />
+
+<Quiz quizId="ros2-topics" questions={ROS2_QUIZZES['ros2-topics'].questions} />
 
 ## Further Reading
 

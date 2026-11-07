@@ -4,7 +4,7 @@ import { API_BASE_URL } from "../config/api";
 /**
  * 1. Create the client using the React adapter.
  * IMPORTANT: Better Auth appends '/api/auth' automatically to the baseURL.
- * We pass the base domain (https://sarimarain-ai-native-book.hf.space) directly.
+ * We pass the base domain (https://physical-ai-backend-mu.vercel.app) directly.
  */
 export const authClient = createAuthClient({
   baseURL: API_BASE_URL, 

@@ -2,6 +2,9 @@
 sidebar_position: 6
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { DIGITAL_TWIN_QUIZZES } from '@site/src/data/quizzes';
+
 # Robot Simulation with Gazebo
 
 This chapter covers Gazebo simulation environment setup, robot modeling, physics simulation, and integration with ROS 2 for testing robotic systems in realistic virtual environments.
@@ -991,6 +994,10 @@ Create a complete simulation environment:
 2. How do you integrate ROS 2 with Gazebo simulation?
 3. What are the key components needed for sensor simulation in Gazebo?
 4. How can you optimize simulation performance for large environments?
+
+## Check Your Understanding
+
+<Quiz quizId="digital-twin-intro" questions={DIGITAL_TWIN_QUIZZES['digital-twin-intro'].questions} />
 
 ## Further Reading
 

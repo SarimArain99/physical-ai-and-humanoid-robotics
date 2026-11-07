@@ -280,7 +280,9 @@ class IsaacDNNNode(Node):
             Detection2DArray, '/isaac_ros/dnn_detections', 10
         )
 
-        # Initialize TensorRT engine for inference
+        # Path to a compiled TensorRT engine file (build one from your
+        # model first, e.g. with `trtexec --onnx=model.onnx --saveEngine=model.engine`)
+        self.engine_path = '/path/to/model.engine'
         self.tensorrt_engine = self.load_tensorrt_model()
         self.input_width = 640
         self.input_height = 480
@@ -289,19 +291,20 @@ class IsaacDNNNode(Node):
         self.confidence_threshold = 0.5
 
     def load_tensorrt_model(self):
-        """Load TensorRT optimized model for inference"""
+        """Load a compiled TensorRT engine file for inference."""
         try:
             import tensorrt as trt
-            import pycuda.driver as cuda
-            import pycuda.autoinit
 
-            # Load TensorRT engine file
-            # In practice, this would load a pre-compiled TensorRT engine
-            # For example: yolov8 or other optimized models
+            runtime = trt.Runtime(trt.Logger(trt.Logger.WARNING))
+            with open(self.engine_path, 'rb') as f:
+                engine = runtime.deserialize_cuda_engine(f.read())
             self.get_logger().info('TensorRT model loaded')
-            return None  # Placeholder - actual implementation would load engine
+            return engine
         except ImportError:
             self.get_logger().error('TensorRT not available')
+            return None
+        except FileNotFoundError:
+            self.get_logger().error(f'TensorRT engine file not found: {self.engine_path}')
             return None
 
     def image_callback(self, msg):
@@ -993,9 +996,10 @@ class IsaacHumanoidNavigation(Node):
             'efforts': []      # Calculated values
         }
 
-        # Calculate specific positions based on trajectory
-        # This is a simplified example - real implementation would be much more complex
-        positions = [0.0] * 15  # Placeholder values
+        # Simplified example: start from a neutral standing pose, then
+        # adjust the joints for this step. A real controller computes
+        # these from inverse kinematics and the planned trajectory.
+        positions = [0.0] * 15  # Neutral standing pose
 
         # Adjust for step
         if footstep['foot'] == 'left':
@@ -1010,8 +1014,9 @@ class IsaacHumanoidNavigation(Node):
         positions[7] = -0.02  # Right hip roll for balance
 
         joint_commands['positions'] = positions
-        joint_commands['velocities'] = [0.0] * 15  # Placeholder
-        joint_commands['efforts'] = [0.0] * 15    # Placeholder
+        # No velocity or effort commands in this simplified example
+        joint_commands['velocities'] = [0.0] * 15
+        joint_commands['efforts'] = [0.0] * 15
 
         return joint_commands
 

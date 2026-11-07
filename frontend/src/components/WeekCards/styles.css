@@ -110,6 +110,15 @@
 }
 
 /* Module-specific colors */
+.week-card-intro:hover {
+  border-color: #2ecc71;
+  box-shadow: var(--shadow-xl), 0 0 30px #2ecc7130;
+}
+
+.week-card-intro::before {
+  background: #2ecc71;
+}
+
 .week-card-ros2:hover {
   border-color: #FF6B35;
   box-shadow: var(--shadow-xl), 0 0 30px #FF6B3530;
@@ -135,6 +144,15 @@
 
 .week-card-isaac::before {
   background: #A855F7;
+}
+
+.week-card-humanoid:hover {
+  border-color: #F59E0B;
+  box-shadow: var(--shadow-xl), 0 0 30px #F59E0B30;
+}
+
+.week-card-humanoid::before {
+  background: #F59E0B;
 }
 
 .week-card-vla:hover {
@@ -235,6 +253,11 @@
 }
 
 /* Glow effect on hover (module-specific) */
+.week-card-intro:hover .week-card-arrow {
+  color: #2ecc71;
+  text-shadow: 0 0 10px #2ecc71;
+}
+
 .week-card-ros2:hover .week-card-arrow {
   color: #FF6B35;
   text-shadow: 0 0 10px #FF6B35;
@@ -248,6 +271,11 @@
 .week-card-isaac:hover .week-card-arrow {
   color: #A855F7;
   text-shadow: 0 0 10px #A855F7;
+}
+
+.week-card-humanoid:hover .week-card-arrow {
+  color: #F59E0B;
+  text-shadow: 0 0 10px #F59E0B;
 }
 
 .week-card-vla:hover .week-card-arrow {

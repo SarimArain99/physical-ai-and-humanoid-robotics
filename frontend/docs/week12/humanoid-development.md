@@ -282,16 +282,28 @@ class HumanoidKinematics:
         return current_angles.tolist()
 
     def calculate_jacobian_arm(self, joint_angles: np.ndarray, arm_type: str) -> np.ndarray:
-        """Calculate Jacobian matrix for arm using analytical method"""
-        # This is a simplified Jacobian calculation
-        # In practice, you would derive the analytical Jacobian based on the DH parameters
-        jacobian = np.zeros((6, 6))  # 6 DOF arm, 6x6 Jacobian
+        """Calculate the 6x6 Jacobian for the arm (hand linear + angular
+        velocity vs joint velocities) by central finite differences of
+        the forward kinematics above."""
+        eps = 1e-6
+        angles = np.asarray(joint_angles, dtype=float)
+        jacobian = np.zeros((6, 6))
 
-        # Calculate Jacobian columns for each joint
         for i in range(6):
-            # Simplified calculation - in practice, this would be derived analytically
-            # from the forward kinematics equations
-            jacobian[:, i] = np.random.rand(6) * 0.1  # Placeholder values
+            plus = angles.copy()
+            plus[i] += eps
+            minus = angles.copy()
+            minus[i] -= eps
+            pose_plus = self.forward_kinematics_arm(plus.tolist(), arm_type)['hand']
+            pose_minus = self.forward_kinematics_arm(minus.tolist(), arm_type)['hand']
+
+            # Linear part: change in hand position
+            jacobian[:3, i] = (pose_plus[:3, 3] - pose_minus[:3, 3]) / (2 * eps)
+
+            # Angular part: change in hand orientation, as a rotation vector
+            jacobian[3:, i] = self.rotation_matrix_to_axis_angle(
+                pose_plus[:3, :3] @ pose_minus[:3, :3].T
+            ) / (2 * eps)
 
         return jacobian
 
@@ -551,7 +563,8 @@ class BalanceController:
         com_zmp_distance = np.linalg.norm(com_pos[:2] - zmp[:2])
 
         # Calculate capture point (point where robot needs to step to stop)
-        com_velocity = np.array([0.1, 0.0, 0.0])  # Placeholder - would come from robot state
+        # CoM velocity tracked by the controller, updated from robot state
+        com_velocity = self.com_velocity
         capture_point = self.calculate_capture_point(com_pos[:2], com_velocity[:2])
 
         return {
@@ -1009,22 +1022,28 @@ class SocialInteractionFramework:
             return 'public'
 
     def estimate_attention(self, human_info: Dict) -> float:
-        """Estimate how much attention human is paying to robot"""
-        # This would use gaze tracking, pose estimation, etc.
-        # For now, return a placeholder
-        return 0.8  # 80% attention
+        """Estimate how much attention the human is paying to the robot.
+
+        Default of 0.8 (80%) until a gaze-tracking or pose-estimation
+        model is connected — replace with a real measurement.
+        """
+        return 0.8
 
     def estimate_emotion(self, human_info: Dict) -> str:
-        """Estimate human emotion from facial expressions, voice, etc."""
-        # This would use emotion recognition models
-        # For now, return a placeholder
+        """Estimate human emotion from facial expressions, voice, etc.
+
+        Default of 'neutral' until an emotion-recognition model is
+        connected — replace with a real measurement.
+        """
         return 'neutral'
 
     def estimate_cultural_context(self, human_info: Dict) -> str:
-        """Estimate cultural context for appropriate interaction style"""
-        # This would analyze appearance, behavior, etc.
-        # For now, return a placeholder
-        return 'universal'  # Use universal social norms
+        """Estimate cultural context for appropriate interaction style.
+
+        Default of 'universal' (universal social norms) until interaction
+        history is analysed — replace with a real measurement.
+        """
+        return 'universal'
 
     def execute_multimodal_response(self, response: Dict):
         """Execute multimodal social response"""

@@ -1,10 +1,11 @@
 /**
  * Week Cards Component
- * Feature: 002-ui-improvements
- * Task: T017
  *
- * Enhanced week cards with hover effects and module-specific theming.
- * Displays course weeks as interactive cards with visual feedback.
+ * One source of truth for the 13 chapter cards on the homepage.
+ * Every link below must match a real doc slug (see sidebars.ts) —
+ * stale slugs shipped 12 dead 404 cards once before, so keep this
+ * list in sync with the docs folder. Run `npm run build` with
+ * onBrokenLinks: "throw" to catch any drift.
  */
 
 import React from 'react';
@@ -15,9 +16,9 @@ import './styles.css';
  * Week data structure
  * @typedef {Object} WeekData
  * @property {number} week - Week number
- * @property {string} title - Week title
+ * @property {string} title - Week title (matches the chapter's H1)
  * @property {string} description - Brief description
- * @property {string} module - Module ID (ros2, digitalTwin, isaac, vla)
+ * @property {string} module - Module ID (intro, ros2, digitalTwin, isaac, humanoid, vla)
  * @property {string} link - Link to week content
  */
 
@@ -59,98 +60,98 @@ export function WeekCard({
  * Displays all week cards in a responsive grid
  */
 export default function WeekCards({ weeks = [] }) {
-  // Default week data if not provided
+  // The 13 real chapters, in order. Slugs and titles match the docs.
   const defaultWeeks = [
     {
       week: 1,
       title: 'Introduction to Physical AI',
-      description: 'Understanding the bridge between digital AI and physical robots',
-      module: 'ros2',
+      description: 'What physical AI is, and how digital intelligence meets real robots',
+      module: 'intro',
       link: '/docs/week1/intro-physical-ai'
     },
     {
       week: 2,
-      title: 'ROS 2 Fundamentals',
-      description: 'Core concepts of Robot Operating System 2',
-      module: 'ros2',
-      link: '/docs/week2/ros2-fundamentals'
+      title: 'Embodied Intelligence',
+      description: 'How robots sense, perceive, and act in the physical world',
+      module: 'intro',
+      link: '/docs/week2/embodied-intelligence'
     },
     {
       week: 3,
-      title: 'ROS 2 Communication',
-      description: 'Nodes, topics, services, and actions',
+      title: 'ROS 2 Architecture and Core Concepts: Nodes and Topics',
+      description: 'The building blocks of ROS 2 communication',
       module: 'ros2',
-      link: '/docs/week3/ros2-communication'
+      link: '/docs/week3/ros2-nodes-topics'
     },
     {
       week: 4,
-      title: 'ROS 2 Tools & Best Practices',
-      description: 'Launch files, parameters, and debugging',
+      title: 'ROS 2 Services and Actions',
+      description: 'Request-response calls and long-running tasks in ROS 2',
       module: 'ros2',
-      link: '/docs/week4/ros2-tools'
+      link: '/docs/week4/ros2-services-actions'
     },
     {
       week: 5,
-      title: 'ROS 2 Project',
-      description: 'Build your first ROS 2 application',
+      title: 'Advanced ROS 2 Concepts: Launch Files, Parameters, and Lifecycle Nodes',
+      description: 'Starting, configuring, and managing ROS 2 systems',
       module: 'ros2',
-      link: '/docs/week5/ros2-project'
+      link: '/docs/week5/ros2-fundamentals-advanced'
     },
     {
       week: 6,
-      title: 'Digital Twin Introduction',
-      description: 'Creating virtual representations of physical systems',
+      title: 'Robot Simulation with Gazebo',
+      description: 'Build and test robots in the Gazebo simulator',
       module: 'digitalTwin',
-      link: '/docs/week6/digital-twin-intro'
+      link: '/docs/week6/gazebo-simulation'
     },
     {
       week: 7,
-      title: 'Simulation & Testing',
-      description: 'Testing robots in virtual environments',
+      title: 'NVIDIA Isaac Sim Fundamentals',
+      description: 'First steps with NVIDIA Isaac Sim',
       module: 'digitalTwin',
-      link: '/docs/week7/simulation-testing'
+      link: '/docs/week7/nvidia-isaac-sim'
     },
     {
       week: 8,
-      title: 'NVIDIA Isaac SDK',
-      description: 'AI platform for robotics and manipulation',
+      title: 'NVIDIA Isaac Platform: AI-Powered Robotics',
+      description: 'The Isaac platform and AI-powered robotics',
       module: 'isaac',
-      link: '/docs/week8/isaac-intro'
+      link: '/docs/week8/nvidia-isaac-sim'
     },
     {
       week: 9,
-      title: 'Isaac Sim',
-      description: 'Physics-based simulation for robotics',
+      title: 'Isaac ROS: Hardware-Accelerated Perception and Navigation',
+      description: 'Perception and navigation with Isaac ROS',
       module: 'isaac',
-      link: '/docs/week9/isaac-sim'
+      link: '/docs/week9/isaac-ros'
     },
     {
       week: 10,
-      title: 'Isaac Navigation',
-      description: 'Autonomous navigation with NVIDIA Isaac',
+      title: 'Sim-to-Real Transfer: Bridging Simulation and Reality',
+      description: 'Moving a robot from simulation to the real world',
       module: 'isaac',
-      link: '/docs/week10/isaac-navigation'
+      link: '/docs/week10/sim-to-real-transfer'
     },
     {
       week: 11,
-      title: 'Vision-Language Models',
-      description: 'Introduction to VLA for robotics',
-      module: 'vla',
-      link: '/docs/week11/vla-intro'
+      title: 'Humanoid Robot Kinematics',
+      description: 'How humanoid robots move: joints, frames, and poses',
+      module: 'humanoid',
+      link: '/docs/week11/humanoid-kinematics'
     },
     {
       week: 12,
-      title: 'VLA Integration',
-      description: 'Integrating VLA with robotic systems',
-      module: 'vla',
-      link: '/docs/week12/vla-integration'
+      title: 'Humanoid Robot Development: Kinematics, Dynamics, and Control',
+      description: 'Dynamics and control for humanoid robots',
+      module: 'humanoid',
+      link: '/docs/week12/humanoid-development'
     },
     {
       week: 13,
-      title: 'Capstone Project',
-      description: 'Build a complete VLA-powered robot',
+      title: 'Conversational Robotics and Capstone Integration',
+      description: 'Talking robots and the final capstone project',
       module: 'vla',
-      link: '/docs/week13/capstone'
+      link: '/docs/week13/conversational-robotics'
     }
   ];
 
@@ -172,10 +173,12 @@ export default function WeekCards({ weeks = [] }) {
  */
 function getModuleName(module) {
   const names = {
+    intro: 'Introduction',
     ros2: 'ROS 2',
-    digitalTwin: 'Digital Twin',
+    digitalTwin: 'Simulation',
     isaac: 'NVIDIA Isaac',
-    vla: 'VLA'
+    humanoid: 'Humanoid',
+    vla: 'Conversational'
   };
   return names[module] || 'General';
 }

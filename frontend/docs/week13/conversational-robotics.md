@@ -2,6 +2,9 @@
 sidebar_position: 13
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { VLA_QUIZZES } from '@site/src/data/quizzes';
+
 # Conversational Robotics and Capstone Integration
 
 This chapter focuses on integrating conversational AI with robotic systems, bringing together all the components learned in previous weeks to create an AI-native humanoid robot capable of natural human interaction.
@@ -1354,10 +1357,8 @@ class AutonomousHumanoidCapstone:
     def answer_question(self, question: str, context: Dict) -> Dict:
         """Answer questions using integrated knowledge"""
         try:
-            # In a real system, this would use the robot's knowledge base
-            # combined with perception data to answer questions
-            # For demonstration, we'll return a placeholder answer
-
+            # Demo response — in a real system this would query the robot's
+            # knowledge base combined with perception data to answer.
             answer = f"I can answer questions about my environment and capabilities. " \
                     f"You asked: '{question}'. Based on my current understanding, " \
                     "I can provide information about objects I've detected and " \
@@ -1545,8 +1546,8 @@ class HumanoidManipulationSystem:
 
     def get_location_coordinates(self, location: str) -> List[float]:
         """Get coordinates for named location"""
-        # In a real system, this would use a map of known locations
-        # For demonstration, return placeholder coordinates
+        # Example map of named locations in a demo room — replace with
+        # coordinates from your robot's map.
         location_map = {
             'table': [1.0, 0.0, 0.0],
             'counter': [1.5, 0.5, 0.0],
@@ -1790,6 +1791,10 @@ Complete the capstone project implementation:
 2. What are the key challenges in integrating conversational AI with physical robots?
 3. How does multimodal perception improve robot understanding of commands?
 4. What safety considerations are essential for conversational humanoid robots?
+
+## Check Your Understanding
+
+<Quiz quizId="vla-intro" questions={VLA_QUIZZES['vla-intro'].questions} />
 
 ## Further Reading
 

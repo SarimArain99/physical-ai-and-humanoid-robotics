@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
-import { contentUrls } from "../../config/api";
+import { personalizeTexts } from "../config/api";
 import "./LevelButton.css";
 
 // --- ICONS ---
@@ -116,90 +116,42 @@ const LevelButtonContent = () => {
         return;
       }
 
-      // Process in batches of 10 for better performance
-      const BATCH_SIZE = 10;
-      let processed = 0;
+      // Rewrite a few elements per API call (the backend rewrites one text
+      // per call and rate-limits AI requests). Elements that could not be
+      // rewritten keep their original text.
+      const rewritten = await personalizeTexts(textsToAdjust, level, (pct) =>
+        setProgress(pct)
+      );
 
-      for (let batchStart = 0; batchStart < total; batchStart += BATCH_SIZE) {
-        const batchEnd = Math.min(batchStart + BATCH_SIZE, total);
-        const batchTexts = textsToAdjust.slice(batchStart, batchEnd);
-        const batchElements = validElements.slice(batchStart, batchEnd);
+      let rewrittenCount = 0;
+      rewritten.forEach((content, idx) => {
+        const element = validElements[idx];
+        if (content && element) {
+          rewrittenCount += 1;
+          element.innerText = content;
 
-        try {
-          const response = await fetch(
-            contentUrls.adjustContentBatch(),
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                texts: batchTexts,
-                target_level: level,
-              }),
-            }
-          );
-
-          const data = await response.json();
-
-          if (data.contents && Array.isArray(data.contents)) {
-            data.contents.forEach((content, idx) => {
-              if (content && batchElements[idx]) {
-                batchElements[idx].innerText = content;
-
-                // Visual Styling based on level
-                if (level === "beginner") {
-                  batchElements[idx].style.color = "#a8d5ff"; // Light Blue for Basic
-                  batchElements[idx].style.borderLeft = "3px solid #3b82f6";
-                  batchElements[idx].style.paddingLeft = "10px";
-                } else {
-                  batchElements[idx].style.color = "#e9d5ff"; // Light Purple for Intermediate
-                  batchElements[idx].style.borderLeft = "3px solid #a855f7";
-                  batchElements[idx].style.paddingLeft = "10px";
-                }
-              }
-            });
-          }
-        } catch (err) {
-          console.error("Batch adjustment failed, falling back to individual:", err);
-          // Fallback: adjust individually if batch fails
-          for (let i = 0; i < batchTexts.length; i++) {
-            try {
-              const response = await fetch(
-                contentUrls.adjustContent(),
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    text: batchTexts[i],
-                    target_level: level,
-                  }),
-                }
-              );
-              const data = await response.json();
-              if (data.content && batchElements[i]) {
-                batchElements[i].innerText = data.content;
-                if (level === "beginner") {
-                  batchElements[i].style.color = "#a8d5ff";
-                  batchElements[i].style.borderLeft = "3px solid #3b82f6";
-                  batchElements[i].style.paddingLeft = "10px";
-                } else {
-                  batchElements[i].style.color = "#e9d5ff";
-                  batchElements[i].style.borderLeft = "3px solid #a855f7";
-                  batchElements[i].style.paddingLeft = "10px";
-                }
-              }
-            } catch (innerErr) {
-              console.error("Individual adjustment failed", innerErr);
-            }
+          // Visual styling based on level
+          if (level === "beginner") {
+            element.style.color = "#a8d5ff"; // Light Blue for Basic
+            element.style.borderLeft = "3px solid #3b82f6";
+            element.style.paddingLeft = "10px";
+          } else {
+            element.style.color = "#e9d5ff"; // Light Purple for Intermediate
+            element.style.borderLeft = "3px solid #a855f7";
+            element.style.paddingLeft = "10px";
           }
         }
+      });
 
-        processed += batchTexts.length;
-        setProgress(Math.round((processed / total) * 100));
+      if (rewrittenCount === 0) {
+        alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+        setCurrentLevel("pro");
+        setLoading(false);
+        return;
       }
     } catch (error) {
-      alert("Error adapting content.");
+      alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+      setCurrentLevel("pro");
     } finally {
       setLoading(false);
     }

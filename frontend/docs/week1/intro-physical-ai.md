@@ -73,6 +73,49 @@ The transition from digital AI to Physical AI involves several critical componen
 - **Safety-critical operations**: Fail-safe mechanisms and emergency procedures
 - **Adaptive control**: Adjusting to changing environmental conditions
 
+## Why Physical AI Is Hard
+
+Moving AI into the physical world adds problems that digital AI never faces. Four of them come up in almost every chapter of this book:
+
+- **The world is uncertain.** A camera image is noisy, a lidar reading has gaps, and a joint encoder drifts. A physical AI system must act on incomplete information and keep working when a sensor fails or a reading is wrong.
+- **Actions cannot be undone.** A wrong answer from a chatbot costs nothing. A wrong step from a humanoid can damage the robot, the room, or a person nearby. Every action has to pass safety checks before it runs.
+- **Time is strict.** A robot that decides to catch a falling object one second too late has already failed. Perception, decision, and action must happen inside tight time limits, often in milliseconds.
+- **Simulation is not reality.** A policy trained in a simulator usually performs worse on the real robot — the *reality gap*. Friction, sensor noise, and wear are hard to model exactly. Closing that gap is the subject of Week 10.
+
+These four problems explain the shape of this course: ROS 2 for reliable communication between parts of the system (Weeks 3-5), simulation for safe practice (Weeks 6-7), the Isaac platform for perception and planning (Weeks 8-10), and careful control for the humanoid body (Weeks 11-12).
+
+## The Sense–Think–Act Loop
+
+Every physical AI system, from a simple line-following robot to a humanoid, runs the same loop: sense the world, decide what to do, act — then sense again. Here is that loop in its simplest form, with a simulated distance sensor:
+
+```python
+def sense():
+    """Read the distance to the nearest obstacle (metres)."""
+    # In a real robot this reads a lidar or ultrasonic sensor.
+    # Here we simulate it: the obstacle is 0.8 m ahead.
+    return 0.8
+
+def decide(distance):
+    """Choose an action based on the sensor reading."""
+    if distance < 0.5:
+        return "stop"
+    elif distance < 1.0:
+        return "slow down"
+    else:
+        return "move forward"
+
+def act(action):
+    """Carry out the chosen action."""
+    print(f"Action: {action}")
+
+# One pass of the loop
+distance = sense()
+action = decide(distance)
+act(action)
+```
+
+The robot in this example does almost nothing — but the structure is the same one you will build on all course: replace `sense()` with real cameras and lidar (Weeks 2, 8-9), replace `decide()` with a planner or a learned policy (Weeks 8-10, 13), and replace `act()` with motor commands through ROS 2 (Weeks 3-5). When the loop runs fast enough and safely enough, the robot looks intelligent.
+
 ## Physical AI in Humanoid Robotics
 
 Humanoid robots represent the pinnacle of Physical AI integration. They must embody:

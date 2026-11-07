@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import styles from './styles.css';
+import styles from './styles.module.css';
 
 /**
  * Quiz Component

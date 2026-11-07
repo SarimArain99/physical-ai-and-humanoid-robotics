@@ -3,29 +3,38 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "AI-Native Textbook on Physical AI & Humanoid Robotics",
-  tagline: "Bridging the gap between digital AI and physical robots",
+  title: "Physical AI & Humanoid Robotics",
+  tagline: "A free 13-week textbook on robots that see, think, and act.",
   favicon: "img/favicon.ico",
 
-  // Future flags
-  // v4 flag disabled for colorModeToggle compatibility
-  // future: {
-  //   v4: true,
-  // },
-
-  url: "https://physical-ai-textbook.vercel.app",
+  url: "https://physical-ai-and-humanoid-robotics-sarim.vercel.app",
   baseUrl: "/",
 
   organizationName: "SarimArain99",
-  projectName: "physical-ai-textbook",
+  projectName: "physical-ai-and-humanoid-robotics",
 
-  onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+  // Broken links must fail the build — silent 404s are how 12 dead chapter
+  // cards shipped in the first place.
+  onBrokenLinks: "throw",
+  onBrokenAnchors: "throw",
 
   i18n: {
     defaultLocale: "en",
     locales: ["en"],
   },
+
+  // Local full-text search (no Algolia account needed).
+  themes: [
+    [
+      "@easyops-cn/docusaurus-search-local",
+      {
+        hashed: true,
+        indexDocs: true,
+        indexBlog: false,
+        language: ["en"],
+      },
+    ],
+  ],
 
   presets: [
     [
@@ -34,9 +43,9 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           editUrl:
-            "https://github.com/SarimArain99/physical-ai-textbook/tree/main/frontend/docs",
+            "https://github.com/SarimArain99/physical-ai-and-humanoid-robotics/tree/main/frontend/docs",
         },
-        blog: false,  // Disabled blog functionality
+        blog: false, // No blog — the footer must not link to one.
         theme: {
           customCss: [
             "./src/css/custom.css",
@@ -87,7 +96,7 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "https://github.com/SarimArain99",
+          href: "https://github.com/SarimArain99/physical-ai-and-humanoid-robotics",
           label: "GitHub",
           position: "right",
         },
@@ -114,7 +123,7 @@ const config: Config = {
             },
             {
               label: "Instagram",
-              href: "https://www.instagram.com/sarim_arain/",
+              href: "https://www.instagram.com/dev_sarim_arain/",
             },
             {
               label: "LinkedIn",
@@ -127,12 +136,12 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/SarimArain99/physical-ai-textbook",
+              href: "https://github.com/SarimArain99/physical-ai-and-humanoid-robotics",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} AI-Native Physical AI & Humanoid Robotics Textbook. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook, by Muhammad Sarim. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

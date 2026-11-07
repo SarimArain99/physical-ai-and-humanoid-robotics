@@ -2,6 +2,9 @@
 sidebar_position: 7
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ISAAC_QUIZZES } from '@site/src/data/quizzes';
+
 # NVIDIA Isaac Sim Fundamentals
 
 This chapter introduces NVIDIA Isaac Sim, a comprehensive simulation environment for robotics and AI applications, focusing on GPU-accelerated physics and rendering.
@@ -423,6 +426,10 @@ Create a complete Isaac Sim environment:
 1. What are the main advantages of NVIDIA Isaac Sim over other simulation platforms?
 2. How does GPU-accelerated physics in Isaac Sim benefit robotics simulation?
 3. What is the role of Isaac Lab in the Isaac ecosystem?
+
+## Check Your Understanding
+
+<Quiz quizId="isaac-intro" questions={ISAAC_QUIZZES['isaac-intro'].questions} />
 
 ## Further Reading
 

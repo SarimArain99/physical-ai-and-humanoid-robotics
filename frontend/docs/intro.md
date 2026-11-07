@@ -4,31 +4,33 @@ sidebar_position: 1
 
 # Introduction
 
-Welcome to the AI-Native Textbook on **Physical AI & Humanoid Robotics**. This comprehensive 13-week course covers all the essential concepts needed to understand and develop humanoid robots with AI capabilities.
+Welcome to **Physical AI & Humanoid Robotics**, a free 13-week textbook on robots that see, think, and act. It covers the concepts needed to understand and build humanoid robots with AI capabilities.
 
 ## Course Overview
 
-This textbook is organized into four main modules:
+This textbook is organized into six parts:
 
-1. **Robotic Nervous System (ROS 2)** - Weeks 1-4
-2. **Digital Twin (Gazebo & Unity)** - Weeks 5-8
-3. **AI-Robot Brain (NVIDIA Isaac)** - Weeks 9-12
-4. **Vision-Language-Action (VLA)** - Week 13
+1. **Introduction to Physical AI** - Weeks 1-2
+2. **ROS 2 Fundamentals** - Weeks 3-5
+3. **Robot Simulation** - Weeks 6-7 (Gazebo and NVIDIA Isaac Sim)
+4. **NVIDIA Isaac Platform** - Weeks 8-10
+5. **Humanoid Robot Development** - Weeks 11-12
+6. **Conversational Robotics and Capstone** - Week 13
 
 ## Interactive Features
 
-This textbook includes several AI-powered features:
+This textbook includes several features to help you learn:
 
-- **RAG Chatbot**: Ask questions about the content and get AI-powered answers based on the textbook
-- **Personalization**: Content adapts based on your technical background and hardware access
-- **Urdu Translation**: Translate chapters to Urdu for better understanding
+- **AI Assistant**: Ask questions about the content and get answers based on the textbook. Sign in to use it.
+- **Personalization**: Content adapts based on your technical background and hardware access.
+- **Urdu Translation**: Translate chapters to Urdu for better understanding.
 
 ## Learning Objectives
 
 By the end of this course, you will be able to:
 
 - Design and implement robotic systems using ROS 2
-- Create digital twins using Gazebo and NVIDIA Isaac Sim
+- Create simulations using Gazebo and NVIDIA Isaac Sim
 - Develop AI-powered robot control systems
 - Integrate vision, language, and action systems for humanoid robots
 

@@ -467,6 +467,7 @@ def main():
 from omni.isaac.synthetic_utils import SyntheticDataHelper
 import numpy as np
 import os
+from PIL import Image
 
 class IsaacSyntheticDataGenerator:
     def __init__(self, output_dir="synthetic_data"):
@@ -592,10 +593,8 @@ class IsaacSyntheticDataGenerator:
             self.save_bboxes(bboxes, bbox_path)
 
     def save_image(self, image, path):
-        """Save image to file"""
-        # Implementation would depend on image format
-        # This is a placeholder
-        pass
+        """Save an image array to a PNG file."""
+        Image.fromarray(np.asarray(image)).save(path)
 
     def save_bboxes(self, bboxes, path):
         """Save bounding boxes to JSON file"""
@@ -780,6 +779,7 @@ class IsaacRLTrainingEnvironment:
         self.robot = None
         self.episode_step = 0
         self.max_episode_steps = 1000
+        self.goal_position = np.array([5.0, 5.0])  # Goal the robot navigates to
 
         # Initialize RL agent
         # State: [robot_x, robot_y, robot_theta, goal_x, goal_y, lidar_readings...]
@@ -791,8 +791,11 @@ class IsaacRLTrainingEnvironment:
         # In Isaac Sim, this would reset robot position, goal, obstacles
         self.episode_step = 0
 
-        # Example state: robot pose + goal pose + lidar readings
-        state = np.zeros(365)  # Placeholder
+        # Initial state: robot at the origin, goal as set above, lidar readings zero
+        state = np.zeros(365)
+        state[0:3] = [0.0, 0.0, 0.0]     # robot x, y, heading
+        state[3:5] = self.goal_position  # goal x, y
+        # state[5:] stays zero: no lidar readings yet
 
         return state
 
@@ -805,8 +808,10 @@ class IsaacRLTrainingEnvironment:
         # 4. Compute reward
         # 5. Check if episode is done
 
-        # Placeholder implementation
-        next_state = np.random.random(365)  # Simulated state
+        # Stand-in for the simulator step: in a real run the simulator
+        # returns the next observation. Here we use random values only
+        # to show the data flow of reset -> step -> reward.
+        next_state = np.random.random(365)  # Stand-in observation, not a real sensor reading
         reward = self.compute_reward()  # Reward function
         done = self.episode_step >= self.max_episode_steps
         info = {}
@@ -964,26 +969,38 @@ class SystemIdentification:
         return params
 
     def estimate_mass(self, robot) -> float:
-        """Estimate robot mass through force/torque measurements"""
-        # Implementation would use force/torque sensors
-        return 10.0  # Placeholder
+        """Estimate robot mass through force/torque measurements.
+
+        Example value below — measure it on your robot with force/torque
+        sensors instead of using this number.
+        """
+        return 10.0  # Example mass in kg
 
     def estimate_friction(self, robot) -> Dict:
-        """Estimate friction coefficients"""
-        # Implementation would use motion analysis
+        """Estimate friction coefficients.
+
+        Example values below — derive them from motion analysis on your
+        robot instead of using these numbers.
+        """
         return {
             'static': 0.5,
             'dynamic': 0.4
         }
 
     def estimate_inertia(self, robot) -> np.ndarray:
-        """Estimate inertia tensor"""
-        # Implementation would use rotational motion analysis
-        return np.eye(3)  # Placeholder
+        """Estimate inertia tensor.
+
+        Example value below (identity = unit inertia) — derive it from
+        rotational motion analysis on your robot instead.
+        """
+        return np.eye(3)  # Example: unit inertia tensor
 
     def estimate_actuator_dynamics(self, robot) -> Dict:
-        """Estimate actuator dynamics (delay, saturation, etc.)"""
-        # Implementation would use step response analysis
+        """Estimate actuator dynamics (delay, saturation, etc.).
+
+        Example values below — derive them from step-response analysis
+        on your robot instead of using these numbers.
+        """
         return {
             'delay': 0.02,  # seconds
             'saturation': 10.0,  # Nm
@@ -1079,10 +1096,13 @@ class SimToRealTransfer:
             self.adaptation_optimizer.step()
 
     def extract_features(self, data):
-        """Extract features for adaptation network"""
-        # Implementation would extract relevant features
-        # This could be visual features, proprioceptive features, etc.
-        return torch.FloatTensor(data)  # Placeholder
+        """Convert raw observations to a tensor for the adaptation network.
+
+        This is the minimal version — it passes the raw values through.
+        A fuller version would add visual features, proprioceptive
+        features, or a learned encoder here.
+        """
+        return torch.FloatTensor(data)
 
 def main():
     """Main function demonstrating sim-to-real techniques"""

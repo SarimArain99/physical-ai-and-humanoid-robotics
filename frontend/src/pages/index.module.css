@@ -49,25 +49,6 @@
   align-items: center;
 }
 
-/* T092: Loading state for lazy-loaded 3D robot */
-.threeRobotLoading {
-  width: 280px;
-  height: 350px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ifm-card-background-color);
-  border-radius: 12px;
-  color: var(--ifm-color-emphasis-600);
-  font-size: 0.875rem;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 /* --- RESPONSIVE BREAKPOINTS --- */
 /* Tablet */
 @media screen and (max-width: 996px) {

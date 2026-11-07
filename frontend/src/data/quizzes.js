@@ -90,7 +90,7 @@ export const ROS2_QUIZZES = {
         id: 'ros2-topics-q3',
         question: 'What QoS policy is best for sensor data that requires low latency?',
         options: [
-          'RELIBLE',
+          'RELIABLE',
           'BEST_EFFORT',
           'SENSOR_DATA profile',
           'SERVICES_DEFAULT'
