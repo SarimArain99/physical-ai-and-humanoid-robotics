@@ -199,7 +199,11 @@ export async function translateTexts(texts, onProgress) {
       body: JSON.stringify({ text: joined, target_language: "Urdu" }),
     });
     const full = await readSseStream(response);
-    return full.split(CHUNK_DELIMITER).map((part) => part.trim());
+    // Drop empty parts: the model sometimes echoes a trailing [[[BREAK]]]
+    // even for a single passage. Without this, split() returns one extra
+    // empty part, the length check in runChunked fails, and the whole chunk
+    // falls back to per-element retries that hit the same echo.
+    return full.split(CHUNK_DELIMITER).map((part) => part.trim()).filter((part) => part.length > 0);
   }, onProgress);
 }
 
@@ -217,6 +221,8 @@ export async function personalizeTexts(texts, level, onProgress) {
       body: JSON.stringify({ text: joined, level }),
     });
     const full = await readSseStream(response);
-    return full.split(CHUNK_DELIMITER).map((part) => part.trim());
+    // Drop empty parts: the model sometimes echoes a trailing [[[BREAK]]]
+    // even for a single passage (see translateTexts above).
+    return full.split(CHUNK_DELIMITER).map((part) => part.trim()).filter((part) => part.length > 0);
   }, onProgress);
 }
