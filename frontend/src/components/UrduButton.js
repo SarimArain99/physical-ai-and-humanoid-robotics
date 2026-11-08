@@ -107,7 +107,7 @@ const UrduButtonContent = () => {
   };
 
   const getLabel = () => {
-    if (loading) return `${progress}%`;
+    if (loading) return progress > 0 ? `${progress}%` : "Generating…";
     if (isUrdu) return "EN";
     return "اردو"; // Urdu in Urdu script
   };
