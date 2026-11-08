@@ -1,15 +1,17 @@
 /**
  * Google Fonts Integration
- * Feature: 002-ui-improvements
- * Task: T006
+ * Professional typography for a published textbook: one clean grotesque
+ * for headings and body (Space Grotesk, with Inter/system fallbacks).
+ * The old Orbitron display face was a sci-fi look that read as a toy
+ * demo; it is deliberately not loaded anymore.
  */
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* CSS Custom Properties for Fonts */
 :root {
-  --font-display: 'Orbitron', 'Courier New', monospace;
+  --font-display: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }

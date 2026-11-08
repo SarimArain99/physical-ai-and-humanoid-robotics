@@ -214,8 +214,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon Serverless Postgres for user profiles and authentication, Qdrant Cloud for vector storage for RAG system, GitHub Pages for textbook hosting (001-ai-textbook-physical-ai)
 - JavaScript (ES2022), React 18+, CSS3, TypeScript for type safety in new components (002-ui-improvements)
 - N/A (client-side only, quiz state in localStorage) (002-ui-improvements)
-- Python 3.11 + FastAPI 0.104.1, Uvicorn 0.24.0, Pydantic 2.x, SQLAlchemy 2.0, OpenAI 1.3.6, Qdrant-client 1.8.0 (001-huggingface)
-- Neon PostgreSQL (external cloud database), Qdrant Cloud (external vector database) (001-huggingface)
+- Python 3.11 + FastAPI 0.104.1, Uvicorn 0.24.0, Pydantic 2.x, SQLAlchemy 2.0, OpenAI 1.3.6, Qdrant-client 1.8.0 (legacy FastAPI backend — retired 2026-11-08; live backend is Express on Vercel)
+- Neon PostgreSQL (external cloud database), Qdrant Cloud (external vector database) (legacy FastAPI backend — retired 2026-11-08)
 
 ## Recent Changes
 - 001-ai-textbook-physical-ai: Added Python 3.11, JavaScript/TypeScript, Markdown (for textbook content) + Docusaurus, OpenAI Agents SDK, FastAPI, Better Auth, Qdrant, Neon Postgres

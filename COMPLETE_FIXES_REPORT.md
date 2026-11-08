@@ -1,6 +1,10 @@
 # 🎯 COMPLETE FIXES REPORT - hackathon_1
 ## All Issues Resolved - 2026-02-18
 
+> NOTE (2026-11-08): historical report. The Hugging Face backend it
+> refers to is retired; the live backend is on Vercel
+> (`https://physical-ai-backend-mu.vercel.app`).
+
 ---
 
 ## ✅ CRITICAL ISSUES FIXED (100%)
@@ -37,10 +41,10 @@
 **Result:** Users now get accurate feedback on registration failures
 **File changed:** `frontend/src/components/Auth/AuthProvider.js`
 
-### 5. CORS Configuration Missing HF Space URL ✅
+### 5. CORS Configuration Missing Backend URL ✅
 **Severity:** CRITICAL
 **Status:** FIXED
-**Problem:** Hugging Face Space URL not in allowed CORS origins
+**Problem:** Backend URL not in allowed CORS origins
 **Solution:** Added to `backend/main.py` default_origins
 **Result:** Deployed frontend can connect to backend
 **File changed:** `backend/main.py`
@@ -225,7 +229,7 @@ git status
 1. Address npm vulnerabilities when convenient
 2. Consider adding rate limiting for production
 3. Test all authentication flows thoroughly
-4. Verify CORS works on deployed Hugging Face Space
+4. Verify CORS works on deployed backend
 
 ### Long-term (Within 1 month)
 1. Migrate React components to `.tsx` for type safety

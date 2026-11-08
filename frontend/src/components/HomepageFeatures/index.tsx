@@ -4,15 +4,20 @@ import Heading from '@theme/Heading';
 import styles from './styles.module.css';
 
 type FeatureItem = {
+  index: string;
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
   description: ReactNode;
 };
 
+/**
+ * Homepage features — typographic, no imagery. The front page carries
+ * no robot illustrations (owner's decision); each feature is numbered
+ * and set in type, like a published textbook's contents page.
+ */
 const FeatureList: FeatureItem[] = [
   {
+    index: '01',
     title: 'Embodied Intelligence',
-    Svg: require('@site/static/img/robot-svgrepo-com.svg').default,
     description: (
       <>
         Learn how <strong>Vision-Language-Action (VLA)</strong> models help robots
@@ -21,8 +26,8 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
+    index: '02',
     title: 'Sim-to-Real Transfer',
-    Svg: require('@site/static/img/transfer-svgrepo-com.svg').default,
     description: (
       <>
         Use <strong>digital twins</strong> to train and test robot policies in NVIDIA Isaac Sim
@@ -31,8 +36,8 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
+    index: '03',
     title: 'Humanoid Control Stack',
-    Svg: require('@site/static/img/humanoid-svgrepo-com.svg').default,
     description: (
       <>
         Work through the full software stack: <strong>ROS 2</strong> middleware and sensor fusion,
@@ -42,15 +47,13 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({ title, Svg, description }: FeatureItem) {
+function Feature({ index, title, description }: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
+      <div className={styles.featureCard}>
+        <span className={styles.featureIndex} aria-hidden="true">{index}</span>
+        <Heading as="h3" className={styles.featureTitle}>{title}</Heading>
+        <p className={styles.featureDescription}>{description}</p>
       </div>
     </div>
   );

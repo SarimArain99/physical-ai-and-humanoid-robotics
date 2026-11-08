@@ -358,8 +358,7 @@ default_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://physical-ai-and-humanoid-robotics-omega.vercel.app",
-    # Hugging Face Space URL
-    "https://sarimarain-ai-native-book.hf.space",
+    "https://physical-ai-and-humanoid-robotics-sarim.vercel.app",
 ]
 # Combine and filter empty strings
 origins = [o.strip() for o in env_origins if o.strip()] + default_origins

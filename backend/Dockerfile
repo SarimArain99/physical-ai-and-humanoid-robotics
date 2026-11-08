@@ -1,5 +1,6 @@
-# Hugging Face Spaces Docker SDK Configuration
-# Read the doc: https://huggingface.co/docs/hub/spaces-sdks-docker
+# RETIRED 2026-11-08 — the Hugging Face deployment is gone; the backend
+# runs on Vercel from chatbot-api-node/. This Dockerfile is kept for
+# local reference only and is not deployed anywhere.
 FROM python:3.11-slim
 
 # Create a non-root user with explicit UID

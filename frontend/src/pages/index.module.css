@@ -3,71 +3,131 @@
  * and scoped locally.
  */
 
-/* --- HERO SECTION --- */
+/* --- HERO SECTION ---
+   Professional typographic hero. No imagery: the owner asked for no
+   robot on the front page, so the hero is type, metadata and actions
+   only — like a serious published textbook. Content width is capped so
+   lines stay readable even on 4K screens. */
 .heroBanner {
-  padding: 5rem 0;
+  padding: 5.5rem 1.5rem 4.5rem;
   text-align: center;
   position: relative;
   overflow: hidden;
-  /* Uses Docusaurus Primary Color with a subtle gradient */
   background: linear-gradient(
-    135deg,
-    var(--ifm-color-primary-darker) 0%,
-    var(--ifm-color-primary-lighter) 100%
+    160deg,
+    #0b3d2e 0%,
+    #146845 55%,
+    #1d8a5c 100%
   );
-  color: #fff; /* Always white text on the primary background */
+  color: #fff; /* Always white text on the deep-green background */
   box-shadow: 0 4px 20px #0000001a;
 }
 
-/* Hero content layout for 3D robot integration */
-.heroContent {
+.heroInner {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.heroEyebrow {
+  display: inline-block;
+  margin: 0 0 1.25rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d9f7e8;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+
+.heroTitle {
+  font-size: 3.25rem;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  color: #fff;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 640px;
+  margin: 0 auto 2rem;
+}
+
+.heroButtons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
-  min-height: 400px;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2.75rem;
 }
 
-.heroText {
-  flex: 1;
-  max-width: 500px;
-  text-align: left;
+.heroSecondaryButton {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
-.heroText .hero__title {
-  margin-bottom: 1rem;
+.heroSecondaryButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: #fff;
 }
 
-.heroText .hero__subtitle {
-  margin-bottom: 1.5rem;
-}
-
-.heroVisual {
-  flex: 0 0 auto;
+.heroMeta {
   display: flex;
   justify-content: center;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0;
+  padding: 1.5rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.heroMetaItem {
+  padding: 0 1.75rem;
+  text-align: center;
+}
+
+.heroMetaItem + .heroMetaItem {
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.heroMetaItem dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.25rem;
+}
+
+.heroMetaItem dd {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
 }
 
 /* --- RESPONSIVE BREAKPOINTS --- */
 /* Tablet */
 @media screen and (max-width: 996px) {
   .heroBanner {
-    padding: 3rem 1.5rem;
+    padding: 3.5rem 1.5rem 3rem;
   }
 
-  .heroContent {
-    flex-direction: column-reverse;
-    text-align: center;
-    gap: 2rem;
+  .heroTitle {
+    font-size: 2.5rem;
   }
 
-  .heroText {
-    text-align: center;
-  }
-
-  .heroVisual {
-    width: 100%;
+  .heroMetaItem {
+    padding: 0 1.125rem;
   }
 
   .featuresGrid,
@@ -84,20 +144,28 @@
 /* Mobile */
 @media screen and (max-width: 768px) {
   .heroBanner {
-    padding: 2rem 1rem;
+    padding: 2.75rem 1rem 2.25rem;
   }
 
-  .heroContent {
-    gap: 1.5rem;
-    min-height: auto;
+  .heroTitle {
+    font-size: 2rem;
   }
 
-  .heroText .hero__title {
-    font-size: 1.75rem;
+  .heroSubtitle {
+    font-size: 1.0625rem;
   }
 
-  .heroText .hero__subtitle {
-    font-size: 1rem;
+  .heroMeta {
+    gap: 1rem 0;
+  }
+
+  .heroMetaItem {
+    flex: 1 1 40%;
+    padding: 0 0.5rem;
+  }
+
+  .heroMetaItem + .heroMetaItem {
+    border-left: none;
   }
 
   .featuresGrid,
@@ -130,11 +198,21 @@
 /* Small mobile */
 @media screen and (max-width: 480px) {
   .heroBanner {
-    padding: 1.5rem 0.75rem;
+    padding: 2.25rem 0.75rem 2rem;
   }
 
-  .heroText .hero__title {
-    font-size: 1.5rem;
+  .heroTitle {
+    font-size: 1.625rem;
+  }
+
+  .heroButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .heroButtons .button {
+    width: 100%;
+    text-align: center;
   }
 
   .buttons {

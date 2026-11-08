@@ -1,5 +1,9 @@
 # ✅ Fixes Applied to hackathon_1
 
+> NOTE (2026-11-08): historical report. The Hugging Face backend it
+> refers to is retired; the live backend is on Vercel
+> (`https://physical-ai-backend-mu.vercel.app`).
+
 ## 📅 Date: 2026-02-18
 ## 🎯 All critical issues have been resolved
 
@@ -29,8 +33,8 @@
 **File:** `frontend/src/config/api.js`
 **Change:** API_BASE_URL now reads from environment variable
 ```javascript
-// Before: Hardcoded HF Space URL
-const DOMAIN = 'sarimarain-ai-native-book.hf.space';
+// Before: Hardcoded backend URL (then the retired HF Space URL)
+const DOMAIN = 'physical-ai-backend-mu.vercel.app';
 export const API_BASE_URL = PROTOCOL + DOMAIN;
 
 // After: Flexible configuration
@@ -50,12 +54,12 @@ export const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
 ### 6. Missing CORS Configuration for Production ✅
 **File:** `backend/main.py` (line 256-262)
-**Change:** Added Hugging Face Space URL to default origins
+**Change:** Added backend URL to default origins
 ```python
 # Added to default_origins:
-"https://sarimarain-ai-native-book.hf.space",
+"https://physical-ai-backend-mu.vercel.app",
 ```
-**Impact:** Deployed frontend can now connect to backend on HF Spaces
+**Impact:** Deployed frontend can now connect to backend
 
 ### 7. Database Auto-Fix SQL Safety ✅
 **File:** `backend/main.py` (line 309-337)
@@ -118,7 +122,7 @@ Critical fixes:
 - Reinstall node_modules to fix permission errors
 - Remove all Windows Zone.Identifier files (1364 files cleaned)
 - Fix AuthProvider register returning success=false incorrectly
-- Add Hugging Face Space URL to CORS origins
+- Add backend URL to CORS origins
 - Fix database auto-fix to check column existence before ALTER
 
 Important improvements:

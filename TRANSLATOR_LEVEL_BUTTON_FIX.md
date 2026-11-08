@@ -1,6 +1,10 @@
 # Translator and Level Button Fix
 ## Date: 2026-02-18
 
+> NOTE (2026-11-08): historical report. The Hugging Face backend it
+> refers to is retired; the live backend is on Vercel
+> (`https://physical-ai-backend-mu.vercel.app`).
+
 ---
 
 ## 🔴 CRITICAL BUGS FOUND
@@ -17,7 +21,6 @@
 
 **Impact:** Translation feature only works with Railway backend, not with:
 - Local development backend
-- Hugging Face Spaces backend
 - Any other backend deployment
 
 ### Issue 2: Level Button Using Hardcoded Backend URL
@@ -166,7 +169,7 @@ python3 main.py
 
 ### After Fix:
 - ✅ Both features use configured API_BASE_URL
-- ✅ Works with local, Railway, Hugging Face, any backend
+- ✅ Works with local, Railway, Vercel, any backend
 - ✅ Complete translation system prompt
 - ✅ Consistent API URL management across project
 - ✅ Better translation quality
@@ -185,9 +188,9 @@ export API_BASE_URL="http://localhost:8080"
 cd frontend && npm start
 ```
 
-**Hugging Face Spaces:**
+**Vercel (live backend):**
 ```bash
-export API_BASE_URL="https://sarimarain-ai-native-book.hf.space"
+export API_BASE_URL="https://physical-ai-backend-mu.vercel.app"
 ```
 
 **Railway Production:**

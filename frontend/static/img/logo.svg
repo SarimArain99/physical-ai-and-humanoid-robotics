@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Physical AI logo">
+  <rect width="64" height="64" rx="14" fill="#0b3d2e"/>
+  <circle cx="20" cy="22" r="4.5" fill="none" stroke="#7ce4a8" stroke-width="2.5"/>
+  <circle cx="44" cy="22" r="4.5" fill="none" stroke="#7ce4a8" stroke-width="2.5"/>
+  <circle cx="32" cy="44" r="4.5" fill="none" stroke="#7ce4a8" stroke-width="2.5"/>
+  <path d="M24 24.5 28.5 40M40 24.5 35.5 40M24.5 22h15" fill="none" stroke="#7ce4a8" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="20" cy="22" r="1.8" fill="#ffffff"/>
+  <circle cx="44" cy="22" r="1.8" fill="#ffffff"/>
+  <circle cx="32" cy="44" r="1.8" fill="#ffffff"/>
+</svg>

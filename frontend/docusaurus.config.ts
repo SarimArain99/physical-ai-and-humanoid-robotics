@@ -59,15 +59,15 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: "img/docusaurus-social-card.jpg",
+    image: "img/social-card.jpg",
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
       title: "Physical AI & Humanoid Robotics",
       logo: {
-        alt: "Physical AI Logo",
-        src: "img/logo.png",
+        alt: "Physical AI & Humanoid Robotics",
+        src: "img/logo.svg",
       },
       items: [
         {
