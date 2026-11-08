@@ -256,6 +256,19 @@ app.post("/api/chat/selected", async (req, res) => {
   }
 });
 
+// Batched AI requests join several passages with the [[[BREAK]]] marker.
+// The model MUST keep every marker exactly as-is, in order, one rewritten
+// passage per input passage. If it merges passages or drops markers, the
+// frontend cannot split the reply back up and the whole batch is lost
+// (this is what broke the "Intermediate" level: its expanding rewrite
+// dropped the markers, so every chunk came back as one un-splittable
+// passage and the page silently fell back to the original text).
+const BATCH_DELIMITER_INSTRUCTION =
+  "The input contains several passages separated by the exact marker [[[BREAK]]]. " +
+  "Rewrite each passage separately and keep every [[[BREAK]]] marker exactly as-is, " +
+  "in the same order, with nothing added or removed. Do not merge passages and " +
+  "do not add or remove markers.";
+
 app.post("/api/translate", async (req, res) => {
   const { text, target_language = "Urdu" } = req.body;
   
@@ -263,7 +276,7 @@ app.post("/api/translate", async (req, res) => {
     return res.status(400).json({ error: "Missing text to translate" });
   }
 
-  const systemPrompt = `You are a professional technical translator. Translate the following educational text into natural, accurate ${target_language}. Preserve all formatting, technical terms (keep them in English if they don't have a direct common translation), and markdown structure. Provide ONLY the translated text, without any introductory conversational filler.`;
+  const systemPrompt = `You are a professional technical translator. Translate the following educational text into natural, accurate ${target_language}. Preserve all formatting, technical terms (keep them in English if they don't have a direct common translation), and markdown structure. Provide ONLY the translated text, without any introductory conversational filler. ${BATCH_DELIMITER_INSTRUCTION}`;
 
   try {
     res.setHeader("Content-Type", "text/event-stream");
@@ -307,9 +320,9 @@ app.post("/api/personalize", async (req, res) => {
 
   let systemPrompt = "";
   if (level === "beginner") {
-    systemPrompt = "You are a professional technical educator. Rewrite the following educational text in very simple, beginner-friendly language. Keep the core meaning accurate, remove unnecessary complexity, and explain difficult terminology in simple words. Return ONLY the rewritten text, preserving markdown formatting where appropriate. Do not add introductory filler.";
+    systemPrompt = "You are a professional technical educator. Rewrite the following educational text in very simple, beginner-friendly language. Keep the core meaning accurate, remove unnecessary complexity, and explain difficult terminology in simple words. Return ONLY the rewritten text, preserving markdown formatting where appropriate. Do not add introductory filler. " + BATCH_DELIMITER_INSTRUCTION;
   } else if (level === "intermediate") {
-    systemPrompt = "You are a professional technical educator. Rewrite the following educational text to provide a more detailed and clearer explanation than the original. Add useful context, clarification, and practical examples where appropriate. Maintain factual accuracy and original meaning. Return ONLY the rewritten text, preserving markdown formatting where appropriate. Do not add introductory filler.";
+    systemPrompt = "You are a professional technical educator. Rewrite the following educational text to provide a more detailed and clearer explanation than the original. Add useful context, clarification, and practical examples where appropriate. Maintain factual accuracy and original meaning. Return ONLY the rewritten text, preserving markdown formatting where appropriate. Do not add introductory filler. " + BATCH_DELIMITER_INSTRUCTION;
   } else {
     return res.status(400).json({ error: "Invalid level" });
   }

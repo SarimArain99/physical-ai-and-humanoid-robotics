@@ -160,7 +160,7 @@ const LevelButtonContent = () => {
   const getLabel = () => {
     if (loading) return `${progress}%`;
     if (currentLevel === "beginner") return "Basic";
-    if (currentLevel === "intermediate") return "Int.";
+    if (currentLevel === "intermediate") return "Intermediate";
     return "Pro";
   };
 

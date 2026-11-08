@@ -140,23 +140,47 @@ async function runChunked(texts, runChunk, onProgress) {
   const chunks = groupTexts(texts);
   const results = new Array(texts.length).fill(null);
   let processed = 0;
+  const reportProgress = () => {
+    if (onProgress) onProgress(Math.round((processed / texts.length) * 100));
+  };
   let chunkStart = 0;
   for (const chunk of chunks) {
+    let chunkDone = false;
     try {
       const translated = await runChunk(chunk);
       if (Array.isArray(translated) && translated.length === chunk.length) {
         chunk.forEach((_, i) => {
           results[chunkStart + i] = translated[i];
         });
+        chunkDone = true;
       }
-      // On a count mismatch we leave those elements untranslated rather
-      // than guessing which translation belongs where.
+      // On a count mismatch we fall through to the per-element retry
+      // below instead of guessing which translation belongs where.
     } catch (err) {
       console.error("AI content request failed for a chunk:", err);
     }
+    if (!chunkDone) {
+      // Fallback: rewrite each element on its own. A single text has no
+      // delimiter for the model to lose, so this succeeds even when the
+      // batched reply comes back merged into one passage (which is what
+      // used to break the "Intermediate" level entirely).
+      for (let i = 0; i < chunk.length; i++) {
+        try {
+          const single = await runChunk([chunk[i]]);
+          if (Array.isArray(single) && single.length === 1 && single[0]) {
+            results[chunkStart + i] = single[0];
+          }
+        } catch (err) {
+          console.error("AI content request failed for an element:", err);
+        }
+        processed += 1;
+        reportProgress();
+      }
+    } else {
+      processed += chunk.length;
+      reportProgress();
+    }
     chunkStart += chunk.length;
-    processed += chunk.length;
-    if (onProgress) onProgress(Math.round((processed / texts.length) * 100));
   }
   return results;
 }
