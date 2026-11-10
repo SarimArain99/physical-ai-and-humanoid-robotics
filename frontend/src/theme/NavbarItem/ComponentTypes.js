@@ -11,6 +11,7 @@ import DocsVersionDropdownNavbarItem from "@theme/NavbarItem/DocsVersionDropdown
 // Navbar button components.
 import AuthButton from "@site/src/components/Auth/AuthButton";
 import UrduButton from "@site/src/components/UrduButton";
+import ListenButton from "@site/src/components/ListenButton";
 import LevelButton from "@site/src/components/LevelButton";
 import ThemeToggle from "@site/src/components/ThemeToggle";
 
@@ -28,6 +29,7 @@ const ComponentTypes = {
   // Custom navbar components (keys match docusaurus.config.ts).
   "custom-authButton": AuthButton,
   "custom-urduButton": UrduButton,
+  "custom-listenButton": ListenButton,
   "custom-levelButton": LevelButton,
   "custom-themeToggle": ThemeToggle,
 };

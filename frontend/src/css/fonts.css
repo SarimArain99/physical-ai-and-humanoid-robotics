@@ -1,5 +1,6 @@
 /* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
+/* Hallmark · waive 37 · each added face is a script slot (Nastaliq for Urdu, Devanagari for Hindi, Naskh for Arabic), Latin text stays on Inter and Space Grotesk · Urdu chapters need Nastaliq to read at all */
 /**
  * Google Fonts Integration
  * Professional typography for a published textbook: one clean grotesque
@@ -9,14 +10,19 @@
  */
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap');
 
 /* CSS Custom Properties for Fonts */
 :root {
   --font-display: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-  --font-urdu: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+  /* One face per script: Nastaliq for Urdu, Devanagari for Hindi,
+     Naskh for Arabic. Each is used only for text in its own script;
+     every Latin letter on the page still uses Inter / Space Grotesk. */
+  --font-urdu: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+  --font-hindi: 'Noto Sans Devanagari', 'Inter', sans-serif;
+  --font-arabic: 'Noto Naskh Arabic', serif;
 }
 
 /* Apply fonts to headings */

@@ -1,0 +1,70 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V4 · weakest: H, the drawer row must hold Listen and its stop control without crowding the language menu; the stop control only appears while reading, so the idle row stays one button wide */
+/**
+ * Listen Button Styles
+ *
+ * The Listen control reads the chapter aloud with the device's own
+ * voices. It is one ghost button in the header system (36px, one
+ * hairline, Inter 14px/500); while it is reading or paused a square
+ * stop control appears beside it. The sentence being read gets a
+ * soft surface background, never a coloured wash.
+ */
+
+/* Import unified navbar button styles */
+@import './NavbarButton/styles.css';
+
+.listen-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--navbar-control-height);
+}
+
+.listen-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.listen-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.listen-stop {
+  padding: 0;
+  width: var(--navbar-control-height);
+  height: var(--navbar-control-height);
+}
+
+/* The sentence being read: a soft surface background, in the page's
+   own palette. No coloured wash, no layout shift (background only). */
+.listen-reading {
+  background-color: var(--color-bg-surface);
+  border-radius: 8px;
+}
+
+/* In the hamburger drawer the controls stack as full-width rows; the
+   Listen button takes the row and the stop control keeps its square. */
+.navbar-sidebar .listen-controls {
+  display: flex;
+  width: 100%;
+}
+
+.navbar-sidebar .listen-trigger {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listen-reading {
+    transition: none !important;
+  }
+}

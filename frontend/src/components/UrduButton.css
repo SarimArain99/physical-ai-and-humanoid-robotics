@@ -1,15 +1,27 @@
 /* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
+/* Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V4 · weakest: H, the drawer menu must stack cleanly at 375px without crowding the Level pill; kept the Level menu's exact geometry so the two menus read as one system */
 /**
- * Urdu Button Component Styles
- * Feature: 002-ui-improvements
- * Task: Unified navbar button system
+ * Language Menu Styles
+ *
+ * The globe button opens the language menu (English + six
+ * translations). The menu copies the Level menu's geometry exactly —
+ * same width, radius, item padding and tokens — so the two menus in
+ * the header read as one system. The file keeps its old name
+ * (UrduButton.css) because the snapshot push cannot carry a rename.
  */
 
 /* Import unified navbar button styles */
 @import './NavbarButton/styles.css';
 
-.urdu-icon {
+/* Language dropdown container */
+.language-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: var(--navbar-control-height);
+}
+
+.language-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,20 +30,148 @@
   flex-shrink: 0;
 }
 
-/* Translated text: Nastaliq face and roomier leading, but it keeps
-   the page's own colour and alignment in both themes. */
-.urdu-translated {
+.language-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.language-trigger[aria-expanded="true"] .language-chevron {
+  transform: rotate(180deg);
+}
+
+/* Language dropdown menu */
+.language-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  z-index: 100;
+  animation: languageMenuSlideIn 0.2s ease-out;
+}
+
+@keyframes languageMenuSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Language menu items */
+.language-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-divider);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.language-menu-item:last-child {
+  border-bottom: none;
+}
+
+.language-menu-item:hover {
+  background-color: var(--color-bg-surface);
+}
+
+.language-menu-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.language-menu-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.language-menu-sub {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.language-menu-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+/* Translated text: the script's own face and direction, but it keeps
+   the page's own colour and alignment in both themes. Latin-script
+   languages need no class — Inter already covers them. */
+.translated-ur {
   direction: rtl;
   font-family: var(--font-urdu);
   line-height: 1.8;
 }
 
-/* Workstream C: while a translation is running the button is the
-   cancel control, so it must stay clickable. The shared
-   .navbar-btn--loading rule sets pointer-events: none (right for a
-   loading placeholder); this scoped override restores clicks + a
-   pointer cursor on this button only. */
-.urdu-button.navbar-btn--loading {
+.translated-hi {
+  font-family: var(--font-hindi);
+  line-height: 1.7;
+}
+
+.translated-ar {
+  direction: rtl;
+  font-family: var(--font-arabic);
+  line-height: 1.8;
+}
+
+/* While a translation is running the trigger is the cancel control,
+   so it must stay clickable. The shared .navbar-btn--loading rule
+   sets pointer-events: none (right for a loading placeholder); this
+   scoped override restores clicks + a pointer cursor on this button
+   only. */
+.language-trigger.navbar-btn--loading {
   pointer-events: auto;
   cursor: pointer;
+}
+
+/* In the hamburger drawer the menu opens in flow below the trigger,
+   full width — an absolute menu would run off the narrow drawer. */
+.navbar-sidebar .language-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: auto;
+}
+
+.navbar-sidebar .language-menu {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  margin-top: var(--space-2);
+  box-shadow: none;
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-menu,
+  .language-chevron {
+    transition: none !important;
+    animation: none !important;
+  }
 }

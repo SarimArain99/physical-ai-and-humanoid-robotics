@@ -321,17 +321,23 @@ async function runChunked(texts, runChunk, onProgress, options = {}) {
 }
 
 /**
- * Translate many page texts to Urdu, a few elements per API call.
+ * Translate many page texts, a few elements per API call.
+ * `options.targetLanguage` is the language name the backend
+ * translates into ("Urdu", "French", "Hindi", ...); it defaults to
+ * Urdu. The backend's Neon cache keys on the language, so each
+ * language caches separately and is shared across users — a page
+ * another reader already translated comes back instantly.
  * Returns an array aligned with `texts`; entries that could not be
  * translated are null (callers keep the original English text).
  */
 export async function translateTexts(texts, onProgress, options = {}) {
+  const targetLanguage = options.targetLanguage || "Urdu";
   return runChunked(texts, async (chunk, { signal } = {}) => {
     const joined = chunk.join(`\n${CHUNK_DELIMITER}\n`);
     const response = await fetch(contentUrls.translate(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: joined, target_language: "Urdu", page: currentPageSlug() }),
+      body: JSON.stringify({ text: joined, target_language: targetLanguage, page: currentPageSlug() }),
       signal,
     });
     const full = await readSseStream(response);

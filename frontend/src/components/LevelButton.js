@@ -11,6 +11,7 @@ import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
 import { personalizeTexts } from "../config/api";
 import { applyRewrittenText } from "../utils/markdown";
+import { CANCEL_SPEECH_EVENT } from "../utils/language";
 import "./LevelButton.css";
 
 // The level a visitor last picked, kept on their own device. The pill's
@@ -197,6 +198,13 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
     setCurrentLevel(level);
     storeLevel(level);
     persistLevelPick(level);
+
+    // A rewrite replaces the text being read aloud: stop the Listen
+    // button before the words under it change.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(CANCEL_SPEECH_EVENT));
+    }
+
     setLoading(true);
     setProgress({ done: 0, total: 0 });
 

@@ -103,6 +103,10 @@ const config: Config = {
           type: "custom-urduButton",
           position: "right",
         },
+        {
+          type: "custom-listenButton",
+          position: "right",
+        },
         // Theme toggle
         {
           type: "custom-themeToggle",
