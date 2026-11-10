@@ -129,6 +129,26 @@ function uniqueSources(sources) {
   });
 }
 
+// Fix round (2026-11-10): a refusal must not show sources. The backend
+// now sends a trailing meta event with sources already emptied on a
+// refusal, but messages stored before that fix still carry the old
+// sources — so the widget also checks the answer text itself, here and
+// at render time. The patterns match the refusal wording the prompts
+// prescribe ("the book does not cover this topic"); a normal grounded
+// answer never contains them.
+const REFUSAL_PATTERNS = [
+  /does not cover/i,
+  /doesn'?t cover/i,
+  /not covered in (the |this )?(book|course)/i,
+  /outside (the scope of )?(the |this )?(book|course)/i,
+  /can'?t answer .* from (the |this )?(book|course)/i,
+];
+
+function isRefusalAnswer(text) {
+  if (typeof text !== "string") return false;
+  return REFUSAL_PATTERNS.some((re) => re.test(text));
+}
+
 const SendIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -289,7 +309,15 @@ const ChatWidgetContent = () => {
           {
             role: "assistant",
             content: fullText.trim(),
-            sources: uniqueSources(replyMeta?.sources),
+            // Fix round (2026-11-10): a refusal carries no sources —
+            // the retrieved chunks did not answer the question, so
+            // listing them as "sources" is misleading. The backend
+            // also empties them in its trailing meta event; this
+            // covers any path where the meta is stale.
+            sources:
+              replyMeta?.refusal || isRefusalAnswer(fullText.trim())
+                ? []
+                : uniqueSources(replyMeta?.sources),
             grounded: replyMeta ? replyMeta.grounded === true : null,
           },
         ]);
@@ -391,8 +419,12 @@ const ChatWidgetContent = () => {
                     {/* Workstream D (RAG): the chapters the answer was
                         grounded in, each linking to its chapter. Shown
                         only when the backend returned sources; older
-                        stored messages without sources render as before. */}
-                    {msg.sources && msg.sources.length > 0 && (
+                        stored messages without sources render as before.
+                        Fix round (2026-11-10): never under a refusal —
+                        stored messages from before the backend fix still
+                        carry the old sources, so the answer text is
+                        checked again here. */}
+                    {msg.sources && msg.sources.length > 0 && !isRefusalAnswer(msg.content) && (
                       <div className="chat-sources">
                         <p className="chat-sources-title">Sources</p>
                         <ul className="chat-sources-list">

@@ -10,6 +10,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
 import { personalizeTexts } from "../config/api";
+import { applyRewrittenText } from "../utils/markdown";
 import "./LevelButton.css";
 
 // The level a visitor last picked, kept on their own device. The pill's
@@ -208,13 +209,19 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
     // apply the finished chunks too.
     const validElements = [];
     const textsToAdjust = [];
-    const applyRewritten = (list) => {
+    // Fix round (2026-11-10): the reply is markdown, so render it —
+    // the old code wrote element.innerText, which showed every "**"
+    // literally. applyRewrittenText escapes first, then renders bold /
+    // italic / code / links and drops a list marker the model echoes
+    // for an <li>. `start` is the chunk's offset for progressive
+    // application (see onChunkSettled below); the whole-list call uses 0.
+    const applyRewritten = (list, start = 0) => {
       let count = 0;
       (list || []).forEach((content, idx) => {
-        const element = validElements[idx];
+        const element = validElements[start + idx];
         if (content && element) {
           count += 1;
-          element.innerText = content;
+          applyRewrittenText(element, content);
 
           // Mark adapted text with a hairline only: it keeps the
           // page's own colour and alignment in both themes.
@@ -250,14 +257,23 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
 
       // Rewrite a few elements per API call (the backend rewrites one text
       // per call and rate-limits AI requests). Chunks run concurrently
-      // with a bound of 4 (Workstream C) and cached chunks come back
-      // from Neon, so a repeat visit is near-instant. Elements that
-      // could not be rewritten keep their original text.
+      // with a bound of 8 (Workstream C, fix round 2026-11-10) and cached
+      // chunks come back from Neon, so a repeat visit is near-instant.
+      // Elements that could not be rewritten keep their original text.
+      // Fix round (2026-11-10): onChunkSettled applies each finished
+      // chunk as soon as it lands, so the page transforms progressively
+      // instead of holding the original text until the slowest chunk
+      // finishes.
       const rewritten = await personalizeTexts(
         textsToAdjust,
         level,
         (done, totalCount) => setProgress({ done, total: totalCount }),
-        { signal: controller.signal }
+        {
+          signal: controller.signal,
+          onChunkSettled: (start, chunkResults) => {
+            applyRewritten(chunkResults, start);
+          },
+        }
       );
 
       const rewrittenCount = applyRewritten(rewritten);

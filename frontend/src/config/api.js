@@ -125,12 +125,28 @@ export async function readSseStream(response, onChunk, onMeta) {
 // requests, so sending every paragraph separately would run out fast).
 const CHUNK_DELIMITER = "[[[BREAK]]]";
 
-function groupTexts(texts, maxChars = 1500) {
+// Fix round (2026-11-10): a chunk holds at most MAX_TEXTS_PER_CHUNK
+// passages as well as MAX_CHUNK_CHARS characters. The old grouping cut
+// only on characters, so Week 1 produced a 19-passage chunk (18 markers
+// for the model to preserve). When the model dropped a marker — the
+// known Intermediate failure mode — the whole chunk fell back to
+// per-element retries, and the retry was sequential, so one bad chunk
+// cost up to 19 sequential OpenAI calls on the critical path: that is
+// what turned a ~18s clean rewrite into ~4 minutes live. Six passages
+// is small enough that the model keeps the markers, and cheap enough
+// that a fallback stays short.
+const MAX_CHUNK_CHARS = 1500;
+const MAX_TEXTS_PER_CHUNK = 6;
+
+function groupTexts(texts, maxChars = MAX_CHUNK_CHARS, maxTexts = MAX_TEXTS_PER_CHUNK) {
   const chunks = [];
   let current = [];
   let currentLen = 0;
   for (const text of texts) {
-    if (current.length > 0 && currentLen + text.length > maxChars) {
+    if (
+      current.length > 0 &&
+      (currentLen + text.length > maxChars || current.length >= maxTexts)
+    ) {
       chunks.push(current);
       current = [];
       currentLen = 0;
@@ -148,18 +164,25 @@ import { runWithConcurrency } from "../utils/runWithConcurrency";
 // not one after another. The old loop awaited each chunk in turn, and on
 // a delimiter mismatch retried every paragraph in turn too — up to ~35
 // sequential OpenAI calls for one long chapter (~7 minutes live).
-// Bound: 4 in flight. Why 4: Week 1 is 6 chunks (2 waves); the longest
-// chapter is ~30 chunks; 4 stays under the browser's 6-connections-per-
-// origin limit and under the backend's 60-requests-per-15-minutes AI
-// rate limit, while cutting wall-clock time to roughly a quarter.
-// One request still does one chunk only, so no Vercel invocation does
-// minutes of work; the backend caches each chunk in Neon, so a repeat
-// visit is served from cache. Progress is honest counts: onProgress
-// receives (done, total) — texts actually finished — never a percentage
-// invented from elapsed time. Aborting the signal stops new chunks
-// from starting; runChunked then throws an AbortError so callers can
-// tell a cancel apart from a failure.
-const CONTENT_CONCURRENCY = 4;
+// Bound: 8 in flight. Why 8: the backend is served over HTTP/2 (Vercel),
+// which multiplexes many requests on one connection, so the old
+// 6-connections-per-origin ceiling does not bind; 8 keeps a 62-text
+// chapter to two waves while staying far under the backend's
+// 60-requests-per-15-minutes AI rate limit on the clean path (11 chunk
+// requests). One request still does one chunk only, so no Vercel
+// invocation does minutes of work; the backend caches each chunk in
+// Neon, so a repeat visit is served from cache. Progress is honest
+// counts: onProgress receives (done, total) — texts actually finished —
+// never a percentage invented from elapsed time. Aborting the signal
+// stops new chunks from starting; runChunked then throws an AbortError
+// so callers can tell a cancel apart from a failure.
+// Fix round (2026-11-10): the per-element fallback below is parallel
+// too (bound 4), and each finished chunk is reported through
+// onChunkSettled so the caller can apply it immediately instead of
+// waiting for the slowest chunk — the page transforms progressively.
+const CONTENT_CONCURRENCY = 8;
+// Bound for the per-element retry inside one failed chunk.
+const FALLBACK_CONCURRENCY = 4;
 
 function currentPageSlug() {
   try {
@@ -170,7 +193,7 @@ function currentPageSlug() {
 }
 
 async function runChunked(texts, runChunk, onProgress, options = {}) {
-  const { signal } = options;
+  const { signal, onChunkSettled } = options;
   const chunks = groupTexts(texts);
   const results = new Array(texts.length).fill(null);
   let processed = 0;
@@ -193,11 +216,15 @@ async function runChunked(texts, runChunk, onProgress, options = {}) {
     async (chunk, chunkIdx) => {
       const start = chunkStarts[chunkIdx];
       let chunkDone = false;
+      // The finished texts of this chunk, in order, for the progressive
+      // callback below. A null entry keeps the original text.
+      const chunkResults = new Array(chunk.length).fill(null);
       try {
         const translated = await runChunk(chunk, { signal });
         if (Array.isArray(translated) && translated.length === chunk.length) {
           chunk.forEach((_, i) => {
             results[start + i] = translated[i];
+            chunkResults[i] = translated[i];
           });
           chunkDone = true;
         }
@@ -211,30 +238,50 @@ async function runChunked(texts, runChunk, onProgress, options = {}) {
         // Fallback: rewrite each element on its own. A single text has no
         // delimiter for the model to lose, so this succeeds even when the
         // batched reply comes back merged into one passage (which is what
-        // used to break the "Intermediate" level entirely). Sequential
-        // inside this chunk only — the other chunk workers keep running.
-        for (let i = 0; i < chunk.length; i++) {
-          if (signal?.aborted) {
-            const abortError = new Error("Content request cancelled");
-            abortError.name = "AbortError";
-            throw abortError;
-          }
-          try {
-            const single = await runChunk([chunk[i]], { signal });
+        // used to break the "Intermediate" level entirely).
+        // Fix round (2026-11-10): the retry is PARALLEL (bound 4),
+        // not sequential. The old sequential loop made one bad chunk
+        // cost up to 19 back-to-back OpenAI calls — the ~4-minute
+        // live rewrite. A 6-text chunk now retries in at most two
+        // waves, so a dropped marker costs seconds, not minutes.
+        const { aborted: fallbackAborted } = await runWithConcurrency(
+          chunk,
+          FALLBACK_CONCURRENCY,
+          async (singleText) => {
+            const single = await runChunk([singleText], { signal });
             if (Array.isArray(single) && single.length === 1 && single[0]) {
-              results[start + i] = single[0];
+              return single[0];
             }
-          } catch (err) {
-            if (err?.name === "AbortError") throw err;
-            console.error("AI content request failed for an element:", err);
+            return null;
+          },
+          {
+            signal,
+            onSettled: (i, value) => {
+              if (value) {
+                results[start + i] = value;
+                chunkResults[i] = value;
+              }
+              processed += 1;
+              reportProgress();
+            },
+            onItemError: (err, i) => {
+              console.error("AI content request failed for an element:", err, i);
+            },
           }
-          processed += 1;
-          reportProgress();
+        );
+        if (fallbackAborted || signal?.aborted) {
+          const abortError = new Error("Content request cancelled");
+          abortError.name = "AbortError";
+          throw abortError;
         }
       } else {
         processed += chunk.length;
         reportProgress();
       }
+      // Fix round (2026-11-10): report the finished chunk so the caller
+      // can apply it right away (progressive swap) instead of waiting
+      // for the slowest chunk on the page.
+      if (onChunkSettled) onChunkSettled(start, chunkResults);
     },
     {
       signal,

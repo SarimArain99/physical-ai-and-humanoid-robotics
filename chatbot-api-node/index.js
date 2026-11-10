@@ -173,6 +173,48 @@ async function appendMessage(sessionId, role, content) {
   await pool.query(`INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`, [sessionId, role, content]);
 }
 
+// --- Fix round (2026-11-10): a refusal must not carry sources. ---
+// The grounded prompt tells the model to say plainly that the book does
+// not cover the topic when the retrieved passages do not contain the
+// answer — but the meta event (with the retrieved sources) is sent
+// BEFORE the answer streams, so a refusal still arrived with sources
+// attached ("What is the capital of France?" listed Week 13 and Week 8
+// under a refusal). The chat handlers send a trailing meta event after
+// the stream finishes with the corrected sources (empty on a refusal);
+// the widget keeps the last meta it saw, so the trailing event wins.
+// The patterns match the refusal wording the prompts prescribe; a
+// normal grounded answer never contains them.
+const REFUSAL_PATTERNS = [
+  /does not cover/i,
+  /doesn'?t cover/i,
+  /not covered in (the |this )?(book|course)/i,
+  /outside (the scope of )?(the |this )?(book|course)/i,
+  /can'?t answer .* from (the |this )?(book|course)/i,
+];
+
+export function isRefusalAnswer(text) {
+  if (typeof text !== "string") return false;
+  return REFUSAL_PATTERNS.some((re) => re.test(text));
+}
+
+// The meta event for a finished answer: sources are dropped when the
+// answer is a refusal, and the refusal flag is explicit so clients do
+// not have to pattern-match the text themselves. Exported for tests.
+export function finalMeta(retrieval, assistantContent) {
+  const refusal = isRefusalAnswer(assistantContent);
+  return {
+    // grounded keeps its meaning (retrieval worked), even for a refusal:
+    // a refusal is a grounded non-answer, not an ungrounded one. The
+    // widget hides sources on refusal and shows the ungrounded note
+    // only when retrieval actually failed.
+    grounded: retrieval.available,
+    retrieval: retrieval.available ? "qdrant" : "fallback",
+    reason: retrieval.error || null,
+    sources: refusal ? [] : retrieval.sources,
+    refusal,
+  };
+}
+
 app.post("/api/chat", async (req, res) => {
   const { message, session_id } = req.body;
   if (!message || !session_id) {
@@ -219,6 +261,11 @@ app.post("/api/chat", async (req, res) => {
     }
 
     await appendMessage(session_id, "assistant", assistantContent);
+    // Fix round (2026-11-10): trailing meta with the corrected sources
+    // (empty when the answer is a refusal — see finalMeta above). The
+    // widget keeps the last meta event, so this overwrites the one sent
+    // before the stream.
+    res.write(`data: ${JSON.stringify({ meta: finalMeta(retrieval, assistantContent) })}\n\n`);
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (error) {
@@ -274,6 +321,9 @@ app.post("/api/chat/selected", async (req, res) => {
     }
 
     await appendMessage(session_id, "assistant", assistantContent);
+    // Fix round (2026-11-10): trailing meta with the corrected sources
+    // (empty when the answer is a refusal — see finalMeta above).
+    res.write(`data: ${JSON.stringify({ meta: finalMeta(retrieval, assistantContent) })}\n\n`);
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (error) {
@@ -312,7 +362,7 @@ const BATCH_DELIMITER_INSTRUCTION =
 // frontend/src/config/api.js), so no Vercel invocation does minutes
 // of work. X-Content-Cache reports HIT/MISS for debugging.
 // --- End Workstream C ---
-async function streamCachedOrGenerate(req, res, { kind, variant, page, text, systemPrompt, errorText }) {
+async function streamCachedOrGenerate(req, res, { kind, variant, page, text, systemPrompt, errorText, maxTokens = 4096 }) {
   const key = contentCacheKey({ kind, variant, page, text });
   const cached = await getCachedContent(pool, key);
 
@@ -338,7 +388,7 @@ async function streamCachedOrGenerate(req, res, { kind, variant, page, text, sys
       ],
       stream: true,
       temperature: 0.3,
-      max_tokens: 4096,
+      max_tokens: maxTokens,
     });
 
     let fullText = "";
@@ -400,6 +450,13 @@ app.post("/api/personalize", async (req, res) => {
     return res.status(400).json({ error: "Invalid level" });
   }
 
+  // Fix round (2026-11-10): max_tokens 1500 for a level rewrite. A
+  // chunk now holds at most 6 short passages (~900 chars in); a
+  // rewrite of that is a few hundred tokens, so 1500 is ~3x headroom
+  // and truncation is not a risk. The old 4096 let a runaway output
+  // stream for over a minute — past Vercel's function limit — which
+  // killed the request mid-stream and forced the expensive fallback.
+  // Translate keeps the 4096 default (its behaviour is unchanged).
   await streamCachedOrGenerate(req, res, {
     kind: "personalize",
     variant: level,
@@ -407,6 +464,7 @@ app.post("/api/personalize", async (req, res) => {
     text,
     systemPrompt,
     errorText: "Error connecting to AI for personalization.",
+    maxTokens: 1500,
   });
 });
 
