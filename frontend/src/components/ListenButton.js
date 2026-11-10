@@ -119,6 +119,12 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
   const [language, setLanguage] = useState(() => getCurrentLanguage());
   const [voices, setVoices] = useState([]);
   const [progress, setProgress] = useState({ index: 0, total: 0 });
+  // Whether the "No voice" explanation panel is open. It replaces
+  // the old blocking alert(), which never surfaced in some browsers
+  // (live: tapping "No voice" for details showed nothing) — the
+  // explanation now lives in the page itself.
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const controlsRef = useRef(null);
   // The utterances for this reading: { element, text } per sentence.
   const chunksRef = useRef([]);
   // Index of the chunk being read (or to resume from).
@@ -205,9 +211,29 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
       // Ignore teardown errors.
     }
     clearHighlight();
+    setDetailsOpen(false);
     if (statusRef.current !== "idle") setStatus("idle");
     setProgress({ index: 0, total: 0 });
   }, [clearHighlight]);
+
+  // Close the "No voice" panel on Escape or a click outside it.
+  useEffect(() => {
+    if (!detailsOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setDetailsOpen(false);
+    };
+    const onPointerDown = (event) => {
+      if (controlsRef.current && !controlsRef.current.contains(event.target)) {
+        setDetailsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [detailsOpen]);
 
   const speakChunk = useCallback((index, session) => {
     const chunks = chunksRef.current;
@@ -261,12 +287,14 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
     const lang = getLanguage(language);
     const voice = pickVoice(voices, lang.speechLang);
     if (!voice) {
+      // No voice for this language: show the explanation panel
+      // instead of a blocking alert() — the old alert never surfaced
+      // in some browsers, so tapping "No voice" showed nothing.
       setStatus("novoice");
-      alert(
-        `No ${lang.label} voice is installed on this device, so the chapter cannot be read aloud in ${lang.label}. On Android, add one under Settings → Text-to-speech output, then try again.`
-      );
+      setDetailsOpen(true);
       return;
     }
+    setDetailsOpen(false);
     const session = ++sessionRef.current;
     setStatus("playing");
     const run = () => speakChunk(fromIndex, session);
@@ -297,12 +325,34 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
     }
     if (status === "novoice") {
       // Re-check: a voice may have arrived since the last attempt.
-      startReading(0, false);
+      // If one has, read — and close the drawer (mobile) so the
+      // highlighted sentences are visible; otherwise toggle the
+      // explanation panel, keeping the drawer open around it.
+      const voice = pickVoice(voices, getLanguage(language).speechLang);
+      if (voice) {
+        setDetailsOpen(false);
+        if (onNavbarItemClick) onNavbarItemClick();
+        startReading(0, false);
+      } else {
+        setDetailsOpen((open) => !open);
+      }
       return;
     }
     // Idle: build the reading from the page as it reads right now —
     // translated text included, because the translation already
     // replaced the words in the DOM.
+    // Check for a voice BEFORE closing the drawer: with no voice
+    // the explanation panel opens inside the drawer, and closing
+    // it first would hide the panel the moment it appears (live:
+    // tapping "No voice" on a phone showed nothing). With a voice,
+    // reading starts, so close the drawer and the highlighted
+    // sentences on the page are visible instead of sitting behind it.
+    const voice = pickVoice(voices, getLanguage(language).speechLang);
+    if (!voice) {
+      setStatus("novoice");
+      setDetailsOpen(true);
+      return;
+    }
     if (onNavbarItemClick) onNavbarItemClick();
     const collected = collectChapterElements(2);
     if (collected.length === 0) {
@@ -343,15 +393,16 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
       : status === "paused"
         ? "Paused — tap to resume"
         : status === "novoice"
-          ? `No ${lang.label} voice on this device — tap for details`
+          ? `No ${lang.label} voice on this device — tap to ${detailsOpen ? "hide" : "show"} details`
           : `Listen to this chapter in ${lang.label}`;
 
   return (
-    <div className="listen-controls">
+    <div className="listen-controls" ref={controlsRef}>
       <button
         className="navbar-btn navbar-btn--secondary listen-trigger"
         onClick={handleToggle}
         aria-label={title}
+        aria-expanded={status === "novoice" ? detailsOpen : undefined}
         title={title}
       >
         <span className="listen-icon"><SpeakerIcon /></span>
@@ -369,6 +420,32 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
         >
           <StopIcon />
         </button>
+      )}
+      {status === "novoice" && detailsOpen && (
+        <div className="listen-details" role="status">
+          <p className="listen-details-text">
+            No {lang.label} voice is installed on this device, so the chapter cannot be read aloud in {lang.label}.
+          </p>
+          <p className="listen-details-text">
+            On Android, add one under Settings → Text-to-speech output, then try again.
+          </p>
+          <div className="listen-details-actions">
+            <button
+              type="button"
+              className="navbar-btn navbar-btn--secondary listen-details-btn"
+              onClick={() => startReading(0, false)}
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              className="navbar-btn listen-details-btn"
+              onClick={() => setDetailsOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

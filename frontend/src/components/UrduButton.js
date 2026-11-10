@@ -29,12 +29,12 @@ import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import { translateTexts } from "../config/api";
-import { applyRewrittenText } from "../utils/markdown";
+import { applyRewrittenText, restoreLeadInBold } from "../utils/markdown";
 import {
   LANGUAGES,
   getLanguage,
   setCurrentLanguage,
-  collectChapterElements,
+  collectChapterMarkdown,
   CANCEL_SPEECH_EVENT,
 } from "../utils/language";
 import "./UrduButton.css";
@@ -262,7 +262,16 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
         const element = validElements[start + idx];
         if (translation && element) {
           count += 1;
-          applyRewrittenText(element, translation);
+          // Translation quality (2026-11-10): the model sometimes
+          // drops the ** markers even when the source had them, so
+          // re-apply a dropped bold lead-in from the source element's
+          // original HTML before rendering. The prompt asks the model
+          // to keep the markers; this is the safety net underneath it.
+          const original = originalsRef.current.get(element);
+          const fixed = original
+            ? restoreLeadInBold(original.html, translation)
+            : translation;
+          applyRewrittenText(element, fixed);
           // The script's own face and direction, if it needs one;
           // Latin languages keep Inter and the page's own alignment.
           if (lang.fontClass) element.classList.add(lang.fontClass);
@@ -273,8 +282,12 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
     };
 
     try {
-      // Select all text content in the documentation.
-      const collected = collectChapterElements(2);
+      // Select all text content in the documentation — as inline
+      // markdown, not plain text, so the translator sees the **bold**
+      // markers it is asked to keep (plain innerText has no markers
+      // in it at all, and live, French list lead-ins came back
+      // unbolded).
+      const collected = collectChapterMarkdown(2);
 
       if (collected.length === 0) {
         alert("No content found to translate.");

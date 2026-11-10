@@ -362,7 +362,7 @@ const BATCH_DELIMITER_INSTRUCTION =
 // frontend/src/config/api.js), so no Vercel invocation does minutes
 // of work. X-Content-Cache reports HIT/MISS for debugging.
 // --- End Workstream C ---
-async function streamCachedOrGenerate(req, res, { kind, variant, page, text, systemPrompt, errorText, maxTokens = 4096 }) {
+async function streamCachedOrGenerate(req, res, { kind, variant, page, text, systemPrompt, errorText, maxTokens = 4096, postProcess = null }) {
   const key = contentCacheKey({ kind, variant, page, text });
   const cached = await getCachedContent(pool, key);
 
@@ -396,8 +396,22 @@ async function streamCachedOrGenerate(req, res, { kind, variant, page, text, sys
       const content = chunk.choices[0]?.delta?.content || "";
       if (content) {
         fullText += content;
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        // A post-process step (the translate untranslated-retry) needs
+        // the finished text before it can judge it, so validated kinds
+        // buffer instead of streaming deltas — the reply is still one
+        // SSE content event plus [DONE], exactly the shape the
+        // frontend reads, and progress still counts finished chunks.
+        if (!postProcess) res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
+    }
+
+    if (postProcess) {
+      try {
+        fullText = await postProcess(text, fullText);
+      } catch (error) {
+        console.error("Post-process failed, keeping the generated text:", error.message);
+      }
+      res.write(`data: ${JSON.stringify({ content: fullText })}\n\n`);
     }
 
     // Fire-and-forget is unsafe on serverless (code after res.end may
@@ -415,6 +429,91 @@ async function streamCachedOrGenerate(req, res, { kind, variant, page, text, sys
   }
 }
 
+// --- Translation quality (2026-11-10): bold + Hindi script ---
+// Live defects on Week 2 (French + Hindi): the model dropped the
+// **bold** markers on list-item lead-ins, left headings in English,
+// and wrote a Hindi paragraph in Roman-script Hinglish. The prompt
+// below is the first fix; the frontend re-applies a dropped lead-in
+// bold as a safety net (see restoreLeadInBold in
+// frontend/src/utils/markdown.js), and validateTranslationResult
+// retries a chunk that came back untranslated.
+//
+// Extra instructions for languages with a known failure mode. Hindi
+// is the only one so far; the base prompt already says to translate
+// everything, and this makes the script requirement explicit.
+const TRANSLATE_LANGUAGE_NOTES = {
+  Hindi:
+    "For Hindi: write the entire translation in Devanagari script. Do not use Roman (Latin) script for Hindi words — transliterated Hinglish written in Latin letters is not acceptable. Translate every heading into Devanagari as well. Only established technical terms and product names (ROS, ROS 2, LiDAR, AI, Gazebo, Python) stay in English in Latin script.",
+};
+
+// The translate system prompt. Exported for tests: the prompt is part
+// of what a cached translation depends on, so a change here must be
+// paired with the translate cache-key version bump (see
+// content-cache.js — translate is v2 since this prompt landed).
+export function buildTranslatePrompt(targetLanguage) {
+  const langNote = TRANSLATE_LANGUAGE_NOTES[targetLanguage] || "";
+  return (
+    `You are a professional technical translator. Translate the following educational text into natural, accurate ${targetLanguage}. ` +
+    `Translate EVERY passage, including every heading, list item and caption — do not leave any passage in the original language. ` +
+    `Preserve all formatting and markdown structure: keep **bold** markers exactly where they are in the source, especially the bold lead-in at the start of a list item (for example **The agent's body:** stays bold in the translation, in the target language). ` +
+    `Keep technical terms (ROS, ROS 2, LiDAR, AI, Gazebo, Python) in English when they have no common translation in the target language. ` +
+    (langNote ? langNote + " " : "") +
+    `Provide ONLY the translated text, without any introductory conversational filler. ` +
+    BATCH_DELIMITER_INSTRUCTION
+  );
+}
+
+// Split a batched chunk back into its passages (mirrors the frontend's
+// split in frontend/src/config/api.js).
+export function splitBatchText(text) {
+  if (typeof text !== "string") return [];
+  return text
+    .split("[[[BREAK]]]")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+}
+
+// Indices of passages the model left untranslated (output identical
+// to input). Short passages (a bare term, a number) are often
+// identical by nature, so only real prose counts. A count mismatch
+// means the passages cannot be aligned safely — nothing is flagged.
+export function findUntranslatedPassages(inputParts, outputParts) {
+  if (!Array.isArray(inputParts) || !Array.isArray(outputParts)) return [];
+  if (inputParts.length !== outputParts.length) return [];
+  const found = [];
+  inputParts.forEach((input, i) => {
+    const source = (input || "").trim();
+    const output = (outputParts[i] || "").trim();
+    if (source.length > 15 && source === output) found.push(i);
+  });
+  return found;
+}
+
+// One retry for a chunk that came back (partly) untranslated.
+// retryOnce is called at most once and only when a passage was left
+// untranslated; its result replaces the output only when it splits
+// into the same number of passages (a merged reply would misalign
+// the page). A retry that still leaves English in place, or any
+// failure, keeps the original output — the frontend leaves the
+// English for passages it cannot use, which beats a wrong
+// translation. Exported for tests.
+export async function validateTranslationResult({ inputText, outputText, retryOnce }) {
+  if (typeof outputText !== "string" || !outputText.trim()) return outputText;
+  const inputParts = splitBatchText(inputText);
+  const outputParts = splitBatchText(outputText);
+  if (inputParts.length === 0 || inputParts.length !== outputParts.length) return outputText;
+  if (findUntranslatedPassages(inputParts, outputParts).length === 0) return outputText;
+  let retried = null;
+  try {
+    retried = await retryOnce();
+  } catch {
+    return outputText;
+  }
+  if (typeof retried !== "string" || !retried.trim()) return outputText;
+  if (splitBatchText(retried).length !== inputParts.length) return outputText;
+  return retried;
+}
+
 app.post("/api/translate", async (req, res) => {
   const { text, target_language = "Urdu", page } = req.body;
 
@@ -422,7 +521,7 @@ app.post("/api/translate", async (req, res) => {
     return res.status(400).json({ error: "Missing text to translate" });
   }
 
-  const systemPrompt = `You are a professional technical translator. Translate the following educational text into natural, accurate ${target_language}. Preserve all formatting, technical terms (keep them in English if they don't have a direct common translation), and markdown structure. Provide ONLY the translated text, without any introductory conversational filler. ${BATCH_DELIMITER_INSTRUCTION}`;
+  const systemPrompt = buildTranslatePrompt(target_language);
 
   await streamCachedOrGenerate(req, res, {
     kind: "translate",
@@ -431,6 +530,31 @@ app.post("/api/translate", async (req, res) => {
     text,
     systemPrompt,
     errorText: "Error connecting to AI for translation.",
+    // Retry a chunk that came back (partly) untranslated, once, with
+    // a stricter prompt — see validateTranslationResult above.
+    postProcess: async (inputText, outputText) =>
+      validateTranslationResult({
+        inputText,
+        outputText,
+        retryOnce: async () => {
+          const retry = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
+                  buildTranslatePrompt(target_language) +
+                  ` One or more passages in the previous attempt came back untranslated. Translate EVERY passage, including every heading, into ${target_language}. Do not leave any passage in the original language.`,
+              },
+              { role: "user", content: inputText },
+            ],
+            stream: false,
+            temperature: 0.3,
+            max_tokens: 4096,
+          });
+          return retry.choices[0]?.message?.content || "";
+        },
+      }),
   });
 });
 

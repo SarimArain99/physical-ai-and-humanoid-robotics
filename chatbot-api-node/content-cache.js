@@ -6,7 +6,7 @@
 // cost again and again. This module is the single code path for that
 // cache, used by the translate/personalize handlers and by /api/cache.
 //
-// Cache key: `v1:<kind>:<variant>:<page>:<sha256(text)>`
+// Cache key: `<version>:<kind>:<variant>:<page>:<sha256(text)>`
 //   kind    "personalize" | "translate"
 //   variant level ("beginner" | "intermediate") or target language ("Urdu")
 //   page    chapter slug from the request (window.location.pathname),
@@ -17,8 +17,14 @@
 //           joined with [[[BREAK]]]); caching per chunk keeps each
 //           Vercel invocation small and lets a repeat visit hit every
 //           chunk instead of re-paying any OpenAI call.
-//   v1      key version: bump when the system prompt or model changes so
-//           stale rewrites are never served after a prompt change.
+//   version key version PER KIND: bump one kind's version when its
+//           system prompt or model changes, so that kind's stale
+//           entries are abandoned without throwing away the other
+//           kind's cache. Translate went v1 -> v2 on 2026-11-10 (the
+//           prompt now demands kept **bold** markers and, for Hindi,
+//           Devanagari-only output); personalize stays v1, so cached
+//           Level rewrites keep working. Old entries are never deleted
+//           — they simply stop matching any lookup key.
 //
 // The key is always under the 255-char content_cache PK (short prefixes
 // + 64 hex chars). There is deliberately no TTL: the key is a pure
@@ -31,7 +37,16 @@
 // stall the SSE stream.
 import crypto from "node:crypto";
 
-export const CONTENT_CACHE_KEY_VERSION = "v1";
+// Key version per kind — see the header comment. Unknown kinds fall
+// back to v1 so a typo can never silently abandon the whole cache.
+export const CONTENT_CACHE_KEY_VERSIONS = {
+  translate: "v2",
+  personalize: "v1",
+};
+
+export function cacheKeyVersion(kind) {
+  return CONTENT_CACHE_KEY_VERSIONS[kind] || "v1";
+}
 
 // A cache lookup/write that is still pending after this long is treated
 // as a miss / skipped write. Neon round-trips are normally tens of ms;
@@ -60,7 +75,7 @@ export function contentCacheKey({ kind, variant, page, text }) {
   const safeVariant = String(variant || "default")
     .replace(/[^a-z0-9-]+/gi, "-")
     .slice(0, 40);
-  return `${CONTENT_CACHE_KEY_VERSION}:${kind}:${safeVariant}:${normalizePageSlug(page)}:${hash}`;
+  return `${cacheKeyVersion(kind)}:${kind}:${safeVariant}:${normalizePageSlug(page)}:${hash}`;
 }
 
 function withTimeout(promise, ms) {

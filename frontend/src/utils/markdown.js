@@ -97,6 +97,81 @@ export function renderInlineMarkdown(text) {
   return html;
 }
 
+// The reverse of renderInlineMarkdown: an element's HTML back to
+// inline markdown, so the translator sees the **bold** markers it is
+// asked to keep. The old collector sent plain innerText, which has no
+// markers in it at all — "preserve the formatting" was asking the
+// model to preserve something it could not see, and live, French
+// list lead-ins came back unbolded. Only inline formatting is
+// converted; block structure is the element itself. Walks real DOM
+// nodes in the browser; the node shape it reads (nodeType, tagName,
+// childNodes, textContent) is also what the unit tests fake, so this
+// stays testable without a browser.
+export function elementToMarkdown(element) {
+  if (!element || !element.childNodes) return "";
+  const walk = (node) => {
+    if (node.nodeType === 3) return node.textContent || "";
+    if (node.nodeType !== 1) return "";
+    const tag = (node.tagName || "").toLowerCase();
+    const inner = Array.from(node.childNodes || []).map(walk).join("");
+    if (tag === "strong" || tag === "b") return `**${inner}**`;
+    if (tag === "em" || tag === "i") return `*${inner}*`;
+    if (tag === "code") return `\`${inner}\``;
+    if (tag === "br") return "\n";
+    if (tag === "a") {
+      const href =
+        typeof node.getAttribute === "function"
+          ? node.getAttribute("href") || ""
+          : "";
+      if (/^(https?:\/\/|\/|#)/.test(href)) return `[${inner}](${href})`;
+      return inner;
+    }
+    return inner;
+  };
+  return Array.from(element.childNodes)
+    .map(walk)
+    .join("")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}
+
+// Re-apply a bold lead-in the model dropped. Live (Week 2 French):
+// the source list item starts with a bold label ("The agent's
+// body:") but the translation came back without ** markers, so the
+// renderer had nothing to bold. The source element's original HTML
+// is kept in memory by the language menu, so when the source starts
+// with a short bold label and the translation's first line has no
+// bold of its own, bold the translated lead-in — the text up to the
+// first colon. Only a short leading phrase is ever bolded, never
+// the whole element, and nothing happens when there is no colon to
+// anchor on. The colon may sit inside the bold ("**The task:**")
+// or just after it ("**The agent's body**:", which is how
+// Docusaurus renders `- **The agent's body**: ...`).
+const LEAD_IN_BOLD = /^\s*<strong>([^<]{1,80})<\/strong>(\s*:)?/i;
+
+export function restoreLeadInBold(originalHtml, translatedText) {
+  if (typeof translatedText !== "string" || !translatedText.trim()) return translatedText;
+  if (typeof originalHtml !== "string") return translatedText;
+  const match = LEAD_IN_BOLD.exec(originalHtml.trim());
+  if (!match) return translatedText;
+  const leadIn = match[1].trim();
+  // Only a short label counts as a lead-in: the bold text itself
+  // ends in a colon, or a colon follows the closing tag.
+  if (!leadIn || leadIn.length > 80) return translatedText;
+  if (!leadIn.endsWith(":") && match[2] === undefined) return translatedText;
+  const lines = translatedText.split("\n");
+  const first = lines[0] || "";
+  if (first.includes("**")) return translatedText;
+  const colon = first.indexOf(":");
+  if (colon === -1 || colon > 80) return translatedText;
+  // Keep the translation's own spacing before the colon (French
+  // puts a space there) — only the bold markers are added.
+  const beforeRaw = first.slice(0, colon);
+  if (!beforeRaw.trim() || beforeRaw.trim().length > 80) return translatedText;
+  lines[0] = `**${beforeRaw}:**${first.slice(colon + 1)}`;
+  return lines.join("\n");
+}
+
 // One leading list marker ("- ", "* ", "+ ", "1. ", "1) "), if present.
 const LIST_MARKER = /^\s*(?:[-*+]|\d+[.)])\s+/;
 

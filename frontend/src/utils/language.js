@@ -67,6 +67,8 @@ export function subscribeLanguage(fn) {
   return () => listeners.delete(fn);
 }
 
+import { elementToMarkdown } from "./markdown";
+
 // The chapter elements a reader control works on: paragraphs,
 // headings and list items inside the rendered Markdown, in document
 // order. Code blocks are skipped (they are not prose to translate or
@@ -80,6 +82,26 @@ export function collectChapterElements(minLength = 2) {
   for (const element of Array.from(found)) {
     if (element.closest("pre") || element.closest("code")) continue;
     const text = (element.innerText || "").trim();
+    if (text.length < minLength) continue;
+    out.push({ element, text });
+  }
+  return out;
+}
+
+// Same chapter elements, but the text is the element's HTML converted
+// to inline markdown (see elementToMarkdown) instead of plain
+// innerText — the translator needs to SEE the **bold** markers to
+// keep them. The Listen button keeps collectChapterElements: spoken
+// text must stay plain, with no markers to read aloud.
+export function collectChapterMarkdown(minLength = 2) {
+  if (typeof document === "undefined") return [];
+  const found = document.querySelectorAll(
+    ".markdown p, .markdown h1, .markdown h2, .markdown h3, .markdown li"
+  );
+  const out = [];
+  for (const element of Array.from(found)) {
+    if (element.closest("pre") || element.closest("code")) continue;
+    const text = elementToMarkdown(element).trim();
     if (text.length < minLength) continue;
     out.push({ element, text });
   }
