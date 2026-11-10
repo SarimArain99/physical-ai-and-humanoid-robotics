@@ -5,6 +5,17 @@
  * (better-auth email/password, AI chat, translation and level adjustment).
  * The old Hugging Face backend is gone and must not be used.
  *
+ * SAME-ORIGIN (2026-11-10): in production the frontend does NOT call the
+ * backend domain directly. Vercel rewrites /api/* to the backend
+ * (frontend/vercel.json), so every API call below is a relative URL on
+ * the frontend's own origin and the better-auth session cookie is a
+ * FIRST-PARTY cookie. That is the whole point: calling the backend
+ * domain directly made the session cookie third-party (SameSite=None),
+ * and Android Chrome blocks third-party cookies — sign-in succeeded
+ * but the session never survived the reload, so mobile was stuck on
+ * sign-in. Local development still talks to the backend directly on
+ * localhost:8000 (same-site there, so the cookie works).
+ *
  * NOTE: Docusaurus does not expose process.env to browser code, so the
  * production backend URL is the default. Local development uses localhost.
  */
@@ -16,7 +27,12 @@ function resolveApiBaseUrl() {
       return "http://localhost:8000";
     }
   }
-  return "https://physical-ai-backend-mu.vercel.app";
+  // Same-origin in production: "" makes every API URL below relative
+  // ("/api/..."), served through the Vercel /api/* rewrite. The
+  // better-auth client also resolves an empty baseURL to the current
+  // origin, so auth, chat, translate and personalize all go through
+  // the same origin automatically.
+  return "";
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();

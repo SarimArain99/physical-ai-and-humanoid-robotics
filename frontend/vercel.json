@@ -1,0 +1,1 @@
+{"rewrites":[{"destination":"https://physical-ai-backend-mu.vercel.app/api/:path*","source":"/api/:path*"}]}
