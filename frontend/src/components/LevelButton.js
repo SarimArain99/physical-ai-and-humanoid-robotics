@@ -12,6 +12,31 @@ import AuthModal from "./Auth/AuthModal";
 import { personalizeTexts } from "../config/api";
 import "./LevelButton.css";
 
+// The level a visitor last picked, kept on their own device. The pill is
+// otherwise driven by the account's stored proficiency on every load,
+// which made a fresh pick (e.g. back to Pro) vanish on reload — the
+// choice never stuck. A stored pick wins over the profile; with neither,
+// the original text ("pro") is the default.
+const LEVEL_STORAGE_KEY = "physical-ai-level";
+const VALID_LEVELS = ["beginner", "intermediate", "pro"];
+
+function readStoredLevel() {
+  try {
+    const stored = localStorage.getItem(LEVEL_STORAGE_KEY);
+    return VALID_LEVELS.includes(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeLevel(level) {
+  try {
+    localStorage.setItem(LEVEL_STORAGE_KEY, level);
+  } catch {
+    // Private mode etc. — the pill still updates for this page.
+  }
+}
+
 // --- ICONS ---
 const LevelIcon = () => (
   <svg
@@ -49,7 +74,7 @@ const LevelButtonContent = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState("pro");
+  const [currentLevel, setCurrentLevel] = useState(() => readStoredLevel() || "pro");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const dropdownRef = useRef(null);
@@ -73,9 +98,10 @@ const LevelButtonContent = () => {
     };
   }, [isOpen]);
 
-  // Load user's proficiency from profile on mount
+  // Load user's proficiency from profile on mount — only when they have
+  // never picked a level on this device; a stored pick wins.
   React.useEffect(() => {
-    if (user && user.proficiency) {
+    if (user && user.proficiency && !readStoredLevel()) {
       const proficiencyMap = {
         "beginner": "beginner",
         "intermediate": "intermediate",
@@ -98,6 +124,7 @@ const LevelButtonContent = () => {
 
     // If PRO is selected, just reload to get original text back
     if (level === "pro") {
+      storeLevel("pro");
       if (currentLevel !== "pro") {
         window.location.reload();
       }
@@ -106,6 +133,7 @@ const LevelButtonContent = () => {
 
     // If Basic or Intermediate, call AI
     setCurrentLevel(level);
+    storeLevel(level);
     setLoading(true);
     setProgress(0);
 
@@ -159,12 +187,14 @@ const LevelButtonContent = () => {
       if (rewrittenCount === 0) {
         alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
         setCurrentLevel("pro");
+        storeLevel("pro");
         setLoading(false);
         return;
       }
     } catch (error) {
       alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
       setCurrentLevel("pro");
+      storeLevel("pro");
     } finally {
       setLoading(false);
     }

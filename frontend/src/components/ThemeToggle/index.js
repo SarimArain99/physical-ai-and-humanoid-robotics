@@ -46,15 +46,16 @@ const CheckIcon = () => (
   </svg>
 );
 
-/**
- * Theme toggle modes: 'light' | 'dark' | 'system'
- */
-const MODES = ['light', 'dark', 'system'];
-
 function ThemeToggleContent() {
-  const { colorMode, setColorMode } = useColorMode();
+  // colorModeChoice is the visitor's explicit choice: 'light' | 'dark' |
+  // null (System / site default). Derive the displayed mode from it —
+  // never from a hand-rolled localStorage key. Docusaurus persists the
+  // choice itself (localStorage 'theme'); reading or writing that key
+  // here only fought it. setColorMode(null) resets to System and clears
+  // the stored choice, with no reload.
+  const { colorModeChoice, setColorMode } = useColorMode();
   const [isOpen, setIsOpen] = useState(false);
-  const [currentMode, setCurrentMode] = useState('system');
+  const currentMode = colorModeChoice ?? 'system';
   const dropdownRef = useRef(null);
 
   // Close the menu on Escape or on a click outside it.
@@ -76,40 +77,8 @@ function ThemeToggleContent() {
     };
   }, [isOpen]);
 
-  // Initialize mode from localStorage or colorMode
-  useEffect(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored && MODES.includes(stored)) {
-      setCurrentMode(stored);
-    } else {
-      setCurrentMode('system');
-    }
-  }, []);
-
-  // Update mode when colorMode changes externally
-  useEffect(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'light' && colorMode === 'light') {
-      setCurrentMode('light');
-    } else if (stored === 'dark' && colorMode === 'dark') {
-      setCurrentMode('dark');
-    } else if (!stored || stored === 'system') {
-      setCurrentMode('system');
-    }
-  }, [colorMode]);
-
   const handleModeSelect = (mode) => {
-    setCurrentMode(mode);
-    localStorage.setItem('theme', mode);
-
-    if (mode === 'system') {
-      // Clear stored preference and let Docusaurus use system preference
-      localStorage.removeItem('docusaurus.theme');
-      // Reload to apply system preference
-      window.location.reload();
-    } else {
-      setColorMode(mode);
-    }
+    setColorMode(mode === 'system' ? null : mode);
     setIsOpen(false);
   };
 

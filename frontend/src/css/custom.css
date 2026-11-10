@@ -150,6 +150,14 @@ html {
   margin-top: var(--space-8);
 }
 
+/* Right-hand table of contents: long headings were splitting mid-word
+   with a gap ("Communicati on") in the narrow column. Hyphenate them
+   instead so the break carries a hyphen. */
+.theme-doc-toc-desktop .table-of-contents__link {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
 /* Code block styling - Dynamic based on theme */
 .code-example {
   background-color: var(--ifm-background-surface-color);

@@ -75,9 +75,11 @@ const config: Config = {
     colorMode: {
       // Dark first: the book reads as a dark-premium textbook. One toggle
       // remains (the custom ThemeToggle in the navbar); the built-in
-      // Docusaurus switch is disabled so the two never sit side by side.
+      // Docusaurus switch is hidden by the null ColorModeToggle swizzle
+      // instead of disableSwitch — Docusaurus deletes the stored theme on
+      // every mount when disableSwitch is true, so a visitor's Light/Dark
+      // choice would never survive a page load (found live 2026-11-10).
       defaultMode: "dark",
-      disableSwitch: true,
       respectPrefersColorScheme: false,
     },
     navbar: {
