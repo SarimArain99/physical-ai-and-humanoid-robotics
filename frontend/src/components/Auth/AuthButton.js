@@ -5,7 +5,7 @@
  *
  * Sign In / User Profile dropdown with unified styling.
  */
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthProvider";
 import AuthModal from "./AuthModal";
 import BrowserOnly from "@docusaurus/BrowserOnly";
@@ -13,8 +13,8 @@ import "./AuthButton.css";
 
 const UserIcon = () => (
   <svg
-    width="16"
-    height="16"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -30,8 +30,8 @@ const UserIcon = () => (
 
 const LogoutIcon = () => (
   <svg
-    width="16"
-    height="16"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -65,16 +65,43 @@ const ChevronDownIcon = () => (
 const AuthButtonContent = () => {
   const { user, logout, loading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // The menu opens on click, not on hover: hover menus never open on
+  // touch screens and keyboard users cannot reach them at all.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    const onPointerDown = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     await logout();
     window.location.reload();
   };
 
+  // While the session is being checked the bar keeps a 36px placeholder
+  // pill, so the controls do not jump when the real button appears.
   if (loading)
     return (
       <div className="auth-button-wrapper">
-        <div className="navbar-loading">...</div>
+        <div
+          className="navbar-btn navbar-btn--secondary navbar-btn--loading auth-loading-pill"
+          aria-hidden="true"
+        />
       </div>
     );
 
@@ -86,35 +113,46 @@ const AuthButtonContent = () => {
   return (
     <div className="auth-button-wrapper">
       {user ? (
-        <div className="auth-dropdown">
-          <button className="auth-user-trigger navbar-btn navbar-btn--secondary">
+        <div
+          className={`auth-dropdown ${isOpen ? "auth-dropdown--open" : ""}`}
+          ref={dropdownRef}
+        >
+          <button
+            className="auth-user-trigger navbar-btn navbar-btn--secondary"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-expanded={isOpen}
+            aria-haspopup="menu"
+          >
             <span className="auth-user-icon"><UserIcon /></span>
             <span className="auth-user-name navbar-btn__label">{getDisplayName()}</span>
             <span className="auth-chevron"><ChevronDownIcon /></span>
           </button>
 
-          <div className="auth-dropdown-menu">
-            <div className="auth-dropdown-header">{user.email}</div>
+          {isOpen && (
+            <div className="auth-dropdown-menu" role="menu">
+              <div className="auth-dropdown-header">{user.email}</div>
 
-            <a href="/profile" className="auth-dropdown-item">
-              <span className="auth-dropdown-icon"><UserIcon /></span>
-              My Profile
-            </a>
+              <a href="/profile" className="auth-dropdown-item" role="menuitem">
+                <span className="auth-dropdown-icon"><UserIcon /></span>
+                My Profile
+              </a>
 
-            <div className="auth-dropdown-divider"></div>
+              <div className="auth-dropdown-divider"></div>
 
-            <button
-              className="auth-dropdown-item auth-dropdown-item--logout"
-              onClick={handleLogout}
-            >
-              <span className="auth-dropdown-icon"><LogoutIcon /></span>
-              Logout
-            </button>
-          </div>
+              <button
+                className="auth-dropdown-item auth-dropdown-item--logout"
+                onClick={handleLogout}
+                role="menuitem"
+              >
+                <span className="auth-dropdown-icon"><LogoutIcon /></span>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <button
-          className="navbar-btn navbar-btn--primary auth-signin-btn"
+          className="navbar-btn navbar-btn--primary"
           onClick={() => setIsModalOpen(true)}
         >
           Sign In

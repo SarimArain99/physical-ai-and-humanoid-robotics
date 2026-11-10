@@ -96,10 +96,9 @@ const config: Config = {
           label: "Start Course",
         },
         {
-          type: "custom-levelButton", // 🟢 Add to Navbar
+          type: "custom-levelButton",
           position: "right",
         },
-        // 🟢 Adds the Urdu Toggle
         {
           type: "custom-urduButton",
           position: "right",
@@ -109,7 +108,6 @@ const config: Config = {
           type: "custom-themeToggle",
           position: "right",
         },
-        // ✅ Your Login Link is Correct here
         {
           type: "custom-authButton",
           position: "right",

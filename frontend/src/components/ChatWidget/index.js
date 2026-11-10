@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../Auth/AuthProvider";
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import EnhancedChatIcon from "./ChatIcon.enhanced";
-import "./ChatIcon.enhanced.css";
+import ChatIcon from "./ChatIcon";
 import { chatUrls, readSseStream } from "../../config/api";
 
 // The backend stores chat history by session id but has no endpoint to
@@ -13,8 +12,6 @@ import { chatUrls, readSseStream } from "../../config/api";
 // The chat opens empty on purpose: it never ships a pre-seeded greeting
 // that looks like a conversation that never happened. An earlier version
 // seeded "Hello! I am your Physical AI assistant..." on every fresh load.
-
-const ChatIcon = EnhancedChatIcon;
 
 const SESSION_KEY = "physical-ai-chat-session";
 const MESSAGES_KEY = "physical-ai-chat-messages";
@@ -128,7 +125,7 @@ const SendIcon = () => (
 );
 
 const CloseIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="6" y2="18"></line>
   </svg>
@@ -149,7 +146,7 @@ const QuoteIcon = () => (
 );
 
 const NewChatIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="12" y1="5" x2="12" y2="19"></line>
     <line x1="5" y1="12" x2="19" y2="12"></line>
   </svg>
@@ -294,11 +291,11 @@ const ChatWidgetContent = () => {
     <div className="chat-widget-wrapper">
       {!isOpen && (
         <button
-          className="chat-toggle-btn pulse-animation"
+          className="chat-toggle-btn"
           onClick={() => setIsOpen(true)}
           aria-label="Open AI Assistant"
         >
-          <ChatIcon />
+          <ChatIcon size={24} />
         </button>
       )}
 
@@ -306,7 +303,7 @@ const ChatWidgetContent = () => {
         <div className="chat-window" role="dialog" aria-label="AI Assistant Chat" aria-modal="false">
           <div className="chat-header">
             <div className="header-title">
-              <span className="chat-icon-wrapper"><ChatIcon /></span>
+              <ChatIcon size={18} className="chat-header-icon" />
               <span>AI Assistant</span>
             </div>
             <div className="header-actions">
@@ -354,7 +351,7 @@ const ChatWidgetContent = () => {
               <div key={idx} className={`message-row ${msg.role}`}>
                 {msg.role === "assistant" && (
                   <div className="bot-avatar">
-                    <span className="chat-icon-wrapper"><ChatIcon /></span>
+                    <ChatIcon size={18} />
                   </div>
                 )}
                 {msg.role === "assistant" ? (
@@ -370,7 +367,7 @@ const ChatWidgetContent = () => {
             {streamedContent && (
               <div className="message-row assistant">
                 <div className="bot-avatar">
-                  <span className="chat-icon-wrapper"><ChatIcon /></span>
+                  <ChatIcon size={18} />
                 </div>
                 <div className="message-bubble assistant streaming">
                   {streamedContent}
@@ -381,7 +378,7 @@ const ChatWidgetContent = () => {
             {loading && !streamedContent && (
               <div className="message-row assistant">
                 <div className="bot-avatar">
-                  <span className="chat-icon-wrapper"><ChatIcon /></span>
+                  <ChatIcon size={18} />
                 </div>
                 <div className="message-bubble assistant typing">
                   <div className="typing-dot"></div>
@@ -436,10 +433,13 @@ const ChatWidgetContent = () => {
       <style>{`
         .chat-widget-wrapper { position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: var(--font-body); }
 
-        .chat-toggle-btn { width: 65px; height: 65px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease; padding: 0; }
-        .chat-toggle-btn:hover { transform: scale(1.05); }
-        .chat-toggle-btn:focus-visible { outline: 2px solid var(--module-primary); outline-offset: 2px; }
-        .pulse-animation { animation: pulse 2s infinite; }
+        /* The launcher is one 56px sea-green disc with a single 24px
+           message mark, centred. No pulse, no rings, no glow, no robot.
+           The colour is the fixed site accent, never the per-module
+           accent, so it does not change between chapters. */
+        .chat-toggle-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--color-accent); color: var(--color-accent-ink); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; padding: 0; box-shadow: var(--shadow-md); }
+        .chat-toggle-btn:hover { background: var(--color-accent-dark); }
+        .chat-toggle-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 
         .chat-window { width: 380px; height: 600px; max-height: 80vh; background-color: var(--chat-bg-primary); border-radius: 20px; box-shadow: var(--shadow-2xl); display: flex; flex-direction: column; border: 1px solid var(--chat-border); overflow: hidden; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
@@ -455,15 +455,20 @@ const ChatWidgetContent = () => {
           }
         }
 
-        .chat-header { padding: 18px 20px; background: var(--chat-bubble-user); color: var(--chat-bubble-user-text); display: flex; justify-content: space-between; align-items: center; }
-        .header-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
-        .header-title .chat-icon-wrapper { transform: scale(0.7); }
+        /* The window header is the window surface with a hairline
+           bottom border — not a solid green slab. Title 15px / 600,
+           the same 18px message mark in the accent, 32px ghost
+           buttons with the same hairline border as the navbar. */
+        .chat-header { padding: 14px 16px; background: var(--chat-bg-primary); color: var(--color-text-primary); border-bottom: 1px solid var(--chat-border); display: flex; justify-content: space-between; align-items: center; }
+        .header-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+        .chat-header-icon { color: var(--color-accent); flex-shrink: 0; }
         .header-actions { display: flex; gap: 8px; align-items: center; }
-        .icon-btn { background: var(--color-overlay-light); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--chat-bubble-user-text); transition: background-color 0.2s ease; }
-        .icon-btn:hover { background: var(--color-overlay-light); }
-        .icon-btn:focus-visible { outline: 2px solid var(--chat-bubble-user-text); outline-offset: 2px; }
-        .close-btn { background: var(--color-overlay-light); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--chat-bubble-user-text); }
-        .close-btn:focus-visible { outline: 2px solid var(--chat-bubble-user-text); outline-offset: 2px; }
+        .icon-btn { background: transparent; border: 1px solid var(--chat-border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-secondary); transition: background-color 0.2s ease, color 0.2s ease; }
+        .icon-btn:hover { background: var(--chat-bg-surface); color: var(--color-text-primary); }
+        .icon-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+        .close-btn { background: transparent; border: 1px solid var(--chat-border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-secondary); transition: background-color 0.2s ease, color 0.2s ease; }
+        .close-btn:hover { background: var(--chat-bg-surface); color: var(--color-text-primary); }
+        .close-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg-surface); }
         .chat-empty-state { padding: 32px 8px; text-align: center; }
@@ -471,12 +476,11 @@ const ChatWidgetContent = () => {
         .chat-empty-text { font-size: 14px; line-height: 1.5; color: var(--color-text-secondary); margin: 0 0 20px; }
         .chat-suggestions { display: flex; flex-direction: column; gap: 8px; }
         .chat-suggestion { padding: 10px 14px; border-radius: 20px; border: 1px solid var(--chat-border); background-color: var(--chat-bg-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; text-align: left; transition: border-color 0.2s ease, background-color 0.2s ease; }
-        .chat-suggestion:hover { border-color: var(--module-primary); background-color: var(--module-primary-bg); }
+        .chat-suggestion:hover { border-color: var(--color-accent); background-color: var(--module-primary-bg); }
 
         .message-row { display: flex; gap: 10px; align-items: flex-end; animation: fadeIn 0.3s ease; }
         .message-row.user { justify-content: flex-end; }
-        .bot-avatar { width: 30px; height: 30px; background: var(--chat-bubble-bot); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
-        .bot-avatar .chat-icon-wrapper { transform: scale(0.6); }
+        .bot-avatar { width: 30px; height: 30px; background: var(--chat-bubble-bot); color: var(--color-text-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
 
         .message-bubble { padding: 12px 16px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 14px; position: relative; box-shadow: var(--shadow-sm); word-break: break-word; }
         .message-bubble.assistant { background-color: var(--chat-bubble-bot); color: var(--chat-bubble-bot-text); border-bottom-left-radius: 4px; }
@@ -497,7 +501,7 @@ const ChatWidgetContent = () => {
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
         .message-bubble.streaming { display: flex; align-items: flex-start; gap: 2px; white-space: pre-wrap; }
-        .typing-cursor { display: inline-block; width: 2px; height: 16px; background-color: var(--module-primary); animation: blink 0.8s infinite; margin-left: 2px; flex-shrink: 0; }
+        .typing-cursor { display: inline-block; width: 2px; height: 16px; background-color: var(--color-accent); animation: blink 0.8s infinite; margin-left: 2px; flex-shrink: 0; }
 
         @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
@@ -509,10 +513,10 @@ const ChatWidgetContent = () => {
 
         .chat-input-area { padding: 20px; background-color: var(--chat-bg-primary); border-top: 1px solid var(--chat-border); display: flex; gap: 10px; align-items: center; }
         .chat-input-area input { flex: 1; height: 45px; padding: 0 15px; border-radius: 25px; border: 1px solid var(--chat-border); background-color: var(--chat-bg-surface); color: var(--color-text-primary); font-size: 14px; min-width: 0; }
-        .chat-input-area input:focus { outline: none; border-color: var(--module-primary); box-shadow: 0 0 0 2px var(--color-focus-ring); }
-        .send-btn { width: 45px; height: 45px; background-color: var(--chat-bubble-user); color: var(--chat-bubble-user-text); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease; flex-shrink: 0; }
-        .send-btn:hover:not(:disabled) { transform: scale(1.1); }
-        .send-btn:focus-visible { outline: 2px solid var(--module-primary); outline-offset: 2px; }
+        .chat-input-area input:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px var(--color-focus-ring); }
+        .send-btn { width: 45px; height: 45px; background-color: var(--chat-bubble-user); color: var(--chat-bubble-user-text); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; flex-shrink: 0; }
+        .send-btn:hover:not(:disabled) { background-color: var(--color-accent-dark); }
+        .send-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
         .send-btn:disabled { background-color: var(--chat-bubble-bot); color: var(--color-text-tertiary); cursor: not-allowed; }
 
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
@@ -524,7 +528,6 @@ const ChatWidgetContent = () => {
           .message-row, .chat-window { animation: none; }
           .typing-dot { animation: none; }
           .typing-cursor { animation: none; }
-          .pulse-animation { animation: none; }
         }
       `}</style>
     </div>

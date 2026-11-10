@@ -14,53 +14,47 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  height: var(--navbar-control-height);
 }
 
-/* Level trigger button enhancements */
-.level-trigger {
-  position: relative;
-  padding-right: 32px; /* Space for chevron and dot */
-}
-
+/* The trigger lays out in flow — icon, label, dot, chevron — so the
+   spacing is the system gap, not absolute offsets that drift. */
 .level-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .level-chevron {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.level-dropdown[aria-expanded="true"] .level-chevron {
-  transform: translateY(-50%) rotate(180deg);
+.level-trigger[aria-expanded="true"] .level-chevron {
+  transform: rotate(180deg);
 }
 
 .level-dot {
-  position: absolute;
-  right: 26px;
-  top: 50%;
-  transform: translateY(-50%);
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  flex-shrink: 0;
 }
 
-/* Trigger dot — three shades of the same sea-green. */
+/* Trigger dot — three shades of the fixed site accent. The middle dot
+   used to read --module-primary, which changes per chapter. */
 .level-dot--basic {
   background-color: var(--module-light);
 }
 
 .level-dot--intermediate {
-  background-color: var(--module-primary);
+  background-color: var(--color-accent);
 }
 
 .level-dot--pro {
@@ -122,13 +116,14 @@
   flex-shrink: 0;
 }
 
-/* Level dots — three shades of the same sea-green, not blue/purple/green. */
+/* Level dots — three shades of the fixed site accent, not the
+   per-module accent. */
 .level-menu-dot--basic {
   background-color: var(--module-light);
 }
 
 .level-menu-dot--intermediate {
-  background-color: var(--module-primary);
+  background-color: var(--color-accent);
 }
 
 .level-menu-dot--pro {
@@ -166,10 +161,11 @@
 }
 
 /* Rewritten text keeps the page's own colour and alignment; only a
-   hairline in the accent marks it as adapted. */
+   hairline box in the border token marks it as adapted. */
 .level-rewritten {
-  border-left: 3px solid var(--module-primary);
-  padding-left: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
 }
 
 /* Mobile responsiveness */
@@ -180,7 +176,7 @@
   }
 
   .level-menu-item {
-    padding: 10px 12px;
+    padding: 12px;
   }
 
   .level-menu-label {
@@ -200,7 +196,7 @@
   }
 
   .level-menu-item {
-    padding: 8px 10px;
+    padding: 8px 12px;
   }
 
   .level-menu-dot {

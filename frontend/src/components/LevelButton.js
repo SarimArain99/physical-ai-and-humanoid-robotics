@@ -223,8 +223,8 @@ const LevelButtonContent = () => {
       >
         <span className="level-icon"><LevelIcon /></span>
         <span className="navbar-btn__label">{getLabel()}</span>
+        <span className={`level-dot ${getDotClass()}`} />
         {!loading && <span className="level-chevron"><ChevronDown /></span>}
-        {!loading && <span className={`level-dot ${getDotClass()}`} />}
       </button>
 
       {isOpen && (

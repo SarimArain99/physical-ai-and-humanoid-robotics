@@ -8,9 +8,9 @@ import DocSidebarNavbarItem from "@theme/NavbarItem/DocSidebarNavbarItem";
 import DocsVersionNavbarItem from "@theme/NavbarItem/DocsVersionNavbarItem";
 import DocsVersionDropdownNavbarItem from "@theme/NavbarItem/DocsVersionDropdownNavbarItem";
 
-// IMPORT YOUR BUTTON
-import AuthButton from "@site/src/components/Auth/AuthButton"; // Adjust path if it's in components
-import UrduButton from "@site/src/components/UrduButton"; // 🟢 Check this path!
+// Navbar button components.
+import AuthButton from "@site/src/components/Auth/AuthButton";
+import UrduButton from "@site/src/components/UrduButton";
 import LevelButton from "@site/src/components/LevelButton";
 import ThemeToggle from "@site/src/components/ThemeToggle";
 
@@ -25,9 +25,9 @@ const ComponentTypes = {
   docsVersion: DocsVersionNavbarItem,
   docsVersionDropdown: DocsVersionDropdownNavbarItem,
 
-  // REGISTER YOUR CUSTOM COMPONENT
+  // Custom navbar components (keys match docusaurus.config.ts).
   "custom-authButton": AuthButton,
-  "custom-urduButton": UrduButton, // 🟢 This key matches docusaurus.config.ts
+  "custom-urduButton": UrduButton,
   "custom-levelButton": LevelButton,
   "custom-themeToggle": ThemeToggle,
 };

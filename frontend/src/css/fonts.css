@@ -16,6 +16,7 @@
   --font-display: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-urdu: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
 }
 
 /* Apply fonts to headings */
@@ -24,6 +25,7 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 /* Apply fonts to body and text */

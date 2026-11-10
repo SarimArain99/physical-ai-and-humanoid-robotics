@@ -13,21 +13,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* Translated text: Nastaliq face and roomier leading, but it keeps
    the page's own colour and alignment in both themes. */
 .urdu-translated {
   direction: rtl;
-  font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+  font-family: var(--font-urdu);
   line-height: 1.8;
-}
-
-/* Hide label on mobile */
-@media (max-width: 768px) {
-  .urdu-button .navbar-btn__label {
-    display: none;
-  }
 }

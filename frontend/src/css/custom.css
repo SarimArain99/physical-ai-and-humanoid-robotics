@@ -27,6 +27,10 @@
 
   --ifm-code-font-size: 95%;
 
+  /* The navbar is one bar: 64px tall, every control 36px. */
+  --ifm-navbar-height: 64px;
+  --navbar-control-height: 36px;
+
   /* Light Mode Specifics */
   --ifm-background-color: #ffffff; /* White Background */
   --ifm-background-surface-color: #f6f8f7; /* Light Gray-Green for cards */
@@ -115,6 +119,126 @@ body {
 /* Long navbar titles never wrap (the site title is a long phrase). */
 .navbar__title {
   white-space: nowrap;
+}
+
+/* One navbar system: every control in the bar is 36px tall, with the
+   same 8px gap, the same hairline border, the same radius and the same
+   Inter 14px / 500 label. The links (Start Course, GitHub) and the
+   search field get the same treatment as the buttons, so the bar reads
+   as one row of controls instead of five unrelated widgets. */
+.navbar__items,
+.navbar__items--right {
+  gap: 8px;
+}
+
+.navbar__inner .navbar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--navbar-control-height);
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.navbar__inner .navbar__link:hover {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.navbar__inner .navbar__link:active {
+  transform: scale(0.97);
+}
+
+.navbar__inner .navbar__link svg {
+  width: 14px;
+  height: 14px;
+}
+
+.navbar__inner .navbar__search-input {
+  height: var(--navbar-control-height);
+}
+
+/* In the hamburger menu the navbar controls stack as full-width rows. */
+.navbar-sidebar .navbar-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+@media screen and (max-width: 996px) {
+  /* The top bar keeps the hamburger, the brand, the theme toggle and
+     the search (the search has no equivalent in the hamburger menu —
+     hiding it would leave mobile readers with no search at all).
+     Level, auth, Urdu and the text links live in the hamburger menu,
+     where Docusaurus renders the same navbar items.
+     (The links need an explicit hide here: the control treatment above
+     sets display:inline-flex, which would otherwise override the
+     framework's own responsive hiding.) */
+  .navbar__inner .navbar__link,
+  .navbar__inner .level-dropdown,
+  .navbar__inner .auth-button-wrapper,
+  .navbar__inner .urdu-button {
+    display: none;
+  }
+
+  /* The hamburger is a control too: same 36px box, same hairline. */
+  .navbar__toggle {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+  }
+
+  /* The search plugin positions its container absolutely at the
+     navbar's right edge, which puts it on top of the theme toggle
+     once the other right-side controls are hidden on mobile. In the
+     hamburger layout it joins the flex row instead, so the theme
+     toggle and the search sit side by side with the normal gap. */
+  .navbar__inner > .navbar__items:last-child > :last-child {
+    position: static;
+  }
+
+  /* The hamburger menu stacks the navbar controls as full-width rows.
+     Docusaurus renders the custom components as bare children of the
+     menu list, so the list becomes a column; the theme toggle is
+     already in the top bar, so it is hidden here to avoid a duplicate.
+     Scoped to the first panel (the navbar items) so the docs tree in
+     the second panel keeps its own styling. */
+  .navbar-sidebar__items > .navbar-sidebar__item:first-child .menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .navbar-sidebar__items > .navbar-sidebar__item:first-child .theme-toggle-dropdown {
+    display: none;
+  }
+
+  .navbar-sidebar__items > .navbar-sidebar__item:first-child .menu__link {
+    display: flex;
+    align-items: center;
+    height: var(--navbar-control-height);
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .navbar-sidebar__items > .navbar-sidebar__item:first-child .menu__link:hover {
+    background-color: var(--color-bg-surface);
+    text-decoration: none;
+  }
 }
 
 /* Browser surfaces in the palette (F16). */
