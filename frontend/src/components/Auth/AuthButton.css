@@ -191,3 +191,21 @@
     width: 18px;
   }
 }
+
+/* In the mobile hamburger menu the auth control is a full-width row like
+   the other controls, and its menu opens in flow below the button.
+   Before this, the inline-block wrapper shrink-wrapped the trigger to
+   ~150px and the 200px absolutely-positioned menu was clipped off the
+   left edge of the viewport (found live 2026-11-10). */
+.navbar-sidebar .auth-dropdown {
+  display: block;
+  width: 100%;
+}
+
+.navbar-sidebar .auth-dropdown-menu {
+  position: static;
+  min-width: 0;
+  width: 100%;
+  margin-top: 8px;
+  box-shadow: none;
+}
