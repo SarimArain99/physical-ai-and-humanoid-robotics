@@ -58,10 +58,27 @@ const config: Config = {
     ],
   ],
 
+  // Site-wide description so every page carries a meta description.
+  headTags: [
+    {
+      tagName: "meta",
+      attributes: {
+        name: "description",
+        content:
+          "A free 13-week textbook on Physical AI and humanoid robotics: ROS 2, simulation, NVIDIA Isaac, and humanoid control, with real code and quizzes.",
+      },
+    },
+  ],
+
   themeConfig: {
     image: "img/social-card.svg",
     colorMode: {
-      respectPrefersColorScheme: true,
+      // Dark first: the book reads as a dark-premium textbook. One toggle
+      // remains (the custom ThemeToggle in the navbar); the built-in
+      // Docusaurus switch is disabled so the two never sit side by side.
+      defaultMode: "dark",
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
     },
     navbar: {
       title: "Physical AI & Humanoid Robotics",
@@ -109,7 +126,7 @@ const config: Config = {
           title: "Docs",
           items: [
             {
-              label: "Tutorial",
+              label: "Introduction",
               to: "/docs/intro",
             },
           ],
@@ -141,7 +158,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook, by Muhammad Sarim. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics Textbook, by Muhammad Sarim.`,
     },
     prism: {
       theme: prismThemes.github,

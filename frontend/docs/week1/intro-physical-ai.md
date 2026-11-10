@@ -88,6 +88,8 @@ These four problems explain the shape of this course: ROS 2 for reliable communi
 
 Every physical AI system, from a simple line-following robot to a humanoid, runs the same loop: sense the world, decide what to do, act — then sense again. Here is that loop in its simplest form, with a simulated distance sensor:
 
+![The Sense–Think–Act loop](/img/diagrams/sense-think-act.svg)
+
 ```python
 def sense():
     """Read the distance to the nearest obstacle (metres)."""

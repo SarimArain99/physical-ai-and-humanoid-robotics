@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="sta-title sta-desc">
+  <title id="sta-title">The Sense Think Act loop</title>
+  <desc id="sta-desc">A robot senses the world, decides what to do, acts, then senses again. The loop repeats.</desc>
+  <style>
+    .node { fill: #ffffff; stroke: #177245; stroke-width: 2; }
+    .node-label { fill: #101613; font: 700 20px 'Space Grotesk', 'Inter', sans-serif; }
+    .node-sub { fill: #4b534e; font: 400 13px 'Inter', sans-serif; }
+    .arrow { stroke: #177245; stroke-width: 2; fill: none; }
+    .arrow-head { fill: #177245; }
+    .edge-label { fill: #177245; font: 600 13px 'Inter', sans-serif; }
+    .centre { fill: #6b736d; font: 400 13px 'Inter', sans-serif; }
+  </style>
+  <defs>
+    <marker id="sta-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" class="arrow-head" />
+    </marker>
+  </defs>
+
+  <!-- Figure card: the diagram is drawn on a light card so it reads
+       on the site's dark pages and on light pages alike. -->
+  <rect x="0" y="0" width="640" height="360" rx="12" fill="#ffffff" stroke="#e3e8e4" />
+
+  <!-- Sense -> Think -->
+  <path class="arrow" d="M 430 100 Q 500 160 482 224" marker-end="url(#sta-arrow)" />
+  <text class="edge-label" x="545" y="145" text-anchor="middle">decide</text>
+
+  <!-- Think -> Act -->
+  <path class="arrow" d="M 400 262 Q 320 292 242 262" marker-end="url(#sta-arrow)" />
+  <text class="edge-label" x="320" y="312" text-anchor="middle">command</text>
+
+  <!-- Act -> Sense -->
+  <path class="arrow" d="M 140 224 Q 148 140 218 84" marker-end="url(#sta-arrow)" />
+  <text class="edge-label" x="75" y="145" text-anchor="middle">new reading</text>
+
+  <!-- Sense node -->
+  <rect class="node" x="220" y="38" width="200" height="64" rx="12" />
+  <text class="node-label" x="320" y="66" text-anchor="middle">Sense</text>
+  <text class="node-sub" x="320" y="88" text-anchor="middle">cameras, lidar, IMU</text>
+
+  <!-- Think node -->
+  <rect class="node" x="400" y="228" width="200" height="64" rx="12" />
+  <text class="node-label" x="500" y="256" text-anchor="middle">Think</text>
+  <text class="node-sub" x="500" y="278" text-anchor="middle">planner or learned policy</text>
+
+  <!-- Act node -->
+  <rect class="node" x="40" y="228" width="200" height="64" rx="12" />
+  <text class="node-label" x="140" y="256" text-anchor="middle">Act</text>
+  <text class="node-sub" x="140" y="278" text-anchor="middle">motors through ROS 2</text>
+
+  <text class="centre" x="320" y="200" text-anchor="middle">the loop repeats</text>
+</svg>

@@ -1,7 +1,13 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Enhanced Chat Icon Component Styles
  * Feature: 002-ui-improvements
  * Task: Improved chatbot icon design
+ *
+ * One solid sea-green disc, no gradients, no glow wash, no
+ * per-module rainbow colours. The icon is a robot head drawn in SVG;
+ * the disc behind it is the accent token.
  */
 
 /* Main icon container */
@@ -13,11 +19,11 @@
   cursor: pointer;
   user-select: none;
   border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s var(--ease-out);
 }
 
 .enhanced-chat-icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.06);
 }
 
 .enhanced-chat-icon:active {
@@ -25,43 +31,25 @@
 }
 
 .enhanced-chat-icon:focus-visible {
-  outline: 2px solid var(--chat-accent, #2ECC71);
+  outline: 2px solid var(--chat-accent);
   outline-offset: 3px;
 }
 
-/* Gradient background */
+/* Solid accent disc */
 .enhanced-chat-icon__bg {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2ECC71 0%, #22C55E 50%, #16A34A 100%);
-  box-shadow:
-    0 4px 15px rgba(46, 204, 113, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-    inset 0 2px 4px rgba(255, 255, 255, 0.2);
-}
-
-/* Glow effect */
-.enhanced-chat-icon__glow {
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(46, 204, 113, 0.4) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: -1;
-}
-
-.enhanced-chat-icon:hover .enhanced-chat-icon__glow {
-  opacity: 1;
+  background: var(--module-primary);
+  box-shadow: var(--shadow-accent);
 }
 
 /* SVG icon */
 .enhanced-chat-icon__svg {
   position: relative;
   z-index: 1;
-  color: white;
-  transition: transform 0.3s;
+  color: var(--color-accent-ink);
+  transition: transform 0.3s var(--ease-out);
 }
 
 .enhanced-chat-icon:hover .enhanced-chat-icon__svg {
@@ -70,12 +58,12 @@
 
 /* Robot head parts */
 .enhanced-chat-icon__head {
-  transition: d 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: d 0.3s var(--ease-out);
 }
 
 /* Screen */
 .enhanced-chat-icon__screen {
-  transition: fill 0.3s;
+  transition: fill 0.3s var(--ease-out);
 }
 
 /* Eyes with blink animation */
@@ -120,20 +108,17 @@
 
 /* Mouth transitions */
 .enhanced-chat-icon__mouth {
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), transform 0.3s var(--ease-out);
 }
 
 /* Open state */
 .enhanced-chat-icon--open .enhanced-chat-icon__bg {
-  background: linear-gradient(135deg, #1E2A38 0%, #151E29 100%);
-  box-shadow:
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-md);
 }
 
 .enhanced-chat-icon--open .enhanced-chat-icon__svg {
-  color: #2ECC71;
+  color: var(--module-primary);
 }
 
 /* Pulsing rings animation */
@@ -141,7 +126,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1px solid #2ECC71;
+  border: 1px solid var(--module-primary);
   opacity: 0;
   pointer-events: none;
   animation: ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
@@ -177,16 +162,13 @@
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-  color: white;
+  background: var(--color-error);
+  color: var(--color-error-ink);
   font-size: 10px;
   font-weight: 700;
   border-radius: 10px;
-  box-shadow:
-    0 2px 8px rgba(239, 68, 68, 0.4),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.2);
-  animation: badgePopIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: var(--shadow-md);
+  animation: badgePopIn 0.4s var(--ease-out);
 }
 
 @keyframes badgePopIn {
@@ -211,25 +193,25 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2ECC71 0%, #22C55E 100%);
-  color: white;
+  background: var(--module-primary);
+  color: var(--color-accent-ink);
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+  transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out), border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  box-shadow: var(--shadow-accent);
 }
 
 .compact-chat-icon:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+  box-shadow: var(--shadow-accent);
 }
 
 .compact-chat-icon svg {
-  color: white;
+  color: var(--color-accent-ink);
 }
 
 .compact-chat-icon--open {
-  background: #1E2A38;
-  color: #2ECC71;
+  background: var(--color-bg-elevated);
+  color: var(--module-primary);
 }
 
 /* Reduced motion support */
@@ -259,51 +241,5 @@
   }
 }
 
-/* Module-specific colors */
-.enhanced-chat-icon[data-module="ros2"] .enhanced-chat-icon__bg {
-  background: linear-gradient(135deg, #FF6B35 0%, #F97316 100%);
-}
-
-.enhanced-chat-icon[data-module="ros2"] .enhanced-chat-icon__glow {
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.4) 0%, transparent 70%);
-}
-
-.enhanced-chat-icon[data-module="ros2"].enhanced-chat-icon--pulse .enhanced-chat-icon__ring {
-  border-color: #FF6B35;
-}
-
-.enhanced-chat-icon[data-module="digitalTwin"] .enhanced-chat-icon__bg {
-  background: linear-gradient(135deg, #4ECDC4 0%, #06B6D4 100%);
-}
-
-.enhanced-chat-icon[data-module="digitalTwin"] .enhanced-chat-icon__glow {
-  background: radial-gradient(circle, rgba(78, 205, 196, 0.4) 0%, transparent 70%);
-}
-
-.enhanced-chat-icon[data-module="digitalTwin"].enhanced-chat-icon--pulse .enhanced-chat-icon__ring {
-  border-color: #4ECDC4;
-}
-
-.enhanced-chat-icon[data-module="isaac"] .enhanced-chat-icon__bg {
-  background: linear-gradient(135deg, #A855F7 0%, #9333EA 100%);
-}
-
-.enhanced-chat-icon[data-module="isaac"] .enhanced-chat-icon__glow {
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
-}
-
-.enhanced-chat-icon[data-module="isaac"].enhanced-chat-icon--pulse .enhanced-chat-icon__ring {
-  border-color: #A855F7;
-}
-
-.enhanced-chat-icon[data-module="vla"] .enhanced-chat-icon__bg {
-  background: linear-gradient(135deg, #FF0844 0%, #DC2626 100%);
-}
-
-.enhanced-chat-icon[data-module="vla"] .enhanced-chat-icon__glow {
-  background: radial-gradient(circle, rgba(255, 8, 68, 0.4) 0%, transparent 70%);
-}
-
-.enhanced-chat-icon[data-module="vla"].enhanced-chat-icon--pulse .enhanced-chat-icon__ring {
-  border-color: #FF0844;
-}
+/* The disc follows --module-primary, which the module theme sets on
+   the document element per chapter — no per-module rules needed here. */

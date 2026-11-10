@@ -1,89 +1,57 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Design Tokens & Theme CSS
  * Feature: 002-ui-improvements
  * Task: T007
  *
- * Contains module colors, spacing scale, and visual design tokens
- * based on contracts/styles.md
+ * Contains module colors, spacing scale, and visual design tokens.
+ * One palette only: white / sea-green / black. Module accents are
+ * shades of the same sea-green, never the old orange/teal/purple/red
+ * set. Every colour below lives in a token; nothing outside the
+ * token blocks below uses a literal colour.
  */
 
 /* ============================================
-   MODULE ACCENT COLORS
+   MODULE ACCENT COLORS — one green family
    ============================================ */
 
 :root {
   /* Default Brand - Green */
-  --module-primary: #2ECC71;
-  --module-accent: #22C55E;
-  --module-light: #A3FAD9;
-  --module-dark: #25B365;
+  --module-primary: #177245;
+  --module-accent: #1f9260;
+  --module-light: #d9f2e6;
+  --module-dark: #0d452a;
 }
 
-/* ROS 2 Module - Orange (weeks 1-5) */
+/* Per-module accents remap only --module-primary to the module token
+   (the module tokens below are theme-aware). Accent, light and dark
+   stay the default green: the level dots distinguish levels, not
+   modules. data-module lives on <body>. */
 [data-module="ros2"] {
-  --module-primary: #FF6B35;
-  --module-accent: #FF8C5A;
-  --module-light: #FFE5DB;
-  --module-dark: #CC5629;
+  --module-primary: var(--module-ros2);
 }
 
-/* Digital Twin Module - Teal (weeks 6-7) */
 [data-module="digitalTwin"] {
-  --module-primary: #4ECDC4;
-  --module-accent: #7EDDD6;
-  --module-light: #DBF5F2;
-  --module-dark: #3BA39C;
+  --module-primary: var(--module-digitalTwin);
 }
 
-/* NVIDIA Isaac Module - Purple (weeks 8-10) */
 [data-module="isaac"] {
-  --module-primary: #A855F7;
-  --module-accent: #C084FC;
-  --module-light: #E9D5FF;
-  --module-dark: #7C3AED;
+  --module-primary: var(--module-isaac);
 }
 
-/* VLA Module - Red (weeks 11-13) */
 [data-module="vla"] {
-  --module-primary: #FF0844;
-  --module-accent: #FF4D6D;
-  --module-light: #FFE5EA;
-  --module-dark: #CC0636;
+  --module-primary: var(--module-vla);
 }
 
-/* ============================================
-   WCAG AA CONTRAST RATIOS (T036)
-   ============================================ */
-
-/*
- * WCAG AA Requirements:
- * - Normal text (< 18pt): Minimum 4.5:1 contrast ratio
- * - Large text (≥ 18pt): Minimum 3:1 contrast ratio
- * - UI components/borders: Minimum 3:1 contrast ratio
- *
- * Module Color Contrast Verification (against #FFFFFF white text):
- *
- * Module         | Primary Color | Contrast | WCAG AA Status | Against #1E2A38 (dark bg)
- * ---------------|---------------|----------|----------------|---------------------------
- * Default (Green)| #2ECC71       | 1.47:1   | ✗ Use on light | ✓ 5.2:1 (Large text)
- * ROS2 (Orange)  | #FF6B35       | 1.96:1   | ✗ Use on light | ✓ 4.8:1 (Large text)
- * DigitalTwin    | #4ECDC4       | 1.39:1   | ✗ Use on light | ✓ 5.1:1 (Large text)
- * Isaac (Purple) | #A855F7       | 2.82:1   | ✗ Use on light | ✓ 4.2:1 (Large text)
- * VLA (Red)      | #FF0844       | 2.04:1   | ✗ Use on light | ✓ 4.9:1 (Large text)
- *
- * IMPORTANT: Module primary colors are intended for:
- * - Accent borders, buttons with dark text
- * - Background highlights, glow effects
- * - NOT for primary text on light backgrounds
- *
- * For text on light backgrounds, use --color-text-primary (#FFFFFF)
- * and --color-text-secondary (#94A3B8)
- *
- * Module colors with #FFFFFF text (buttons, badges):
- * All module colors have sufficient contrast when used as
- * button backgrounds with white text for large text elements.
- * For small text buttons, add text-shadow or use darker variant.
- */
+/* Dark theme: module accents brighten so fills and dots read on
+   near-black. */
+html[data-theme="dark"] {
+  --module-primary: #2ecc71;
+  --module-accent: #22c55e;
+  --module-light: #a3fad9;
+  --module-dark: #25b365;
+}
 
 /* ============================================
    MODULE COLOR TRANSITIONS (T035)
@@ -113,33 +81,111 @@ body.theme-transitioning *::after {
 }
 
 /* ============================================
-   SEMANTIC COLORS
+   SEMANTIC COLORS — light first, dark below
    ============================================ */
 
 :root {
   /* Base Colors */
-  --color-bg-primary: #1E2A38;
-  --color-bg-surface: #151E29;
-  --color-bg-elevated: #1E2A38;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #94A3B8;
-  --color-text-tertiary: #64748B;
-  --color-text-muted: #475569;
+  --color-bg-primary: #ffffff;
+  --color-bg-surface: #f6f8f7;
+  --color-bg-elevated: #ffffff;
+  --color-bg-tertiary: #eef1ee;
+  --color-text-primary: #101613;
+  --color-text-secondary: #4b534e;
+  --color-text-tertiary: #6b736d;
+  --color-text-muted: #98a099;
+
+  /* Ink for text sitting on the accent fill (buttons, badges) */
+  --color-accent: #177245;
+  --color-accent-dark: #13603a;
+  --color-accent-ink: #ffffff;
+  --color-on-accent: #ffffff;
 
   /* UI Colors */
-  --color-border: #2C3E50;
-  --color-border-light: #334155;
-  --color-divider: #1E293B;
+  --color-border: #e2e8e4;
+  --color-border-light: #edf1ee;
+  --color-divider: #edf1ee;
 
   /* Status Colors */
-  --color-success: #2ECC71;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #177245;
+  --color-warning: #b45309;
+  --color-error: #b91c1c;
+  --color-error-ink: #ffffff;
+  --color-info: #1d4ed8;
+
+  /* Overlay Colors */
+  --color-overlay: rgba(16, 22, 19, 0.5);
+  --color-overlay-light: rgba(255, 255, 255, 0.1);
+
+  /* Focus ring and accent elevation (offset shadows, never glows) */
+  --color-focus-ring: rgba(23, 114, 69, 0.25);
+  --shadow-accent: 0 8px 24px rgba(23, 114, 69, 0.18);
+
+  /* Per-module accents (same green family as the [data-module] blocks) */
+  --module-ros2: #1b7a4b;
+  --module-digitalTwin: #177245;
+  --module-isaac: #14603a;
+  --module-vla: #0d5c33;
+  --module-primary-bg: rgba(23, 114, 69, 0.08);
+
+  /* Success/error tints for quiz feedback */
+  --color-success-bg: rgba(23, 114, 69, 0.12);
+  --color-error-bg: rgba(185, 28, 28, 0.08);
+
+  /* Text shadow for diagram labels */
+  --color-text-shadow: rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] {
+  /* Base Colors */
+  --color-bg-primary: #0a0f0c;
+  --color-bg-surface: #101713;
+  --color-bg-elevated: #16211b;
+  --color-bg-tertiary: #1d2b23;
+  --color-text-primary: #ebedea;
+  --color-text-secondary: #a6ada8;
+  --color-text-tertiary: #7e867f;
+  --color-text-muted: #5c655e;
+
+  /* Ink for text sitting on the accent fill */
+  --color-accent: #2ecc71;
+  --color-accent-dark: #27ad72;
+  --color-accent-ink: #0a0f0c;
+  --color-on-accent: #0a0f0c;
+
+  /* UI Colors */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-light: rgba(255, 255, 255, 0.12);
+  --color-divider: rgba(255, 255, 255, 0.06);
+
+  /* Status Colors */
+  --color-success: #2ecc71;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-error-ink: #ffffff;
+  --color-info: #60a5fa;
 
   /* Overlay Colors */
   --color-overlay: rgba(0, 0, 0, 0.5);
   --color-overlay-light: rgba(255, 255, 255, 0.1);
+
+  /* Focus ring and accent elevation */
+  --color-focus-ring: rgba(46, 204, 113, 0.3);
+  --shadow-accent: 0 8px 24px rgba(46, 204, 113, 0.25);
+
+  /* Per-module accents (same green family as the [data-module] blocks) */
+  --module-ros2: #34d399;
+  --module-digitalTwin: #4ade80;
+  --module-isaac: #27ad72;
+  --module-vla: #1f9260;
+  --module-primary-bg: rgba(46, 204, 113, 0.12);
+
+  /* Success/error tints for quiz feedback */
+  --color-success-bg: rgba(46, 204, 113, 0.15);
+  --color-error-bg: rgba(239, 68, 68, 0.15);
+
+  /* Text shadow for diagram labels */
+  --color-text-shadow: rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================
@@ -201,38 +247,6 @@ body.theme-transitioning *::after {
   --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
 }
 
-/* Glow Effects */
-:root {
-  --glow-sm: 0 0 10px rgba(46, 204, 113, 0.3);
-  --glow-md: 0 0 20px rgba(46, 204, 113, 0.5);
-  --glow-lg: 0 0 30px rgba(46, 204, 113, 0.7);
-}
-
-/* Module-specific glows */
-[data-module="ros2"] {
-  --glow-sm: 0 0 10px rgba(255, 107, 53, 0.3);
-  --glow-md: 0 0 20px rgba(255, 107, 53, 0.5);
-  --glow-lg: 0 0 30px rgba(255, 107, 53, 0.7);
-}
-
-[data-module="digitalTwin"] {
-  --glow-sm: 0 0 10px rgba(78, 205, 196, 0.3);
-  --glow-md: 0 0 20px rgba(78, 205, 196, 0.5);
-  --glow-lg: 0 0 30px rgba(78, 205, 196, 0.7);
-}
-
-[data-module="isaac"] {
-  --glow-sm: 0 0 10px rgba(168, 85, 247, 0.3);
-  --glow-md: 0 0 20px rgba(168, 85, 247, 0.5);
-  --glow-lg: 0 0 30px rgba(168, 85, 247, 0.7);
-}
-
-[data-module="vla"] {
-  --glow-sm: 0 0 10px rgba(255, 8, 68, 0.3);
-  --glow-md: 0 0 20px rgba(255, 8, 68, 0.5);
-  --glow-lg: 0 0 30px rgba(255, 8, 68, 0.7);
-}
-
 /* ============================================
    ANIMATION DURATIONS
    ============================================ */
@@ -254,8 +268,6 @@ body.theme-transitioning *::after {
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
 }
 
 /* ============================================
@@ -300,13 +312,27 @@ body.theme-transitioning *::after {
   --chat-window-height-mobile: 70vh;
 }
 
-/* Chat Colors */
+/* Chat Colors — light */
 :root {
-  --chat-bg-primary: #1E2A38;
-  --chat-bg-surface: #151E29;
-  --chat-bubble-user: #2ECC71;
-  --chat-bubble-bot: #2C3E50;
-  --chat-border: #2C3E50;
+  --chat-accent: var(--module-primary);
+  --chat-bg-primary: #ffffff;
+  --chat-bg-surface: #f6f8f7;
+  --chat-bubble-user: #177245;
+  --chat-bubble-user-text: #ffffff;
+  --chat-bubble-bot: #eef1ee;
+  --chat-bubble-bot-text: #101613;
+  --chat-border: #e2e8e4;
+}
+
+/* Chat Colors — dark */
+html[data-theme="dark"] {
+  --chat-bg-primary: #101713;
+  --chat-bg-surface: #0a0f0c;
+  --chat-bubble-user: #2ecc71;
+  --chat-bubble-user-text: #0a0f0c;
+  --chat-bubble-bot: #16211b;
+  --chat-bubble-bot-text: #ebedea;
+  --chat-border: rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================
@@ -361,16 +387,18 @@ body.theme-transitioning *::after {
 /* Buttons with module colors */
 .btn-module {
   background-color: var(--module-primary);
-  color: white;
+  color: var(--color-accent-ink);
   border-radius: var(--radius-full);
   padding: var(--padding-button);
   font-weight: var(--font-semibold);
-  transition: all var(--duration-base) var(--ease-out);
+  transition: background-color var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out);
 }
 
 .btn-module:hover {
   background-color: var(--module-accent);
-  box-shadow: var(--glow-md);
+  box-shadow: var(--shadow-accent);
   transform: translateY(-2px);
 }
 
@@ -392,14 +420,16 @@ a.module-link:hover {
 
 /* Button hover effects */
 .button {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
   position: relative;
   overflow: hidden;
 }
 
 .button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--glow-sm);
+  box-shadow: var(--shadow-md), var(--shadow-accent);
 }
 
 .button:active {
@@ -407,24 +437,23 @@ a.module-link:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* Ripple effect for buttons */
+/* Ripple effect for buttons — the circle grows by transform, never
+   by width/height, so the animation stays off the layout path. */
 .button::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 0;
-  height: 0;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width var(--duration-slow) var(--ease-out),
-              height var(--duration-slow) var(--ease-out);
+  background: var(--color-overlay-light);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 
 .button:active::before {
-  width: 300px;
-  height: 300px;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 /* Link hover effects */
@@ -437,28 +466,25 @@ a:hover {
 }
 
 /* Card hover effects */
-.card,
-.week-card,
-.feature-card {
-  transition: all var(--duration-base) var(--ease-out);
+.card {
+  transition: transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
 }
 
-.card:hover,
-.week-card:hover,
-.feature-card:hover {
+.card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
 }
 
-.card:active,
-.week-card:active {
+.card:active {
   transform: translateY(-2px);
 }
 
 /* Icon button hover effects */
 .icon-button,
 .menu__link {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
   border-radius: var(--radius-base);
 }
 
@@ -476,7 +502,9 @@ a:hover {
 input,
 textarea,
 select {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out);
 }
 
 input:focus,
@@ -484,19 +512,20 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--module-primary);
-  box-shadow: 0 0 0 3px var(--glow-sm);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 /* Badge hover effects */
 .badge,
 .tag {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .badge:hover,
 .tag:hover {
   transform: scale(1.1);
-  box-shadow: var(--glow-sm);
+  box-shadow: var(--shadow-accent);
 }
 
 /* Tooltip appearance */
@@ -518,7 +547,9 @@ select:focus {
   border-radius: var(--radius-base);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: opacity var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out),
+              visibility var(--duration-fast) var(--ease-out);
   pointer-events: none;
   z-index: var(--z-index-tooltip);
 }
@@ -536,20 +567,6 @@ select:focus {
 
 .magnetic-hover:hover {
   transform: scale(1.02);
-}
-
-/* Glow pulse effect */
-.glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 5px var(--module-primary);
-  }
-  50% {
-    box-shadow: 0 0 20px var(--module-primary), 0 0 30px var(--module-primary);
-  }
 }
 
 /* Shake effect for errors */
@@ -587,15 +604,11 @@ select:focus {
   to { transform: rotate(360deg); }
 }
 
-/* Progress bar animation */
-.progress-bar-fill {
-  transition: width var(--duration-slow) var(--ease-out);
-}
-
 /* Checkbox and radio custom styles */
 input[type="checkbox"],
 input[type="radio"] {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
 }
 
 input[type="checkbox"]:checked,
@@ -615,14 +628,14 @@ tbody tr:hover {
 /* Code block hover effects */
 code,
 pre {
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 code:hover {
   background-color: var(--color-bg-tertiary);
 }
 
-/* Focus visible for keyboard navigation */
+/* Focus visible for keyboard navigation — instant, never fading */
 :focus-visible {
   outline: 2px solid var(--module-primary);
   outline-offset: 2px;
@@ -635,7 +648,7 @@ code:hover {
   left: 0;
   padding: var(--space-2) var(--space-4);
   background: var(--module-primary);
-  color: white;
+  color: var(--color-accent-ink);
   text-decoration: none;
   border-radius: 0 0 var(--radius-base) 0;
   transition: top var(--duration-fast) var(--ease-out);
@@ -644,198 +657,6 @@ code:hover {
 
 .skip-to-content:focus {
   top: 0;
-}
-
-/* ============================================
-   ADVANCED HOVER EFFECTS (T082)
-   ============================================ */
-
-/* Glow effect on hover */
-.hover-glow {
-  transition: all var(--duration-base) var(--ease-out);
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 20px var(--glow-md);
-  border-color: var(--module-primary);
-}
-
-/* Magnetic hover effect (subtle scale + glow) */
-.hover-magnetic {
-  transition: all var(--duration-base) var(--ease-out);
-}
-
-.hover-magnetic:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 30px var(--glow-sm);
-}
-
-/* Tilt effect (simulated with transform) */
-.hover-tilt {
-  transition: transform var(--duration-base) var(--ease-out),
-              box-shadow var(--duration-base) var(--ease-out);
-  transform-style: preserve-3d;
-}
-
-.hover-tilt:hover {
-  transform: perspective(1000px) rotateX(2deg) rotateY(2deg) translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--glow-sm);
-}
-
-/* Lift effect */
-.hover-lift {
-  transition: transform var(--duration-base) var(--ease-out),
-              box-shadow var(--duration-base) var(--ease-out);
-}
-
-.hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-xl);
-}
-
-/* Shine effect */
-.hover-shine {
-  position: relative;
-  overflow: hidden;
-}
-
-.hover-shine::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transform: skewX(-25deg);
-  transition: left var(--duration-slow) var(--ease-out);
-}
-
-.hover-shine:hover::before {
-  left: 150%;
-}
-
-/* Border glow effect */
-.hover-border-glow {
-  position: relative;
-  transition: all var(--duration-base) var(--ease-out);
-}
-
-.hover-border-glow::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(45deg, var(--module-primary), var(--module-accent), var(--module-primary));
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity var(--duration-base) var(--ease-out);
-  z-index: -1;
-}
-
-.hover-border-glow:hover::before {
-  opacity: 1;
-  animation: borderGlow 3s linear infinite;
-}
-
-@keyframes borderGlow {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-
-/* Ripple effect for cards */
-.hover-ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.hover-ripple::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, var(--module-primary) 0%, transparent 70%);
-  opacity: 0;
-  transform: translate(-50%, -50%);
-  transition: width var(--duration-slow) var(--ease-out),
-              height var(--duration-slow) var(--ease-out),
-              opacity var(--duration-fast) var(--ease-out);
-}
-
-.hover-ripple:hover::after {
-  width: 400px;
-  height: 400px;
-  opacity: 0.1;
-}
-
-/* Pulse effect */
-.hover-pulse {
-  animation: hoverPulse 2s ease-in-out infinite paused;
-}
-
-.hover-pulse:hover {
-  animation-play-state: running;
-}
-
-@keyframes hoverPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
-  }
-}
-
-/* Icon spin on hover */
-.hover-spin-icon .icon {
-  transition: transform var(--duration-base) var(--ease-out);
-}
-
-.hover-spin-icon:hover .icon {
-  transform: rotate(90deg);
-}
-
-/* Text reveal effect */
-.hover-text-reveal {
-  position: relative;
-  overflow: hidden;
-}
-
-.hover-text-reveal span {
-  display: inline-block;
-  transition: transform var(--duration-base) var(--ease-out);
-}
-
-.hover-text-reveal:hover span {
-  transform: translateY(-100%);
-}
-
-.hover-text-reveal::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 100%;
-  left: 0;
-  transition: top var(--duration-base) var(--ease-out);
-}
-
-.hover-text-reveal:hover::after {
-  top: 0;
-}
-
-/* Background shift effect */
-.hover-bg-shift {
-  background-size: 200% 200%;
-  transition: background-position var(--duration-slow) var(--ease-out);
-}
-
-.hover-bg-shift:hover {
-  background-position: 100% 0;
 }
 
 /* ============================================
@@ -853,31 +674,12 @@ code:hover {
   }
 
   .button:hover,
-  .card:hover,
-  .week-card:hover {
+  .card:hover {
     transform: none;
   }
 
-  .glow-pulse,
   .shake,
   .bounce-hover {
     animation: none;
-  }
-
-  /* Disable advanced hover effects */
-  .hover-glow,
-  .hover-magnetic,
-  .hover-tilt,
-  .hover-lift,
-  .hover-shine,
-  .hover-border-glow,
-  .hover-ripple,
-  .hover-pulse,
-  .hover-spin-icon,
-  .hover-text-reveal,
-  .hover-bg-shift {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
   }
 }

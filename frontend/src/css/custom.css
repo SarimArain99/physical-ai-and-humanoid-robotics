@@ -1,7 +1,15 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
+ *
+ * This file owns the full light/dark token set. Dark mode was broken
+ * because only a few Infima vars were set and components hardcoded
+ * light colours; every surface below reads from these tokens, in
+ * both themes. Greens are green-tinted (never pure neutrals) and
+ * text pairs hold at least 4.5:1 in both themes.
  */
 
 /* 1. LIGHT MODE (Default) */
@@ -21,31 +29,82 @@
 
   /* Light Mode Specifics */
   --ifm-background-color: #ffffff; /* White Background */
-  --ifm-background-surface-color: #f6f8fa; /* Light Gray for cards */
-  --ifm-font-color-base: #1c1e21; /* Dark Text for readability */
+  --ifm-background-surface-color: #f6f8f7; /* Light Gray-Green for cards */
+  --ifm-font-color-base: #101613; /* Near-Black Text for readability */
+  --ifm-heading-color: #101613;
   --ifm-navbar-background-color: #ffffff;
   --ifm-footer-background-color: #f5f6f7;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-card-background-color: #ffffff;
+  --ifm-table-stripe-background: #f6f8f7;
+  --ifm-code-background: #eef1ee;
+  --ifm-toc-border-color: #e2e8e4;
+  --ifm-menu-color: #414a43;
+  --ifm-menu-color-active: #177245;
+  --ifm-menu-color-background-active: rgba(23, 114, 69, 0.08);
+  --ifm-menu-color-background-hover: #eef1ee;
   --ifm-link-color: #177245;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Infima emphasis scale, light (green-tinted greys) */
+  --ifm-color-emphasis-100: #f6f8f7;
+  --ifm-color-emphasis-200: #e8edea;
+  --ifm-color-emphasis-300: #d3dad5;
+  --ifm-color-emphasis-400: #a9b3ac;
+  --ifm-color-emphasis-500: #7c867e;
+  --ifm-color-emphasis-600: #5a645c;
+  --ifm-color-emphasis-700: #414a43;
+  --ifm-color-emphasis-800: #2a312c;
+  --ifm-color-emphasis-900: #101613;
 }
 
-/* 2. DARK MODE (Your Custom Dark Blue) */
-[data-theme="dark"] {
-  /* Keep the Green Brand Color */
+/* 2. DARK MODE (Dark-first: near-black green-tinted base) */
+html[data-theme="dark"] {
+  /* Keep the Green Brand Color, brighter for dark surfaces */
   --ifm-color-primary: #2ecc71;
+  --ifm-color-primary-dark: #27ad72;
+  --ifm-color-primary-darker: #1f9260;
+  --ifm-color-primary-darkest: #177245;
+  --ifm-color-primary-light: #4ade80;
+  --ifm-color-primary-lighter: #7ce8a8;
+  --ifm-color-primary-lightest: #a3fad9;
 
-  /* Your Custom Dark Blue Palette */
-  --ifm-background-color: #1e2a38; /* Your Dark Blue */
-  --ifm-background-surface-color: #151e29; /* Slightly darker for cards */
-  --ifm-font-color-base: #ffffff; /* White Text */
+  /* Near-black base, surfaces stepping up */
+  --ifm-background-color: #0a0f0c;
+  --ifm-background-surface-color: #101713;
+  --ifm-font-color-base: #ebedea; /* 92% white */
+  --ifm-heading-color: #f2f4f2;
+  --ifm-navbar-background-color: #0d1310;
+  --ifm-footer-background-color: #080c09;
+  --ifm-card-background-color: #101713;
+  --ifm-table-stripe-background: #101713;
+  --ifm-code-background: #16211b;
+  --ifm-toc-border-color: #1d2b23;
+  --ifm-menu-color: #a6ada8; /* 64% white */
+  --ifm-menu-color-active: #2ecc71;
+  --ifm-menu-color-background-active: rgba(46, 204, 113, 0.1);
+  --ifm-menu-color-background-hover: #16211b;
+  --ifm-link-color: #2ecc71;
 
-  --ifm-navbar-background-color: #151e29;
-  --ifm-footer-background-color: #0f161f;
+  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.12);
 
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.1);
+  /* Infima emphasis scale, dark (borders white 6-10%, text 92/64/44%) */
+  --ifm-color-emphasis-100: #16211b;
+  --ifm-color-emphasis-200: #1d2b23;
+  --ifm-color-emphasis-300: #2a3d31;
+  --ifm-color-emphasis-400: #3d5346;
+  --ifm-color-emphasis-500: #5c7064;
+  --ifm-color-emphasis-600: #7e9084;
+  --ifm-color-emphasis-700: #a6ada8;
+  --ifm-color-emphasis-800: #c9cec9;
+  --ifm-color-emphasis-900: #ebedea;
 }
 
 /* 3. GENERAL UTILITIES (Dynamic) */
+html,
+body {
+  overflow-x: clip;
+}
+
 /* We remove the !important overrides here so the toggle works */
 body {
   background-color: var(--ifm-background-color);
@@ -53,9 +112,42 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Long navbar titles never wrap (the site title is a long phrase). */
+.navbar__title {
+  white-space: nowrap;
+}
+
+/* Browser surfaces in the palette (F16). */
+::selection {
+  background: var(--ifm-color-primary);
+  color: var(--color-accent-ink);
+}
+html {
+  scrollbar-color: var(--ifm-color-emphasis-300) var(--ifm-background-color);
+}
+
+/* Keyboard focus is always visible, in the accent, in both themes. */
+:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* The search hint keys and the search field edge must read at 3:1
+   against the navbar and the field behind them, in both themes.
+   The hint container class is hashed by the search theme, so match
+   it by substring. */
+[class*="searchHintContainer"] kbd {
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-strong);
+}
+
+.navbar__search-input {
+  border: 1px solid var(--color-text-tertiary);
+}
+
 /* Content spacing */
 .robotics-content {
-  margin-top: 2rem;
+  margin-top: var(--space-8);
 }
 
 /* Code block styling - Dynamic based on theme */
@@ -63,7 +155,7 @@ body {
   background-color: var(--ifm-background-surface-color);
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 6px;
-  padding: 16px;
+  padding: var(--space-4);
   overflow: auto;
 }
 
@@ -99,7 +191,7 @@ body {
   }
 
   .navbar__items {
-    gap: 0.25rem;
+    gap: var(--space-1);
   }
 
   /* Long tables and code blocks scroll inside themselves,
@@ -123,8 +215,8 @@ body {
 
 @media screen and (max-width: 768px) {
   .navbar {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
   }
 
   /* Long URLs and paths in prose wrap instead of overflowing. */
@@ -133,6 +225,6 @@ body {
   }
 
   .footer__links {
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
   }
 }

@@ -1,3 +1,5 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Urdu Button Component Styles
  * Feature: 002-ui-improvements
@@ -7,9 +9,20 @@
 /* Import unified navbar button styles */
 @import './NavbarButton/styles.css';
 
-.urdu-flag {
-  font-size: 14px;
-  line-height: 1;
+.urdu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+/* Translated text: Nastaliq face and roomier leading, but it keeps
+   the page's own colour and alignment in both themes. */
+.urdu-translated {
+  direction: rtl;
+  font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+  line-height: 1.8;
 }
 
 /* Hide label on mobile */

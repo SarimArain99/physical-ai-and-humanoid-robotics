@@ -45,6 +45,8 @@ The reality gap consists of several factors:
 4. **Sensor Noise**: Real sensors have noise and delays not captured in simulation
 5. **Environmental Factors**: Unmodeled forces, vibrations, and disturbances
 
+![Sim-to-real transfer and the reality gap](/img/diagrams/sim-to-real-gap.svg)
+
 ## Domain Randomization Techniques
 
 Domain randomization is a technique that increases the diversity of simulation environments to make models robust to domain shifts.

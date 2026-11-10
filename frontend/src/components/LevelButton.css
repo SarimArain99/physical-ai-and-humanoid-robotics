@@ -1,3 +1,5 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Level Button Component Styles
  * Feature: 002-ui-improvements
@@ -31,7 +33,7 @@
 
 .level-chevron {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   transition: transform 0.2s;
@@ -43,7 +45,7 @@
 
 .level-dot {
   position: absolute;
-  right: 8px;
+  right: 26px;
   top: 50%;
   transform: translateY(-50%);
   width: 6px;
@@ -52,16 +54,29 @@
   transition: background-color 0.2s;
 }
 
+/* Trigger dot — three shades of the same sea-green. */
+.level-dot--basic {
+  background-color: var(--module-light);
+}
+
+.level-dot--intermediate {
+  background-color: var(--module-primary);
+}
+
+.level-dot--pro {
+  background-color: var(--module-dark);
+}
+
 /* Level dropdown menu */
 .level-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
-  background-color: var(--level-menu-bg, #151E29);
-  border: 1px solid var(--level-menu-border, #2C3E50);
+  background-color: var(--level-menu-bg);
+  border: 1px solid var(--level-menu-border);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
   z-index: 100;
   animation: menuSlideIn 0.2s ease-out;
@@ -87,9 +102,9 @@
   padding: 12px 16px;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--level-item-border, #1E2A38);
+  border-bottom: 1px solid var(--level-item-border);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .level-menu-item:last-child {
@@ -97,7 +112,7 @@
 }
 
 .level-menu-item:hover {
-  background-color: var(--level-item-hover-bg, #1E2A38);
+  background-color: var(--level-item-hover-bg);
 }
 
 .level-menu-dot {
@@ -107,19 +122,17 @@
   flex-shrink: 0;
 }
 
+/* Level dots — three shades of the same sea-green, not blue/purple/green. */
 .level-menu-dot--basic {
-  background-color: #3B82F6;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  background-color: var(--module-light);
 }
 
 .level-menu-dot--intermediate {
-  background-color: #A855F7;
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+  background-color: var(--module-primary);
 }
 
 .level-menu-dot--pro {
-  background-color: #2ECC71;
-  box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+  background-color: var(--module-dark);
 }
 
 .level-menu-text {
@@ -132,23 +145,31 @@
 .level-menu-label {
   font-size: 14px;
   font-weight: 500;
-  color: var(--level-label-color, #FFFFFF);
+  color: var(--level-label-color);
 }
 
 .level-menu-sub {
   font-size: 11px;
-  color: var(--level-sub-color, #94A3B8);
+  color: var(--level-sub-color);
   margin-top: 2px;
 }
 
-/* Light mode adjustments */
-[data-theme="light"] .level-menu {
-  --level-menu-bg: #FFFFFF;
-  --level-menu-border: #E2E8F0;
-  --level-item-border: #F1F5F9;
-  --level-item-hover-bg: #F8FAFC;
-  --level-label-color: #1E293B;
-  --level-sub-color: #64748B;
+/* Level menu tokens — they follow the theme tokens, so they adapt
+   to light and dark without a per-theme override block. */
+:root {
+  --level-menu-bg: var(--color-bg-elevated);
+  --level-menu-border: var(--color-border);
+  --level-item-border: var(--color-divider);
+  --level-item-hover-bg: var(--color-bg-surface);
+  --level-label-color: var(--color-text-primary);
+  --level-sub-color: var(--color-text-secondary);
+}
+
+/* Rewritten text keeps the page's own colour and alignment; only a
+   hairline in the accent marks it as adapted. */
+.level-rewritten {
+  border-left: 3px solid var(--module-primary);
+  padding-left: 10px;
 }
 
 /* Mobile responsiveness */

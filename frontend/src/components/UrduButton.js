@@ -11,6 +11,24 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 import { translateTexts } from "../config/api";
 import "./UrduButton.css";
 
+const GlobeIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="2" y1="12" x2="22" y2="12"></line>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+  </svg>
+);
+
 const UrduButtonContent = () => {
   const { user } = useAuth();
   const [isUrdu, setIsUrdu] = useState(false);
@@ -78,14 +96,9 @@ const UrduButtonContent = () => {
         if (translation && element) {
           translatedCount += 1;
           element.innerText = translation;
-          // Apply Urdu styling
-          element.style.direction = "rtl";
-          element.style.fontFamily =
-            "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
-          element.style.textAlign = "right";
-          element.style.color = "#2ECC71";
-          element.style.fontSize = "1.2em";
-          element.style.lineHeight = "1.8";
+          // Nastaliq face and roomier leading only: the text keeps
+          // the page's own colour and alignment in both themes.
+          element.classList.add("urdu-translated");
         }
       });
 
@@ -112,11 +125,6 @@ const UrduButtonContent = () => {
     return "اردو"; // Urdu in Urdu script
   };
 
-  const getIcon = () => {
-    if (isUrdu) return "🇬🇧"; // UK flag for English
-    return "🇵🇰"; // Pakistan flag for Urdu
-  };
-
   return (
     <button
       className={`navbar-btn navbar-btn--secondary urdu-button ${loading ? "navbar-btn--loading" : ""}`}
@@ -125,7 +133,7 @@ const UrduButtonContent = () => {
       title={isUrdu ? "Switch to English" : "Switch to Urdu translation"}
       aria-label={isUrdu ? "Switch to English" : "Switch to Urdu"}
     >
-      <span className="urdu-flag">{getIcon()}</span>
+      <span className="urdu-icon"><GlobeIcon /></span>
       <span className="navbar-btn__label">{getLabel()}</span>
     </button>
   );

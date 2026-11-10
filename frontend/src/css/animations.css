@@ -1,3 +1,5 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Animation Definitions
  * Feature: 002-ui-improvements
@@ -292,7 +294,12 @@
 
 /* Base transitions */
 .transition-all {
-  transition: all var(--duration-base) var(--ease-out);
+  transition: color var(--duration-base) var(--ease-out),
+              background-color var(--duration-base) var(--ease-out),
+              border-color var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out),
+              opacity var(--duration-base) var(--ease-out);
 }
 
 .transition-colors {
@@ -325,7 +332,7 @@
 }
 
 .hover-glow:hover {
-  box-shadow: var(--glow-md);
+  box-shadow: var(--shadow-accent);
 }
 
 .hover-scale:hover {

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" role="img" aria-labelledby="ros-title ros-desc">
+  <title id="ros-title">ROS 2 nodes and topics: a sensor publisher</title>
+  <desc id="ros-desc">The sensor_publisher node publishes LaserScan messages to the /scan topic and Twist messages to the /cmd_vel topic. An obstacle detector subscribes to /scan and a motor controller subscribes to /cmd_vel.</desc>
+  <style>
+    .node { fill: #ffffff; stroke: #177245; stroke-width: 2; }
+    .topic { fill: #d9f2e6; stroke: #177245; stroke-width: 2; }
+    .name { fill: #101613; font: 600 15px 'JetBrains Mono', monospace; }
+    .type { fill: #4b534e; font: 400 12px 'JetBrains Mono', monospace; }
+    .arrow { stroke: #177245; stroke-width: 2; fill: none; }
+    .arrow-head { fill: #177245; }
+    .caption { fill: #6b736d; font: 400 13px 'Inter', sans-serif; }
+  </style>
+  <defs>
+    <marker id="ros-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" class="arrow-head" />
+    </marker>
+  </defs>
+
+  <!-- Figure card: the diagram is drawn on a light card so it reads
+       on the site's dark pages and on light pages alike. -->
+  <rect x="0" y="0" width="720" height="340" rx="12" fill="#ffffff" stroke="#e3e8e4" />
+
+  <!-- sensor_publisher -> /scan -> obstacle detector -->
+  <path class="arrow" d="M 228 134 Q 290 100 330 100" marker-end="url(#ros-arrow)" />
+  <path class="arrow" d="M 514 100 Q 544 100 566 100" marker-end="url(#ros-arrow)" />
+
+  <!-- sensor_publisher -> /cmd_vel -> motor controller -->
+  <path class="arrow" d="M 228 186 Q 290 220 330 220" marker-end="url(#ros-arrow)" />
+  <path class="arrow" d="M 514 220 Q 544 220 566 220" marker-end="url(#ros-arrow)" />
+
+  <!-- Publisher node -->
+  <ellipse class="node" cx="140" cy="160" rx="112" ry="42" />
+  <text class="name" x="140" y="166" text-anchor="middle">sensor_publisher</text>
+
+  <!-- Topics -->
+  <rect class="topic" x="332" y="76" width="180" height="48" rx="8" />
+  <text class="name" x="422" y="96" text-anchor="middle">/scan</text>
+  <text class="type" x="422" y="114" text-anchor="middle">LaserScan</text>
+
+  <rect class="topic" x="332" y="196" width="180" height="48" rx="8" />
+  <text class="name" x="422" y="216" text-anchor="middle">/cmd_vel</text>
+  <text class="type" x="422" y="234" text-anchor="middle">Twist</text>
+
+  <!-- Subscriber nodes -->
+  <ellipse class="node" cx="640" cy="100" rx="72" ry="38" />
+  <text class="name" x="640" y="96" text-anchor="middle">obstacle</text>
+  <text class="name" x="640" y="114" text-anchor="middle">detector</text>
+
+  <ellipse class="node" cx="640" cy="220" rx="72" ry="38" />
+  <text class="name" x="640" y="216" text-anchor="middle">motor</text>
+  <text class="name" x="640" y="234" text-anchor="middle">controller</text>
+
+  <text class="caption" x="360" y="310" text-anchor="middle">Nodes are ellipses, topics are rectangles. A publisher sends, a subscriber receives.</text>
+</svg>

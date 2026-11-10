@@ -1,0 +1,76 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
+/**
+ * SenseThinkActLoop styles — the hero diagram.
+ * All colours come from tokens; the pulse travels the loop on a
+ * CSS offset-path and stops under reduced motion.
+ */
+
+.loop-diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.loop-node {
+  fill: var(--color-bg-surface);
+  stroke: var(--module-primary);
+  stroke-width: 2;
+}
+
+.loop-node-label {
+  fill: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.loop-node-sub {
+  fill: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.loop-arrow {
+  stroke: var(--module-primary);
+  stroke-width: 2;
+  fill: none;
+}
+
+.loop-arrow-head {
+  fill: var(--module-primary);
+}
+
+.loop-edge-label {
+  fill: var(--module-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.loop-centre {
+  fill: var(--color-text-tertiary);
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.loop-pulse {
+  fill: var(--module-primary);
+  offset-path: path('M 320 70 L 500 260 L 140 260 Z');
+  animation: loop-travel 6s linear infinite;
+}
+
+@keyframes loop-travel {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-pulse {
+    display: none;
+  }
+}

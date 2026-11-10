@@ -5,7 +5,7 @@
  *
  * Content difficulty selector (Basic/Intermediate/Pro) with unified styling.
  */
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import { useAuth } from "./Auth/AuthProvider";
 import AuthModal from "./Auth/AuthModal";
@@ -52,6 +52,26 @@ const LevelButtonContent = () => {
   const [currentLevel, setCurrentLevel] = useState("pro");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const dropdownRef = useRef(null);
+
+  // Close the menu on Escape or on a click outside it.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    const onPointerDown = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [isOpen]);
 
   // Load user's proficiency from profile on mount
   React.useEffect(() => {
@@ -130,16 +150,9 @@ const LevelButtonContent = () => {
           rewrittenCount += 1;
           element.innerText = content;
 
-          // Visual styling based on level
-          if (level === "beginner") {
-            element.style.color = "#a8d5ff"; // Light Blue for Basic
-            element.style.borderLeft = "3px solid #3b82f6";
-            element.style.paddingLeft = "10px";
-          } else {
-            element.style.color = "#e9d5ff"; // Light Purple for Intermediate
-            element.style.borderLeft = "3px solid #a855f7";
-            element.style.paddingLeft = "10px";
-          }
+          // Mark adapted text with a hairline only: it keeps the
+          // page's own colour and alignment in both themes.
+          element.classList.add("level-rewritten");
         }
       });
 
@@ -164,14 +177,14 @@ const LevelButtonContent = () => {
     return "Pro";
   };
 
-  const getDotColor = () => {
-    if (currentLevel === "beginner") return "#3b82f6"; // Blue
-    if (currentLevel === "intermediate") return "#a855f7"; // Purple
-    return "#2ECC71"; // Green
+  const getDotClass = () => {
+    if (currentLevel === "beginner") return "level-dot--basic";
+    if (currentLevel === "intermediate") return "level-dot--intermediate";
+    return "level-dot--pro";
   };
 
   return (
-    <div className="level-dropdown">
+    <div className="level-dropdown" ref={dropdownRef}>
       <button
         className={`navbar-btn navbar-btn--accent level-trigger ${loading ? "navbar-btn--loading" : ""}`}
         onClick={() => !loading && setIsOpen(!isOpen)}
@@ -181,7 +194,7 @@ const LevelButtonContent = () => {
         <span className="level-icon"><LevelIcon /></span>
         <span className="navbar-btn__label">{getLabel()}</span>
         {!loading && <span className="level-chevron"><ChevronDown /></span>}
-        {!loading && <span className="level-dot" style={{ backgroundColor: getDotColor() }} />}
+        {!loading && <span className={`level-dot ${getDotClass()}`} />}
       </button>
 
       {isOpen && (

@@ -41,15 +41,13 @@ export default function EnhancedChatIcon({
       aria-expanded={isOpen}
       style={{ width: size, height: size }}
     >
-      {/* Glow effect behind */}
-      <span className="enhanced-chat-icon__glow"></span>
-
-      {/* Gradient background */}
+      {/* Solid accent disc */}
       <span className="enhanced-chat-icon__bg"></span>
 
       {/* Robot icon */}
       <svg
         className="enhanced-chat-icon__svg"
+        aria-hidden="true"
         width={size * 0.5}
         height={size * 0.5}
         viewBox="0 0 24 24"

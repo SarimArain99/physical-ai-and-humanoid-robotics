@@ -114,6 +114,8 @@ if __name__ == '__main__':
 
 Topics enable asynchronous, broadcast communication between nodes. A publisher node sends messages to a topic, and subscriber nodes receive those messages.
 
+![ROS 2 nodes and topics: a sensor publisher](/img/diagrams/ros2-nodes-topics.svg)
+
 ### Creating a Publisher
 
 ```python

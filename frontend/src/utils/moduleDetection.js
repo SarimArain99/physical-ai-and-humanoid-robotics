@@ -7,34 +7,36 @@
  * and provides module-specific configuration
  */
 
-// Module color configurations
+// Module color configurations — one green family only (locked palette).
+// Values are fills and dots, never body text, so the brighter greens
+// below read on both light and dark surfaces.
 export const MODULE_COLORS = {
   ros2: {
-    primary: '#FF6B35',
-    accent: '#FF8C5A',
-    light: '#FFE5DB',
-    dark: '#CC5629',
+    primary: '#34D399',
+    accent: '#6EE7B7',
+    light: '#D1FAE5',
+    dark: '#059669',
     name: 'ROS 2 Fundamentals'
   },
   digitalTwin: {
-    primary: '#4ECDC4',
-    accent: '#7EDDD6',
-    light: '#DBF5F2',
-    dark: '#3BA39C',
+    primary: '#4ADE80',
+    accent: '#86EFAC',
+    light: '#DCFCE7',
+    dark: '#16A34A',
     name: 'Digital Twin'
   },
   isaac: {
-    primary: '#A855F7',
-    accent: '#C084FC',
-    light: '#E9D5FF',
-    dark: '#7C3AED',
+    primary: '#27AD72',
+    accent: '#4ADE80',
+    light: '#A3FAD9',
+    dark: '#1F9260',
     name: 'NVIDIA Isaac'
   },
   vla: {
-    primary: '#FF0844',
-    accent: '#FF4D6D',
-    light: '#FFE5EA',
-    dark: '#CC0636',
+    primary: '#1F9260',
+    accent: '#34D399',
+    light: '#A3FAD9',
+    dark: '#177245',
     name: 'Vision-Language-Action'
   },
   default: {
@@ -107,11 +109,6 @@ export function applyModuleTheme(pathname) {
     root.style.setProperty('--module-accent', config.accent);
     root.style.setProperty('--module-light', config.light);
     root.style.setProperty('--module-dark', config.dark);
-
-    // Update glow effects for the module
-    root.style.setProperty('--glow-sm', `0 0 10px ${config.primary}40`);
-    root.style.setProperty('--glow-md', `0 0 20px ${config.primary}80`);
-    root.style.setProperty('--glow-lg', `0 0 30px ${config.primary}`);
   }
 }
 

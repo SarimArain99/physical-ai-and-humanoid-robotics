@@ -1,7 +1,13 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Page Transition Styles
  * Feature: 002-ui-improvements
  * Task: T046
+ *
+ * Visible by default. Only the `.page-transition-exiting` state hides
+ * content, and only while a route change is in flight — so a fresh
+ * load never paints blank (the hydration flash).
  */
 
 .page-transition {
@@ -11,77 +17,66 @@
 
 /* Fade transition */
 .page-transition-fade {
-  opacity: 0;
   transition: opacity var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-fade.page-transition-visible {
-  opacity: 1;
+.page-transition-fade.page-transition-exiting {
+  opacity: 0;
 }
 
 /* Slide up transition */
 .page-transition-slideUp {
-  opacity: 0;
-  transform: translateY(20px);
   transition: opacity var(--transition-duration, 300ms) ease-out,
               transform var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-slideUp.page-transition-visible {
-  opacity: 1;
-  transform: translateY(0);
+.page-transition-slideUp.page-transition-exiting {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 /* Slide down transition */
 .page-transition-slideDown {
-  opacity: 0;
-  transform: translateY(-20px);
   transition: opacity var(--transition-duration, 300ms) ease-out,
               transform var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-slideDown.page-transition-visible {
-  opacity: 1;
-  transform: translateY(0);
+.page-transition-slideDown.page-transition-exiting {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 
 /* Slide left transition */
 .page-transition-slideLeft {
-  opacity: 0;
-  transform: translateX(20px);
   transition: opacity var(--transition-duration, 300ms) ease-out,
               transform var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-slideLeft.page-transition-visible {
-  opacity: 1;
-  transform: translateX(0);
+.page-transition-slideLeft.page-transition-exiting {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
 /* Slide right transition */
 .page-transition-slideRight {
-  opacity: 0;
-  transform: translateX(-20px);
   transition: opacity var(--transition-duration, 300ms) ease-out,
               transform var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-slideRight.page-transition-visible {
-  opacity: 1;
-  transform: translateX(0);
+.page-transition-slideRight.page-transition-exiting {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 
 /* Scale transition */
 .page-transition-scale {
-  opacity: 0;
-  transform: scale(0.95);
   transition: opacity var(--transition-duration, 300ms) ease-out,
               transform var(--transition-duration, 300ms) ease-out;
 }
 
-.page-transition-scale.page-transition-visible {
-  opacity: 1;
-  transform: scale(1);
+.page-transition-scale.page-transition-exiting {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 /* Route change spinner */
@@ -97,8 +92,8 @@
 .spinner-ring {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--color-border, #e2e8f0);
-  border-top-color: var(--module-primary, #2ecc71);
+  border: 3px solid var(--color-border);
+  border-top-color: var(--module-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -125,6 +120,6 @@
 
   .spinner-ring {
     animation: none;
-    border-top-color: var(--module-primary, #2ecc71);
+    border-top-color: var(--module-primary);
   }
 }

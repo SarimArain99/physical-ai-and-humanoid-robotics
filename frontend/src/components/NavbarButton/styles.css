@@ -1,25 +1,55 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Unified Navbar Button Styles
  * Feature: 002-ui-improvements
  * Task: Unified navbar button system
  *
- * Consistent styling for all navbar buttons (Auth, Urdu, Level, Theme)
+ * Consistent styling for all navbar buttons (Auth, Urdu, Level, Theme).
+ * One palette: the accent variant is sea-green, not the old purple.
+ * Every colour reads from a token, in both themes.
  */
+
+/* Navbar button tokens — they follow the theme tokens, so no
+   per-theme override block is needed below. */
+:root {
+  --navbar-primary-bg: var(--module-primary);
+  --navbar-primary-text: var(--color-accent-ink);
+  --navbar-primary-hover: var(--module-accent);
+  --navbar-secondary-color: var(--module-primary);
+  --navbar-secondary-border: var(--module-primary);
+  --navbar-secondary-hover-bg: var(--color-bg-surface);
+  --navbar-secondary-hover-text: var(--module-primary);
+  --navbar-secondary-hover-border: var(--module-primary);
+  --navbar-accent-bg: var(--color-bg-surface);
+  --navbar-accent-color: var(--module-primary);
+  --navbar-accent-border: var(--module-primary);
+  --navbar-accent-hover-bg: var(--module-primary);
+  --navbar-accent-hover-text: var(--color-accent-ink);
+  --navbar-icon-color: var(--color-text-secondary);
+  --navbar-icon-border: transparent;
+  --navbar-icon-hover-bg: var(--color-bg-surface);
+  --navbar-icon-hover-color: var(--color-text-primary);
+}
 
 /* Base navbar button class - shared across all buttons */
 .navbar-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 16px;
+  gap: 8px;
+  padding: 8px 16px;
   height: 40px;
   min-height: 40px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   border: 1px solid transparent;
   font-family: inherit;
@@ -29,7 +59,10 @@
 }
 
 .navbar-btn:focus-visible {
-  outline: 2px solid currentColor;
+  /* The ring is drawn over the navbar, so it must contrast with the
+     navbar surface, not with the button: the accent does in both
+     themes (dark green on near-black, deep green on white). */
+  outline: 2px solid var(--ifm-color-primary);
   outline-offset: 2px;
 }
 
@@ -40,15 +73,15 @@
 
 /* Primary variant (filled) - used for Auth/Sign In */
 .navbar-btn--primary {
-  background-color: var(--navbar-primary-bg, #2ECC71);
-  color: var(--navbar-primary-text, #1E2A38);
-  border-color: var(--navbar-primary-bg, #2ECC71);
+  background-color: var(--navbar-primary-bg);
+  color: var(--navbar-primary-text);
+  border-color: var(--navbar-primary-bg);
 }
 
 .navbar-btn--primary:hover:not(:disabled) {
-  background-color: var(--navbar-primary-hover, #22C55E);
+  background-color: var(--navbar-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+  box-shadow: var(--shadow-accent);
 }
 
 .navbar-btn--primary:active:not(:disabled) {
@@ -58,29 +91,29 @@
 /* Secondary variant (outlined) - used for Urdu toggle */
 .navbar-btn--secondary {
   background-color: transparent;
-  color: var(--navbar-secondary-color, #2ECC71);
-  border-color: var(--navbar-secondary-border, #2ECC71);
+  color: var(--navbar-secondary-color);
+  border-color: var(--navbar-secondary-border);
 }
 
 .navbar-btn--secondary:hover:not(:disabled) {
-  background-color: var(--navbar-secondary-hover-bg, rgba(46, 204, 113, 0.1));
-  color: var(--navbar-secondary-hover-text, #22C55E);
-  border-color: var(--navbar-secondary-hover-border, #22C55E);
+  background-color: var(--navbar-secondary-hover-bg);
+  color: var(--navbar-secondary-hover-text);
+  border-color: var(--navbar-secondary-hover-border);
   transform: translateY(-1px);
 }
 
-/* Accent variant (purple) - used for Level selector */
+/* Accent variant - used for Level selector */
 .navbar-btn--accent {
-  background-color: var(--navbar-accent-bg, #1E2A38);
-  color: var(--navbar-accent-color, #8B5CF6);
-  border-color: var(--navbar-accent-border, #8B5CF6);
+  background-color: var(--navbar-accent-bg);
+  color: var(--navbar-accent-color);
+  border-color: var(--navbar-accent-border);
 }
 
 .navbar-btn--accent:hover:not(:disabled) {
-  background-color: var(--navbar-accent-hover-bg, #8B5CF6);
-  color: var(--navbar-accent-hover-text, #FFFFFF);
+  background-color: var(--navbar-accent-hover-bg);
+  color: var(--navbar-accent-hover-text);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: var(--shadow-accent);
 }
 
 /* Icon variant (square/icon buttons) - used for theme toggle, close, etc. */
@@ -90,13 +123,13 @@
   height: 40px;
   border-radius: 50%;
   background-color: transparent;
-  color: var(--navbar-icon-color, #94A3B8);
-  border-color: var(--navbar-icon-border, transparent);
+  color: var(--navbar-icon-color);
+  border-color: var(--navbar-icon-border);
 }
 
 .navbar-btn--icon:hover:not(:disabled) {
-  background-color: var(--navbar-icon-hover-bg, rgba(148, 163, 184, 0.1));
-  color: var(--navbar-icon-hover-color, #E2E8F0);
+  background-color: var(--navbar-icon-hover-bg);
+  color: var(--navbar-icon-hover-color);
 }
 
 /* Loading state */
@@ -127,22 +160,23 @@
   overflow: hidden;
 }
 
+/* Ripple effect — the circle grows by transform, never by
+   width/height, so the animation stays off the layout path. */
 .navbar-btn--ripple::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 0;
-  height: 0;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.5s, height 0.5s;
+  background: var(--color-overlay-light);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s;
 }
 
 .navbar-btn--ripple:active::before {
-  width: 200px;
-  height: 200px;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 /* Navbar container for button alignment */
@@ -156,7 +190,7 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .navbar-btn {
-    padding: 6px 12px;
+    padding: 8px 12px;
     height: 36px;
     min-height: 36px;
     font-size: 13px;
@@ -179,7 +213,7 @@
 
 @media (max-width: 480px) {
   .navbar-btn {
-    padding: 6px 10px;
+    padding: 8px 8px;
     height: 34px;
     min-height: 34px;
     font-size: 12px;
@@ -203,56 +237,4 @@
   .navbar-btn:hover:not(:disabled) {
     transform: none !important;
   }
-}
-
-/* Dark mode adjustments */
-[data-theme="dark"] .navbar-btn--primary {
-  --navbar-primary-bg: #2ECC71;
-  --navbar-primary-text: #1E2A38;
-  --navbar-primary-hover: #22C55E;
-}
-
-[data-theme="dark"] .navbar-btn--secondary {
-  --navbar-secondary-color: #2ECC71;
-  --navbar-secondary-border: #2ECC71;
-  --navbar-secondary-hover-bg: rgba(46, 204, 113, 0.15);
-  --navbar-secondary-hover-text: #22C55E;
-  --navbar-secondary-hover-border: #22C55E;
-}
-
-[data-theme="dark"] .navbar-btn--accent {
-  --navbar-accent-bg: #1E2A38;
-  --navbar-accent-color: #8B5CF6;
-  --navbar-accent-border: #8B5CF6;
-  --navbar-accent-hover-bg: #8B5CF6;
-  --navbar-accent-hover-text: #FFFFFF;
-}
-
-/* Light mode adjustments */
-[data-theme="light"] .navbar-btn--primary {
-  --navbar-primary-bg: #2ECC71;
-  --navbar-primary-text: #1E2A38;
-  --navbar-primary-hover: #22C55E;
-}
-
-[data-theme="light"] .navbar-btn--secondary {
-  --navbar-secondary-color: #22C55E;
-  --navbar-secondary-border: #22C55E;
-  --navbar-secondary-hover-bg: rgba(34, 197, 94, 0.1);
-  --navbar-secondary-hover-text: #16A34A;
-  --navbar-secondary-hover-border: #16A34A;
-}
-
-[data-theme="light"] .navbar-btn--accent {
-  --navbar-accent-bg: #F5F3FF;
-  --navbar-accent-color: #8B5CF6;
-  --navbar-accent-border: #8B5CF6;
-  --navbar-accent-hover-bg: #8B5CF6;
-  --navbar-accent-hover-text: #FFFFFF;
-}
-
-[data-theme="light"] .navbar-btn--icon {
-  --navbar-icon-color: #64748B;
-  --navbar-icon-hover-bg: rgba(100, 116, 139, 0.1);
-  --navbar-icon-hover-color: #1E293B;
 }

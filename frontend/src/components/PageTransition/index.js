@@ -5,6 +5,12 @@
  *
  * Provides smooth page transition animations when navigating between pages.
  * Supports fade, slide, and scale transitions with performance optimization.
+ *
+ * Visible by default: the page must never ship blank. An earlier version
+ * started hidden (opacity 0) and only revealed itself 50ms after mount,
+ * so a fresh load painted a blank white page until JavaScript ran — the
+ * hydration flash. Now the content renders visible on first paint and
+ * only fades out briefly while a route change swaps the page.
  */
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -43,49 +49,38 @@ export default function PageTransition({
   disabled = false
 }) {
   const location = useLocation();
-  const [isVisible, setIsVisible] = useState(false);
   const [currentKey, setCurrentKey] = useState(location.pathname);
+  const [exiting, setExiting] = useState(false);
   const containerRef = useRef(null);
 
   const animationsEnabled = !disabled && areAnimationsEnabled();
   const shouldAnimate = animationsEnabled && type !== TRANSITION_TYPES.NONE;
 
   useEffect(() => {
-    if (!shouldAnimate) {
-      setIsVisible(true);
+    if (!shouldAnimate || currentKey === location.pathname) {
       return;
     }
 
-    // Trigger exit animation for old page
-    if (currentKey !== location.pathname) {
-      setIsVisible(false);
+    // Route changed: fade the old page out, then reveal the new one.
+    setExiting(true);
 
-      // After exit animation, update key and trigger enter animation
-      const exitTimer = setTimeout(() => {
-        setCurrentKey(location.pathname);
-        setIsVisible(true);
+    const exitTimer = setTimeout(() => {
+      setCurrentKey(location.pathname);
+      setExiting(false);
 
-        // Scroll to top on page change
-        if (containerRef.current) {
-          window.scrollTo({ top: 0, behavior: 'instant' });
-        }
-      }, duration);
+      // Scroll to top on page change
+      if (containerRef.current) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    }, duration);
 
-      return () => clearTimeout(exitTimer);
-    }
-
-    // Initial mount - trigger enter animation
-    const enterTimer = setTimeout(() => {
-      setIsVisible(true);
-    }, 50);
-
-    return () => clearTimeout(enterTimer);
+    return () => clearTimeout(exitTimer);
   }, [location.pathname, currentKey, duration, shouldAnimate]);
 
   return (
     <div
       ref={containerRef}
-      className={`page-transition page-transition-${type} ${isVisible ? 'page-transition-visible' : ''}`}
+      className={`page-transition page-transition-${type} ${exiting ? 'page-transition-exiting' : ''}`}
       style={{ '--transition-duration': `${duration}ms` }}
     >
       {children}

@@ -6,7 +6,7 @@
  * A custom theme toggle that switches between light, dark, and auto (system) modes.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { useColorMode } from '@docusaurus/theme-common';
 import './styles.css';
@@ -55,6 +55,26 @@ function ThemeToggleContent() {
   const { colorMode, setColorMode } = useColorMode();
   const [isOpen, setIsOpen] = useState(false);
   const [currentMode, setCurrentMode] = useState('system');
+  const dropdownRef = useRef(null);
+
+  // Close the menu on Escape or on a click outside it.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    const onPointerDown = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onPointerDown);
+    };
+  }, [isOpen]);
 
   // Initialize mode from localStorage or colorMode
   useEffect(() => {
@@ -106,7 +126,7 @@ function ThemeToggleContent() {
   };
 
   return (
-    <div className="theme-toggle-dropdown">
+    <div className="theme-toggle-dropdown" ref={dropdownRef}>
       <button
         className="navbar-btn navbar-btn--icon theme-toggle-btn"
         onClick={() => setIsOpen(!isOpen)}
