@@ -204,3 +204,13 @@
     height: 8px;
   }
 }
+
+/* Workstream C: while a rewrite is running the pill is the cancel
+   control, so it must stay clickable. The shared .navbar-btn--loading
+   rule sets pointer-events: none (right for a loading placeholder);
+   this scoped override restores clicks + a pointer cursor on this
+   button only. Escape cancels too (see LevelButton.js). */
+.level-trigger.navbar-btn--loading {
+  pointer-events: auto;
+  cursor: pointer;
+}

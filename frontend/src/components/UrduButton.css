@@ -25,3 +25,13 @@
   font-family: var(--font-urdu);
   line-height: 1.8;
 }
+
+/* Workstream C: while a translation is running the button is the
+   cancel control, so it must stay clickable. The shared
+   .navbar-btn--loading rule sets pointer-events: none (right for a
+   loading placeholder); this scoped override restores clicks + a
+   pointer cursor on this button only. */
+.urdu-button.navbar-btn--loading {
+  pointer-events: auto;
+  cursor: pointer;
+}

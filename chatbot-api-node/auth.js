@@ -9,6 +9,20 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
+// Signup background answers (hackathon spec point 5) live on the user row.
+// better-auth stores additionalFields in the user table but does not create
+// their columns itself, so make sure they exist. Idempotent: safe to run
+// on every boot and on deploys that predate the new columns. If the
+// database is unreachable this only logs — the server still starts and
+// /api/health still answers; sign-up itself needs the database.
+pool.query(`
+  ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "softwareBg" TEXT;
+  ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "hardwareBg" TEXT;
+  ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "proficiency" TEXT;
+  ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "learningGoals" TEXT;
+`).then(() => console.log("Better Auth: profile columns ready."))
+  .catch((err) => console.error("Better Auth: profile column check failed:", err.message));
+
 const allowedOrigins = process.env.CORS_ORIGINS 
   ? process.env.CORS_ORIGINS.split(",").map(o => o.trim().replace(/\/$/, "")) 
   : [];
@@ -79,6 +93,16 @@ export const auth = betterAuth({
         required: false,
       },
       hardwareBg: {
+        type: "string",
+        required: false,
+      },
+      // Asked at signup (with the two background questions) and shown on
+      // /profile. Stored on the user row — never localStorage-only.
+      proficiency: {
+        type: "string",
+        required: false,
+      },
+      learningGoals: {
         type: "string",
         required: false,
       }

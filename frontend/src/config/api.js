@@ -52,9 +52,12 @@ const STREAM_ERROR_SNIPPETS = [
 /**
  * Read a Server-Sent Events response and return the full streamed text.
  * Calls onChunk(textSoFar) as chunks arrive so the UI can stream live.
- * Throws on HTTP errors or when the stream carries an AI error message.
+ * Calls onMeta(meta) once per `meta` event — the chat endpoints send one
+ * first (Workstream D: RAG grounded flag, retrieval mode and sources)
+ * before any content event. Throws on HTTP errors or when the stream
+ * carries an AI error message.
  */
-export async function readSseStream(response, onChunk) {
+export async function readSseStream(response, onChunk, onMeta) {
   if (!response.ok) {
     let detail = `Request failed (${response.status})`;
     try {
@@ -85,7 +88,10 @@ export async function readSseStream(response, onChunk) {
       if (payload === "[DONE]") return;
       try {
         const data = JSON.parse(payload);
-        if (typeof data.content === "string" && data.content) {
+        if (data.meta && typeof data.meta === "object") {
+          // Retrieval metadata (chat only): grounded flag + sources.
+          if (onMeta) onMeta(data.meta);
+        } else if (typeof data.content === "string" && data.content) {
           fullText += data.content;
           if (onChunk) onChunk(fullText);
         }
@@ -136,51 +142,117 @@ function groupTexts(texts, maxChars = 1500) {
   return chunks;
 }
 
-async function runChunked(texts, runChunk, onProgress) {
+import { runWithConcurrency } from "../utils/runWithConcurrency";
+
+// Workstream C — Level rewrite speed: chunks run CONCURRENTLY (bounded),
+// not one after another. The old loop awaited each chunk in turn, and on
+// a delimiter mismatch retried every paragraph in turn too — up to ~35
+// sequential OpenAI calls for one long chapter (~7 minutes live).
+// Bound: 4 in flight. Why 4: Week 1 is 6 chunks (2 waves); the longest
+// chapter is ~30 chunks; 4 stays under the browser's 6-connections-per-
+// origin limit and under the backend's 60-requests-per-15-minutes AI
+// rate limit, while cutting wall-clock time to roughly a quarter.
+// One request still does one chunk only, so no Vercel invocation does
+// minutes of work; the backend caches each chunk in Neon, so a repeat
+// visit is served from cache. Progress is honest counts: onProgress
+// receives (done, total) — texts actually finished — never a percentage
+// invented from elapsed time. Aborting the signal stops new chunks
+// from starting; runChunked then throws an AbortError so callers can
+// tell a cancel apart from a failure.
+const CONTENT_CONCURRENCY = 4;
+
+function currentPageSlug() {
+  try {
+    return typeof window !== "undefined" ? window.location.pathname : "";
+  } catch {
+    return "";
+  }
+}
+
+async function runChunked(texts, runChunk, onProgress, options = {}) {
+  const { signal } = options;
   const chunks = groupTexts(texts);
   const results = new Array(texts.length).fill(null);
   let processed = 0;
   const reportProgress = () => {
-    if (onProgress) onProgress(Math.round((processed / texts.length) * 100));
+    if (onProgress) onProgress(processed, texts.length);
   };
+
+  // Start offset of each chunk inside `texts`, so parallel chunks can
+  // still write their results into the right slots.
+  const chunkStarts = [];
   let chunkStart = 0;
   for (const chunk of chunks) {
-    let chunkDone = false;
-    try {
-      const translated = await runChunk(chunk);
-      if (Array.isArray(translated) && translated.length === chunk.length) {
-        chunk.forEach((_, i) => {
-          results[chunkStart + i] = translated[i];
-        });
-        chunkDone = true;
-      }
-      // On a count mismatch we fall through to the per-element retry
-      // below instead of guessing which translation belongs where.
-    } catch (err) {
-      console.error("AI content request failed for a chunk:", err);
-    }
-    if (!chunkDone) {
-      // Fallback: rewrite each element on its own. A single text has no
-      // delimiter for the model to lose, so this succeeds even when the
-      // batched reply comes back merged into one passage (which is what
-      // used to break the "Intermediate" level entirely).
-      for (let i = 0; i < chunk.length; i++) {
-        try {
-          const single = await runChunk([chunk[i]]);
-          if (Array.isArray(single) && single.length === 1 && single[0]) {
-            results[chunkStart + i] = single[0];
-          }
-        } catch (err) {
-          console.error("AI content request failed for an element:", err);
+    chunkStarts.push(chunkStart);
+    chunkStart += chunk.length;
+  }
+
+  const { aborted } = await runWithConcurrency(
+    chunks,
+    CONTENT_CONCURRENCY,
+    async (chunk, chunkIdx) => {
+      const start = chunkStarts[chunkIdx];
+      let chunkDone = false;
+      try {
+        const translated = await runChunk(chunk, { signal });
+        if (Array.isArray(translated) && translated.length === chunk.length) {
+          chunk.forEach((_, i) => {
+            results[start + i] = translated[i];
+          });
+          chunkDone = true;
         }
-        processed += 1;
+        // On a count mismatch we fall through to the per-element retry
+        // below instead of guessing which translation belongs where.
+      } catch (err) {
+        if (err?.name === "AbortError") throw err;
+        console.error("AI content request failed for a chunk:", err);
+      }
+      if (!chunkDone) {
+        // Fallback: rewrite each element on its own. A single text has no
+        // delimiter for the model to lose, so this succeeds even when the
+        // batched reply comes back merged into one passage (which is what
+        // used to break the "Intermediate" level entirely). Sequential
+        // inside this chunk only — the other chunk workers keep running.
+        for (let i = 0; i < chunk.length; i++) {
+          if (signal?.aborted) {
+            const abortError = new Error("Content request cancelled");
+            abortError.name = "AbortError";
+            throw abortError;
+          }
+          try {
+            const single = await runChunk([chunk[i]], { signal });
+            if (Array.isArray(single) && single.length === 1 && single[0]) {
+              results[start + i] = single[0];
+            }
+          } catch (err) {
+            if (err?.name === "AbortError") throw err;
+            console.error("AI content request failed for an element:", err);
+          }
+          processed += 1;
+          reportProgress();
+        }
+      } else {
+        processed += chunk.length;
         reportProgress();
       }
-    } else {
-      processed += chunk.length;
-      reportProgress();
+    },
+    {
+      signal,
+      onItemError: (err, chunkIdx) => {
+        console.error("AI content request failed for a chunk:", err, chunkIdx);
+      },
     }
-    chunkStart += chunk.length;
+  );
+
+  if (aborted || signal?.aborted) {
+    // Cancelled: throw so callers can tell a cancel from a failure —
+    // but carry the finished chunks with the error. The caller applies
+    // them, so work that is already done is not thrown away just
+    // because the user stopped the rest.
+    const abortError = new Error("Content request cancelled");
+    abortError.name = "AbortError";
+    abortError.partialResults = results;
+    throw abortError;
   }
   return results;
 }
@@ -190,13 +262,14 @@ async function runChunked(texts, runChunk, onProgress) {
  * Returns an array aligned with `texts`; entries that could not be
  * translated are null (callers keep the original English text).
  */
-export async function translateTexts(texts, onProgress) {
-  return runChunked(texts, async (chunk) => {
+export async function translateTexts(texts, onProgress, options = {}) {
+  return runChunked(texts, async (chunk, { signal } = {}) => {
     const joined = chunk.join(`\n${CHUNK_DELIMITER}\n`);
     const response = await fetch(contentUrls.translate(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: joined, target_language: "Urdu" }),
+      body: JSON.stringify({ text: joined, target_language: "Urdu", page: currentPageSlug() }),
+      signal,
     });
     const full = await readSseStream(response);
     // Drop empty parts: the model sometimes echoes a trailing [[[BREAK]]]
@@ -204,7 +277,7 @@ export async function translateTexts(texts, onProgress) {
     // empty part, the length check in runChunked fails, and the whole chunk
     // falls back to per-element retries that hit the same echo.
     return full.split(CHUNK_DELIMITER).map((part) => part.trim()).filter((part) => part.length > 0);
-  }, onProgress);
+  }, onProgress, options);
 }
 
 /**
@@ -212,17 +285,18 @@ export async function translateTexts(texts, onProgress) {
  * "intermediate"). Same chunked approach as translateTexts; null entries
  * mean that element could not be rewritten and stays as written.
  */
-export async function personalizeTexts(texts, level, onProgress) {
-  return runChunked(texts, async (chunk) => {
+export async function personalizeTexts(texts, level, onProgress, options = {}) {
+  return runChunked(texts, async (chunk, { signal } = {}) => {
     const joined = chunk.join(`\n${CHUNK_DELIMITER}\n`);
     const response = await fetch(contentUrls.personalize(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: joined, level }),
+      body: JSON.stringify({ text: joined, level, page: currentPageSlug() }),
+      signal,
     });
     const full = await readSseStream(response);
     // Drop empty parts: the model sometimes echoes a trailing [[[BREAK]]]
     // even for a single passage (see translateTexts above).
     return full.split(CHUNK_DELIMITER).map((part) => part.trim()).filter((part) => part.length > 0);
-  }, onProgress);
+  }, onProgress, options);
 }

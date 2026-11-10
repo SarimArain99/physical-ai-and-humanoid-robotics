@@ -8,11 +8,11 @@ const ProfileContent = () => {
   const { user, updateProfile, loading } = useAuth();
   const history = useHistory();
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({ technical_background: '', hardware_access: '', learning_goals: '' });
+  const [profileData, setProfileData] = useState({ technical_background: '', hardware_access: '', learning_goals: '', proficiency: 'beginner' });
   const [message, setMessage] = useState('');
 
   useEffect(() => { if (!loading && !user) history.push('/'); }, [user, loading, history]);
-  useEffect(() => { if (user) setProfileData({ technical_background: user.technical_background || '', hardware_access: user.hardware_access || '', learning_goals: user.learning_goals || '' }); }, [user]);
+  useEffect(() => { if (user) setProfileData({ technical_background: user.technical_background || '', hardware_access: user.hardware_access || '', learning_goals: user.learning_goals || '', proficiency: user.proficiency || 'beginner' }); }, [user]);
 
   const handleInputChange = (e) => { const { name, value } = e.target; setProfileData(prev => ({ ...prev, [name]: value })); };
   const handleSubmit = async (e) => {
@@ -35,7 +35,7 @@ const ProfileContent = () => {
       <div style={cardStyle}>
         <h1 style={{ color: 'white', borderBottom: '1px solid #2ECC71', paddingBottom: '10px' }}>{user.name || 'Profile'}</h1>
         <p style={{ color: '#94a3b8' }}>{user.email}</p>
-        <span style={{ backgroundColor: '#8b5cf6', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>{user.proficiency || 'Beginner'}</span>
+        <span style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-ink)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>{user.proficiency === 'intermediate' ? 'Intermediate' : user.proficiency === 'pro' ? 'Pro' : 'Beginner'}</span>
 
         <hr style={{ borderColor: '#334155', margin: '20px 0' }} />
 
@@ -51,13 +51,20 @@ const ProfileContent = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>BACKGROUND</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>Proficiency level</label>
+            <select name="proficiency" value={profileData.proficiency} onChange={handleInputChange} style={{ ...inputStyle, backgroundColor: '#0f172a' }}>
+              <option value="beginner">Beginner (New to AI)</option>
+              <option value="intermediate">Intermediate (Student)</option>
+              <option value="pro">Pro (Researcher)</option>
+            </select>
+
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>Software background</label>
             <input name="technical_background" value={profileData.technical_background} onChange={handleInputChange} style={inputStyle} />
 
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>HARDWARE</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>Hardware access</label>
             <input name="hardware_access" value={profileData.hardware_access} onChange={handleInputChange} style={inputStyle} />
 
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>GOALS</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#94a3b8' }}>Learning goals</label>
             <input name="learning_goals" value={profileData.learning_goals} onChange={handleInputChange} style={inputStyle} />
 
             <button type="submit" style={btnStyle}>Save Changes</button>

@@ -117,6 +117,18 @@ function renderMarkdown(text) {
   return out;
 }
 
+// Workstream D (RAG): one link per chapter — the same chapter can match
+// twice in the top-5 (two chunks), so dedupe on URL, keeping order.
+function uniqueSources(sources) {
+  if (!Array.isArray(sources)) return [];
+  const seen = new Set();
+  return sources.filter((s) => {
+    if (!s || !s.url || seen.has(s.url)) return false;
+    seen.add(s.url);
+    return true;
+  });
+}
+
 const SendIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -251,6 +263,10 @@ const ChatWidgetContent = () => {
 
     try {
       const useSelected = Boolean(contextText);
+      // Workstream D (RAG): the first SSE event carries retrieval
+      // metadata (grounded flag + sources). It arrives before any answer
+      // text and is attached to the finished message below.
+      let replyMeta = null;
       const response = await fetch(useSelected ? chatUrls.chatSelected() : chatUrls.chat(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -261,10 +277,22 @@ const ChatWidgetContent = () => {
         ),
       });
 
-      const fullText = await readSseStream(response, (soFar) => setStreamedContent(soFar));
+      const fullText = await readSseStream(
+        response,
+        (soFar) => setStreamedContent(soFar),
+        (meta) => { replyMeta = meta; }
+      );
       setStreamedContent("");
       if (fullText.trim()) {
-        setMessages((prev) => [...prev, { role: "assistant", content: fullText.trim() }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: fullText.trim(),
+            sources: uniqueSources(replyMeta?.sources),
+            grounded: replyMeta ? replyMeta.grounded === true : null,
+          },
+        ]);
       } else {
         setMessages((prev) => [
           ...prev,
@@ -355,10 +383,36 @@ const ChatWidgetContent = () => {
                   </div>
                 )}
                 {msg.role === "assistant" ? (
-                  <div
-                    className={`message-bubble ${msg.role}`}
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
-                  />
+                  <div className="message-content">
+                    <div
+                      className={`message-bubble ${msg.role}`}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                    />
+                    {/* Workstream D (RAG): the chapters the answer was
+                        grounded in, each linking to its chapter. Shown
+                        only when the backend returned sources; older
+                        stored messages without sources render as before. */}
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="chat-sources">
+                        <p className="chat-sources-title">Sources</p>
+                        <ul className="chat-sources-list">
+                          {uniqueSources(msg.sources).map((source, sIdx) => (
+                            <li key={`${source.url}-${sIdx}`}>
+                              <a href={source.url} className="chat-source-link">
+                                {source.title}
+                                {source.week ? `, Week ${source.week}` : ""}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {msg.grounded === false && (
+                      <p className="chat-ungrounded-note">
+                        Answered without chapter search — sources unavailable.
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className={`message-bubble ${msg.role}`}>{msg.content}</div>
                 )}
@@ -479,6 +533,10 @@ const ChatWidgetContent = () => {
         .chat-suggestion:hover { border-color: var(--color-accent); background-color: var(--module-primary-bg); }
 
         .message-row { display: flex; gap: 10px; align-items: flex-end; animation: fadeIn 0.3s ease; }
+        /* Workstream D (RAG): with the sources block under the bubble
+           the row is taller, so a bottom-aligned avatar would sit next
+           to the sources instead of the answer. Top-align it. */
+        .message-row.assistant { align-items: flex-start; }
         .message-row.user { justify-content: flex-end; }
         .bot-avatar { width: 30px; height: 30px; background: var(--chat-bubble-bot); color: var(--color-text-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
 
@@ -494,6 +552,20 @@ const ChatWidgetContent = () => {
         .message-bubble .md-code { margin: 0 0 8px; padding: 10px 12px; border-radius: 8px; background-color: var(--color-bg-tertiary); overflow-x: auto; font-size: 13px; line-height: 1.5; }
         .message-bubble .md-code:last-child { margin-bottom: 0; }
         .message-bubble .md-code code { font-family: var(--font-code); }
+
+        /* Workstream D (RAG): sources under an assistant answer. The
+           wrapper holds the bubble and the sources at the same width;
+           the sources are a plain list on the window surface with a
+           hairline above, links in the fixed accent, 13px. */
+        .message-content { display: flex; flex-direction: column; gap: 6px; max-width: 80%; min-width: 0; }
+        .message-content .message-bubble { max-width: 100%; }
+        .chat-sources { padding: 8px 4px 0; border-top: 1px solid var(--chat-border); }
+        .chat-sources-title { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); margin: 0 0 4px; }
+        .chat-sources-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        .chat-source-link { font-size: 13px; line-height: 1.4; color: var(--color-accent); text-decoration: none; }
+        .chat-source-link:hover { text-decoration: underline; }
+        .chat-source-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+        .chat-ungrounded-note { font-size: 12px; line-height: 1.4; color: var(--color-text-secondary); margin: 0; padding: 0 4px; }
 
         .message-bubble.typing { padding: 15px 20px; display: flex; align-items: center; gap: 4px; min-height: 40px; }
         .typing-dot { width: 8px; height: 8px; background-color: var(--color-text-tertiary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }

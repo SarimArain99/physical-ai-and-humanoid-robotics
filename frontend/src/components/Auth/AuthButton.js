@@ -62,11 +62,23 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-const AuthButtonContent = () => {
+const AuthButtonContent = ({ onClick: onNavbarItemClick }) => {
   const { user, logout, loading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Docusaurus passes onClick to every navbar item in the mobile
+  // sidebar (Navbar/MobileSidebar/PrimaryMenu): it toggles the sidebar
+  // closed. Desktop navbar items get no onClick. Calling it here is
+  // what closes the hamburger cleanly when the modal opens — the modal
+  // itself is portaled to document.body, so it stays open and centred
+  // on the viewport after the sidebar is gone. Before this, the prop
+  // was silently dropped, so the sidebar stayed open behind the modal.
+  const openModal = () => {
+    setIsModalOpen(true);
+    if (onNavbarItemClick) onNavbarItemClick();
+  };
 
   // The menu opens on click, not on hover: hover menus never open on
   // touch screens and keyboard users cannot reach them at all.
@@ -153,7 +165,7 @@ const AuthButtonContent = () => {
       ) : (
         <button
           className="navbar-btn navbar-btn--primary"
-          onClick={() => setIsModalOpen(true)}
+          onClick={openModal}
         >
           Sign In
         </button>
@@ -164,9 +176,11 @@ const AuthButtonContent = () => {
   );
 };
 
-const AuthButton = () => {
+const AuthButton = (props) => {
   return (
-    <BrowserOnly fallback={null}>{() => <AuthButtonContent />}</BrowserOnly>
+    <BrowserOnly fallback={null}>
+      {() => <AuthButtonContent {...props} />}
+    </BrowserOnly>
   );
 };
 

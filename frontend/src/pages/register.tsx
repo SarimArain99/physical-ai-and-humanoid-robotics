@@ -11,7 +11,7 @@ export default function Register() {
     if (typeof window !== 'undefined') {
       window.location.href = '/profile';
     }
-    return <div>Redirecting...</div>;
+    return <div>Redirecting…</div>;
   }
 
   return (
@@ -30,6 +30,9 @@ function RegisterForm() {
   const [name, setName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [proficiency, setProficiency] = React.useState('beginner');
+  const [softwareBg, setSoftwareBg] = React.useState('');
+  const [hardwareBg, setHardwareBg] = React.useState('');
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
@@ -45,7 +48,11 @@ function RegisterForm() {
     }
 
     try {
-      const result = await register(email, name, password);
+      const result = await register(email, name, password, {
+        proficiency,
+        softwareBg,
+        hardwareBg,
+      });
       if (!result.success) {
         setError(result.message);
       } else {
@@ -136,6 +143,67 @@ function RegisterForm() {
           }}
         />
       </div>
+      <div style={{ marginBottom: '1rem' }}>
+        <label htmlFor="proficiency" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          Proficiency Level
+        </label>
+        <select
+          id="proficiency"
+          value={proficiency}
+          onChange={(e) => setProficiency(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        >
+          <option value="beginner">Beginner (New to AI)</option>
+          <option value="intermediate">Intermediate (Student)</option>
+          <option value="pro">Pro (Researcher)</option>
+        </select>
+      </div>
+      <p style={{ margin: '0 0 1rem', fontSize: '14px' }}>
+        Your background (optional) — so the chapters can be personalised for you.
+      </p>
+      <div style={{ marginBottom: '1rem' }}>
+        <label htmlFor="softwareBg" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          Software background
+        </label>
+        <input
+          id="softwareBg"
+          type="text"
+          value={softwareBg}
+          onChange={(e) => setSoftwareBg(e.target.value)}
+          maxLength={200}
+          placeholder="e.g. Python, or new to coding"
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: '1rem' }}>
+        <label htmlFor="hardwareBg" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          Hardware access
+        </label>
+        <input
+          id="hardwareBg"
+          type="text"
+          value={hardwareBg}
+          onChange={(e) => setHardwareBg(e.target.value)}
+          maxLength={200}
+          placeholder="e.g. Laptop, or no hardware yet"
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        />
+      </div>
       {error && (
         <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>
       )}
@@ -152,7 +220,7 @@ function RegisterForm() {
           cursor: loading ? 'not-allowed' : 'pointer',
         }}
       >
-        {loading ? 'Registering...' : 'Register'}
+        {loading ? 'Registering…' : 'Register'}
       </button>
       <div style={{ marginTop: '1rem', textAlign: 'center' }}>
         <p>

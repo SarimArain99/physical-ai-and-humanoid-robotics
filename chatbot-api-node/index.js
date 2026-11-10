@@ -8,7 +8,12 @@ import { fileURLToPath } from "url";
 import pg from "pg";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
+// --- Workstream C: cached AI rewrites (personalize/translate) ---
+import { contentCacheKey, getCachedContent, setCachedContent } from "./content-cache.js";
 import rateLimit from "express-rate-limit";
+// --- Workstream D (RAG): retrieval lives in retrieval.js; index.js only
+// wires it into the two chat handlers and /api/health. ---
+import { searchQdrant, buildGroundedSystemPrompt, FALLBACK_SYSTEM_PROMPT, getRagStatus } from "./retrieval.js";
 const { Pool } = pg;
 
 const app = express();
@@ -139,18 +144,16 @@ try {
   console.error("Failed to load textbook context:", error);
 }
 
-const SYSTEM_PROMPT = `You are the Physical AI & Humanoid Robotics Textbook Assistant. 
-You are helping students learn about ROS 2, Gazebo, NVIDIA Isaac, and VLA.
-Use the following textbook content as your ONLY source of truth:
-
-${textbookContext}
-
-CRITICAL RULES:
-1. You MUST ONLY answer questions related to the provided textbook content. If a user asks a question outside the scope of the textbook (like coding unrelated to the book, general knowledge, etc.), you must politely refuse to answer it and redirect them back to the course topics. Do NOT provide external knowledge.
-2. When answering, you MUST base your response strictly on the textbook content provided.
-3. You MUST explain the answer in a very easy, simple, and beginner-friendly way.
-4. You MUST include explicit references to the book (e.g., mentioning the specific topic, chapter, or file name from the context) to show exactly where the information came from.
-`;
+// --- Workstream D (RAG): the whole-book dump is gone. The old
+// SYSTEM_PROMPT embedded the entire textbook (~434 KB) in every session
+// and called that RAG — it was not retrieval, and it burned context on
+// every request. Sessions now store this short instruction; each chat
+// request builds its own grounded system prompt from the top-5 Qdrant
+// chunks (see buildGroundedSystemPrompt in retrieval.js), or falls back
+// to this prompt with grounded:false when Qdrant is unavailable.
+// textbookContext is still loaded below only for the /api/health
+// contextChars diagnostic — it is no longer sent to the model. ---
+const SYSTEM_PROMPT = FALLBACK_SYSTEM_PROMPT;
 
 async function getSessionHistory(sessionId) {
   // Ensure session exists
@@ -177,7 +180,16 @@ app.post("/api/chat", async (req, res) => {
   }
 
   const history = await getSessionHistory(session_id);
-  history.push({ role: "user", content: message });
+  // --- Workstream D (RAG): retrieve the top-5 chapter chunks, then
+  // answer ONLY from them. The stored session history's system message
+  // is dropped here — the per-request grounded prompt replaces it, so
+  // old sessions (which stored the whole-book dump) benefit too. ---
+  const retrieval = await searchQdrant(openai, message);
+  const messages = [
+    { role: "system", content: retrieval.available ? buildGroundedSystemPrompt(retrieval.sources) : FALLBACK_SYSTEM_PROMPT },
+    ...history.filter((m) => m.role !== "system"),
+    { role: "user", content: message },
+  ];
   await appendMessage(session_id, "user", message);
 
   try {
@@ -185,9 +197,14 @@ app.post("/api/chat", async (req, res) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
+    // First event is metadata, not answer text: grounded true/false,
+    // why (when falling back), and the sources the widget shows under
+    // the answer. The widget ignores it if it only reads content.
+    res.write(`data: ${JSON.stringify({ meta: { grounded: retrieval.available, retrieval: retrieval.available ? "qdrant" : "fallback", reason: retrieval.error || null, sources: retrieval.sources } })}\n\n`);
+
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: history,
+      messages,
       stream: true,
     });
 
@@ -221,7 +238,15 @@ app.post("/api/chat/selected", async (req, res) => {
   const history = await getSessionHistory(session_id);
   const prompt = `The user has highlighted the following text from the textbook:\n"${selected_text}"\n\nUser's Question:\n${message}`;
 
-  history.push({ role: "user", content: prompt });
+  // --- Workstream D (RAG): same retrieval as /api/chat, but the query
+  // is the question + the highlighted text, and the highlighted text is
+  // the primary context in the grounded prompt. ---
+  const retrieval = await searchQdrant(openai, `${message}\n${selected_text}`);
+  const messages = [
+    { role: "system", content: retrieval.available ? buildGroundedSystemPrompt(retrieval.sources, { selectedText: selected_text }) : FALLBACK_SYSTEM_PROMPT },
+    ...history.filter((m) => m.role !== "system"),
+    { role: "user", content: prompt },
+  ];
   await appendMessage(session_id, "user", prompt);
 
   try {
@@ -229,9 +254,12 @@ app.post("/api/chat/selected", async (req, res) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
+    // Metadata first (see /api/chat): grounded flag, reason, sources.
+    res.write(`data: ${JSON.stringify({ meta: { grounded: retrieval.available, retrieval: retrieval.available ? "qdrant" : "fallback", reason: retrieval.error || null, sources: retrieval.sources } })}\n\n`);
+
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: history,
+      messages,
       stream: true,
     });
 
@@ -269,51 +297,96 @@ const BATCH_DELIMITER_INSTRUCTION =
   "in the same order, with nothing added or removed. Do not merge passages and " +
   "do not add or remove markers.";
 
-app.post("/api/translate", async (req, res) => {
-  const { text, target_language = "Urdu" } = req.body;
-  
-  if (!text) {
-    return res.status(400).json({ error: "Missing text to translate" });
+// --- Workstream C: cached AI rewrites (personalize/translate) ---
+// Root cause of the ~7-minute Level rewrite: the frontend sent every
+// chunk sequentially AND the backend never used the content_cache table,
+// so each visit re-paid a full OpenAI call per chunk (and, when the
+// model dropped the [[[BREAK]]] markers, one call per paragraph).
+// This helper serves a cached chunk as SSE (same shape as a live
+// stream, so the frontend needs no special case) and stores a fresh
+// rewrite for the next visit. The cache never fails the request: a
+// DB error or timeout degrades to a normal OpenAI call. Only a
+// completed, non-empty stream is cached — the "Error connecting to AI"
+// text is never stored. One request still does one chunk only; the
+// frontend fans chunks out concurrently instead (see runChunked in
+// frontend/src/config/api.js), so no Vercel invocation does minutes
+// of work. X-Content-Cache reports HIT/MISS for debugging.
+// --- End Workstream C ---
+async function streamCachedOrGenerate(req, res, { kind, variant, page, text, systemPrompt, errorText }) {
+  const key = contentCacheKey({ kind, variant, page, text });
+  const cached = await getCachedContent(pool, key);
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  if (cached !== null) {
+    res.setHeader("X-Content-Cache", "HIT");
+    res.write(`data: ${JSON.stringify({ content: cached })}\n\n`);
+    res.write("data: [DONE]\n\n");
+    res.end();
+    return;
   }
 
-  const systemPrompt = `You are a professional technical translator. Translate the following educational text into natural, accurate ${target_language}. Preserve all formatting, technical terms (keep them in English if they don't have a direct common translation), and markdown structure. Provide ONLY the translated text, without any introductory conversational filler. ${BATCH_DELIMITER_INSTRUCTION}`;
-
+  res.setHeader("X-Content-Cache", "MISS");
   try {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: text }
+        { role: "user", content: text },
       ],
       stream: true,
       temperature: 0.3,
       max_tokens: 4096,
     });
 
+    let fullText = "";
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
       if (content) {
+        fullText += content;
         res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
     }
+
+    // Fire-and-forget is unsafe on serverless (code after res.end may
+    // not run), so await the write — it is capped at 2s inside the
+    // helper and never throws, so it cannot stall or fail the reply.
+    if (fullText.trim()) await setCachedContent(pool, key, fullText);
 
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (error) {
     console.error(error);
-    res.write(`data: ${JSON.stringify({ content: "Error connecting to AI for translation." })}\n\n`);
+    res.write(`data: ${JSON.stringify({ content: errorText })}\n\n`);
     res.write("data: [DONE]\n\n");
     res.end();
   }
+}
+
+app.post("/api/translate", async (req, res) => {
+  const { text, target_language = "Urdu", page } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: "Missing text to translate" });
+  }
+
+  const systemPrompt = `You are a professional technical translator. Translate the following educational text into natural, accurate ${target_language}. Preserve all formatting, technical terms (keep them in English if they don't have a direct common translation), and markdown structure. Provide ONLY the translated text, without any introductory conversational filler. ${BATCH_DELIMITER_INSTRUCTION}`;
+
+  await streamCachedOrGenerate(req, res, {
+    kind: "translate",
+    variant: target_language,
+    page,
+    text,
+    systemPrompt,
+    errorText: "Error connecting to AI for translation.",
+  });
 });
 
 app.post("/api/personalize", async (req, res) => {
-  const { text, level } = req.body;
-  
+  const { text, level, page } = req.body;
+
   if (!text || !level) {
     return res.status(400).json({ error: "Missing text or level" });
   }
@@ -327,37 +400,14 @@ app.post("/api/personalize", async (req, res) => {
     return res.status(400).json({ error: "Invalid level" });
   }
 
-  try {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: text }
-      ],
-      stream: true,
-      temperature: 0.3,
-      max_tokens: 4096,
-    });
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      if (content) {
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
-      }
-    }
-
-    res.write("data: [DONE]\n\n");
-    res.end();
-  } catch (error) {
-    console.error(error);
-    res.write(`data: ${JSON.stringify({ content: "Error connecting to AI for personalization." })}\n\n`);
-    res.write("data: [DONE]\n\n");
-    res.end();
-  }
+  await streamCachedOrGenerate(req, res, {
+    kind: "personalize",
+    variant: level,
+    page,
+    text,
+    systemPrompt,
+    errorText: "Error connecting to AI for personalization.",
+  });
 });
 
 app.post("/api/quiz", async (req, res) => {
@@ -458,13 +508,16 @@ app.get("/api/progress/:userId", async (req, res) => {
   }
 });
 
-// Cache Endpoints
+// Cache Endpoints — thin wrappers over the shared Workstream C helpers
+// in content-cache.js, so there is one code path for the table. Unlike
+// the translate/personalize handlers (where a cache failure must degrade
+// to a normal AI call), these endpoints keep their old contract: a DB
+// error is a 500, a missing key is a 404.
 app.get("/api/cache/:key", async (req, res) => {
   try {
-    const key = req.params.key;
-    const result = await pool.query(`SELECT content FROM content_cache WHERE key = $1`, [key]);
-    if (result.rows.length > 0) {
-      res.json({ content: result.rows[0].content });
+    const content = await getCachedContent(pool, req.params.key, { throwOnError: true });
+    if (content !== null) {
+      res.json({ content });
     } else {
       res.status(404).json({ error: "Cache miss" });
     }
@@ -477,11 +530,9 @@ app.post("/api/cache", async (req, res) => {
   try {
     const { key, content } = req.body;
     if (!key || !content) return res.status(400).json({ error: "Missing key or content" });
-    
-    await pool.query(
-      `INSERT INTO content_cache (key, content) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET content = EXCLUDED.content`,
-      [key, content]
-    );
+
+    const stored = await setCachedContent(pool, key, content, { throwOnError: true });
+    if (!stored) return res.status(500).json({ error: "Database error" });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Database error" });
@@ -499,6 +550,10 @@ app.get("/api/health", (req, res) => {
     contextChars: textbookContext.length,
     openai: process.env.OPENAI_API_KEY ? "configured" : "missing",
     model: "gpt-4o-mini",
+    // --- Workstream D (RAG): qdrant "configured" only when BOTH
+    // QDRANT_URL and QDRANT_API_KEY are set; "missing" lists which are
+    // absent. No values are ever returned. ---
+    rag: getRagStatus(),
   });
 });
 
@@ -511,6 +566,15 @@ const PORT = process.env.PORT || 8000;
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Node Chatbot API running on port ${PORT}`);
+    // --- Workstream D (RAG): fail loudly at startup when Qdrant is not
+    // configured — the chat still works, but ungrounded (see the
+    // fallback in the chat handlers). Never log a URL or a key. ---
+    const ragStatus = getRagStatus();
+    if (ragStatus.qdrant === "configured") {
+      console.log(`RAG (Qdrant): configured — collection "${ragStatus.collection}", top-${ragStatus.topK}, ${ragStatus.embeddingModel}.`);
+    } else {
+      console.error(`RAG (Qdrant): MISSING ${ragStatus.missing.join(" and ")} — chat will answer WITHOUT chapter retrieval (fallback mode). Set QDRANT_URL and QDRANT_API_KEY in the backend's Vercel env vars, then run node scripts/ingest.js.`);
+    }
   });
 }
 

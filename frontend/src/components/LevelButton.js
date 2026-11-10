@@ -12,11 +12,13 @@ import AuthModal from "./Auth/AuthModal";
 import { personalizeTexts } from "../config/api";
 import "./LevelButton.css";
 
-// The level a visitor last picked, kept on their own device. The pill is
-// otherwise driven by the account's stored proficiency on every load,
-// which made a fresh pick (e.g. back to Pro) vanish on reload — the
-// choice never stuck. A stored pick wins over the profile; with neither,
-// the original text ("pro") is the default.
+// The level a visitor last picked, kept on their own device. The pill's
+// default comes from the account's stored proficiency on the server
+// (AuthProvider reads it from the user row, never from localStorage
+// alone). A stored pick on this device wins over the server default;
+// with neither, the original text ("pro") is the default. A pick is also
+// saved back to the server, so the default follows the user to another
+// device instead of reverting on reload.
 const LEVEL_STORAGE_KEY = "physical-ai-level";
 const VALID_LEVELS = ["beginner", "intermediate", "pro"];
 
@@ -70,14 +72,39 @@ const ChevronDown = () => (
   </svg>
 );
 
-const LevelButtonContent = () => {
-  const { user } = useAuth();
+// Shown in place of the chevron while a rewrite is running: the pill
+// itself is the cancel control (tap it, or press Escape, to stop).
+const CancelIcon = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
+  const { user, updateProfile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(() => readStoredLevel() || "pro");
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // Honest progress: texts actually rewritten out of the total on the
+  // page — counts, never a percentage guessed from elapsed time.
+  // Workstream C: chunks run concurrently (see api.js runChunked).
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
   const dropdownRef = useRef(null);
+  // Workstream C: the in-flight rewrite, so tapping the pill or pressing
+  // Escape while it runs cancels it instead of opening the menu.
+  const abortRef = useRef(null);
 
   // Close the menu on Escape or on a click outside it.
   useEffect(() => {
@@ -98,8 +125,20 @@ const LevelButtonContent = () => {
     };
   }, [isOpen]);
 
-  // Load user's proficiency from profile on mount — only when they have
-  // never picked a level on this device; a stored pick wins.
+  // Workstream C: Escape while a rewrite is running cancels it.
+  useEffect(() => {
+    if (!loading) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") abortRef.current?.abort();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [loading]);
+
+  // Load the signed-in user's proficiency from the server on mount —
+  // only when they have never picked a level on this device; a stored
+  // pick wins. user.proficiency is the server value (AuthProvider), so
+  // the pill defaults to what the account actually holds.
   React.useEffect(() => {
     if (user && user.proficiency && !readStoredLevel()) {
       const proficiencyMap = {
@@ -113,8 +152,24 @@ const LevelButtonContent = () => {
     }
   }, [user]);
 
+  // Save an explicit pick to the account so it sticks on every device.
+  // Best effort: the pill already updated locally, and a failed save
+  // only means the server default stays as it was.
+  const persistLevelPick = (level) => {
+    if (!user) return;
+    updateProfile({ proficiency: level }).catch(() => {});
+  };
+
   const handleLevelSelect = async (level) => {
     setIsOpen(false);
+
+    // Docusaurus passes onClick to every navbar item in the mobile
+    // sidebar: it toggles the sidebar closed (desktop items get no
+    // onClick). Close the hamburger for every pick, so the page the
+    // level applies to — or the sign-in modal, which is portaled to
+    // document.body — is actually visible instead of sitting behind
+    // the open drawer. Before this the prop was silently dropped.
+    if (onNavbarItemClick) onNavbarItemClick();
 
     // SECURITY CHECK: Require Login
     if (!user) {
@@ -126,6 +181,12 @@ const LevelButtonContent = () => {
     if (level === "pro") {
       storeLevel("pro");
       if (currentLevel !== "pro") {
+        // Give the save a moment before the reload, but never block
+        // the reload on a slow network.
+        await Promise.race([
+          updateProfile({ proficiency: "pro" }),
+          new Promise((resolve) => setTimeout(resolve, 1000)),
+        ]).catch(() => {});
         window.location.reload();
       }
       return;
@@ -134,8 +195,34 @@ const LevelButtonContent = () => {
     // If Basic or Intermediate, call AI
     setCurrentLevel(level);
     storeLevel(level);
+    persistLevelPick(level);
     setLoading(true);
-    setProgress(0);
+    setProgress({ done: 0, total: 0 });
+
+    // Workstream C: one controller for the whole rewrite, so the pill
+    // (or Escape) can cancel every in-flight chunk request at once.
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // Declared here (not inside try) so the AbortError branch below can
+    // apply the finished chunks too.
+    const validElements = [];
+    const textsToAdjust = [];
+    const applyRewritten = (list) => {
+      let count = 0;
+      (list || []).forEach((content, idx) => {
+        const element = validElements[idx];
+        if (content && element) {
+          count += 1;
+          element.innerText = content;
+
+          // Mark adapted text with a hairline only: it keeps the
+          // page's own colour and alignment in both themes.
+          element.classList.add("level-rewritten");
+        }
+      });
+      return count;
+    };
 
     try {
       // Select content paragraphs (skipping code blocks)
@@ -145,9 +232,6 @@ const LevelButtonContent = () => {
       const elementsArray = Array.from(contentElements);
 
       // Filter valid elements and collect texts for batching
-      const validElements = [];
-      const textsToAdjust = [];
-
       for (const element of elementsArray) {
         const originalText = element.innerText;
         // Skip short text or code
@@ -165,24 +249,18 @@ const LevelButtonContent = () => {
       }
 
       // Rewrite a few elements per API call (the backend rewrites one text
-      // per call and rate-limits AI requests). Elements that could not be
-      // rewritten keep their original text.
-      const rewritten = await personalizeTexts(textsToAdjust, level, (pct) =>
-        setProgress(pct)
+      // per call and rate-limits AI requests). Chunks run concurrently
+      // with a bound of 4 (Workstream C) and cached chunks come back
+      // from Neon, so a repeat visit is near-instant. Elements that
+      // could not be rewritten keep their original text.
+      const rewritten = await personalizeTexts(
+        textsToAdjust,
+        level,
+        (done, totalCount) => setProgress({ done, total: totalCount }),
+        { signal: controller.signal }
       );
 
-      let rewrittenCount = 0;
-      rewritten.forEach((content, idx) => {
-        const element = validElements[idx];
-        if (content && element) {
-          rewrittenCount += 1;
-          element.innerText = content;
-
-          // Mark adapted text with a hairline only: it keeps the
-          // page's own colour and alignment in both themes.
-          element.classList.add("level-rewritten");
-        }
-      });
+      const rewrittenCount = applyRewritten(rewritten);
 
       if (rewrittenCount === 0) {
         alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
@@ -192,16 +270,31 @@ const LevelButtonContent = () => {
         return;
       }
     } catch (error) {
+      // Workstream C: a cancel is not a failure. Keep the picked level
+      // and apply the chunks that already finished (runChunked carries
+      // them on the error as partialResults) — finished work is not
+      // thrown away just because the user stopped the rest. Say
+      // nothing. Picking the level again resumes cheaply, because
+      // finished chunks are already cached server-side.
+      if (error?.name === "AbortError") {
+        applyRewritten(error.partialResults);
+        setLoading(false);
+        return;
+      }
       alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
       setCurrentLevel("pro");
       storeLevel("pro");
     } finally {
+      abortRef.current = null;
       setLoading(false);
     }
   };
 
   const getLabel = () => {
-    if (loading) return progress > 0 ? `${progress}%` : "Generating…";
+    // Workstream C: honest counts — texts rewritten out of the total on
+    // the page. No percentage: a percentage would imply steady progress
+    // against time, which chunked AI work does not have.
+    if (loading) return progress.total > 0 ? `${progress.done} of ${progress.total}` : "Generating…";
     if (currentLevel === "beginner") return "Basic";
     if (currentLevel === "intermediate") return "Intermediate";
     return "Pro";
@@ -217,14 +310,28 @@ const LevelButtonContent = () => {
     <div className="level-dropdown" ref={dropdownRef}>
       <button
         className={`navbar-btn navbar-btn--accent level-trigger ${loading ? "navbar-btn--loading" : ""}`}
-        onClick={() => !loading && setIsOpen(!isOpen)}
+        onClick={() => {
+          // Workstream C: while a rewrite is running the pill is the
+          // cancel control — tapping it stops every in-flight request.
+          if (loading) {
+            abortRef.current?.abort();
+            return;
+          }
+          setIsOpen(!isOpen);
+        }}
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        aria-label={loading ? "Cancel rewrite" : undefined}
+        title={loading ? "Rewriting — tap to cancel" : undefined}
       >
         <span className="level-icon"><LevelIcon /></span>
         <span className="navbar-btn__label">{getLabel()}</span>
         <span className={`level-dot ${getDotClass()}`} />
-        {!loading && <span className="level-chevron"><ChevronDown /></span>}
+        {loading ? (
+          <span className="level-chevron level-cancel"><CancelIcon /></span>
+        ) : (
+          <span className="level-chevron"><ChevronDown /></span>
+        )}
       </button>
 
       {isOpen && (
@@ -275,9 +382,11 @@ const LevelButtonContent = () => {
   );
 };
 
-const LevelButton = () => {
+const LevelButton = (props) => {
   return (
-    <BrowserOnly fallback={null}>{() => <LevelButtonContent />}</BrowserOnly>
+    <BrowserOnly fallback={null}>
+      {() => <LevelButtonContent {...props} />}
+    </BrowserOnly>
   );
 };
 

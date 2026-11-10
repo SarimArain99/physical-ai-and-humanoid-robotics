@@ -7,6 +7,8 @@ const Register = ({ onSwitchToLogin, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [proficiency, setProficiency] = useState("beginner");
+  const [softwareBg, setSoftwareBg] = useState("");
+  const [hardwareBg, setHardwareBg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +17,11 @@ const Register = ({ onSwitchToLogin, onClose }) => {
     setError("");
     setLoading(true);
 
-    const result = await register(email, name, password, proficiency);
+    const result = await register(email, name, password, {
+      proficiency,
+      softwareBg,
+      hardwareBg,
+    });
 
     if (result.success) {
       onClose();
@@ -33,9 +39,11 @@ const Register = ({ onSwitchToLogin, onClose }) => {
 
       <form onSubmit={handleSubmit}>
         <div className="auth-input-group">
-          <label>Full Name</label>
+          <label htmlFor="register-name">Full Name</label>
           <input
+            id="register-name"
             type="text"
+            autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -44,9 +52,11 @@ const Register = ({ onSwitchToLogin, onClose }) => {
         </div>
 
         <div className="auth-input-group">
-          <label>Email</label>
+          <label htmlFor="register-email">Email</label>
           <input
+            id="register-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -55,19 +65,23 @@ const Register = ({ onSwitchToLogin, onClose }) => {
         </div>
 
         <div className="auth-input-group">
-          <label>Password</label>
+          <label htmlFor="register-password">Password</label>
           <input
+            id="register-password"
             type="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={8}
             placeholder="••••••••"
           />
         </div>
 
         <div className="auth-input-group">
-          <label>Proficiency Level</label>
+          <label htmlFor="register-proficiency">Proficiency Level</label>
           <select
+            id="register-proficiency"
             value={proficiency}
             onChange={(e) => setProficiency(e.target.value)}
             className="auth-select"
@@ -76,6 +90,37 @@ const Register = ({ onSwitchToLogin, onClose }) => {
             <option value="intermediate">Intermediate (Student)</option>
             <option value="pro">Pro (Researcher)</option>
           </select>
+        </div>
+
+        <div className="auth-section">
+          <h3>Your background <span className="auth-optional">Optional</span></h3>
+          <p className="auth-section-note">So we can personalise the chapters for you.</p>
+
+          <div className="auth-input-group">
+            <label htmlFor="register-software-bg">Software background</label>
+            <input
+              id="register-software-bg"
+              type="text"
+              autoComplete="off"
+              value={softwareBg}
+              onChange={(e) => setSoftwareBg(e.target.value)}
+              maxLength={200}
+              placeholder="e.g. Python, or new to coding"
+            />
+          </div>
+
+          <div className="auth-input-group">
+            <label htmlFor="register-hardware-bg">Hardware access</label>
+            <input
+              id="register-hardware-bg"
+              type="text"
+              autoComplete="off"
+              value={hardwareBg}
+              onChange={(e) => setHardwareBg(e.target.value)}
+              maxLength={200}
+              placeholder="e.g. Laptop, or no hardware yet"
+            />
+          </div>
         </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>
@@ -92,18 +137,24 @@ const Register = ({ onSwitchToLogin, onClose }) => {
         </p>
       </div>
 
-      {/* 🟢 EMBEDDED STYLES (Reusing same styles as Login + Select style) */}
+      {/* Embedded styles (same styles as Login, plus the select style) */}
       <style>{`
-        .auth-form-container h2 { margin-top: 0; margin-bottom: 20px; color: #fff; text-align: center; }
+        .auth-form-container h2 { margin-top: 0; margin-bottom: 16px; color: #fff; text-align: center; }
         .auth-error { background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-size: 14px; }
-        .auth-input-group { margin-bottom: 1.2rem; }
+        .auth-input-group { margin-bottom: 1rem; }
         .auth-input-group label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; font-weight: 500; }
         .auth-input-group input, .auth-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: white; font-size: 16px; }
-        .auth-input-group input:focus, .auth-select:focus { border-color: #2ECC71; outline: none; }
-        .auth-submit-btn { width: 100%; padding: 12px; background-color: #2ECC71; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .auth-input-group input:focus, .auth-select:focus, .auth-input-group input:focus-visible, .auth-select:focus-visible { border-color: #2ECC71; outline: none; }
+        .auth-section { margin-top: 4px; padding-top: 12px; border-top: 1px solid #334155; }
+        .auth-section h3 { margin: 0 0 4px; color: #fff; font-size: 16px; font-weight: 600; }
+        .auth-section-note { margin: 0 0 12px; color: #94a3b8; font-size: 14px; }
+        .auth-optional { color: #94a3b8; font-size: 12px; font-weight: 500; }
+        .auth-submit-btn { width: 100%; padding: 12px; background-color: #2ECC71; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 8px; }
         .auth-submit-btn:hover { background-color: #22c55e; }
+        .auth-submit-btn:active { transform: scale(0.98); }
         .auth-submit-btn:disabled { opacity: 0.7; }
-        .auth-footer { margin-top: 2rem; text-align: center; font-size: 14px; color: #94a3b8; }
+        .auth-submit-btn:focus-visible, .auth-link-btn:focus-visible { outline: 2px solid #2ECC71; outline-offset: 2px; }
+        .auth-footer { margin-top: 1.2rem; text-align: center; font-size: 14px; color: #94a3b8; }
         .auth-link-btn { background: none; border: none; color: #2ECC71; cursor: pointer; font-weight: bold; padding: 0 4px; }
       `}</style>
     </div>
