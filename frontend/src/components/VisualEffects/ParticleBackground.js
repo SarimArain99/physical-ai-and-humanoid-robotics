@@ -12,7 +12,7 @@ import './styles.css';
  * - Efficient rendering
  */
 
-export function ParticleBackground({ count = 50, color = 'rgba(46, 204, 113, 0.5)' }) {
+export function ParticleBackground({ count = 50, color = 'rgba(88, 166, 255, 0.5)' }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const particlesRef = useRef([]);

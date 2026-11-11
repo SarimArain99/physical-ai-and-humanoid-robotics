@@ -166,7 +166,12 @@ const config: Config = {
     },
     prism: {
       theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      // GitHub Dark (3A): code-block body is #010409, one step darker
+      // than the page — dracula's own #282A36 is kept for nothing else.
+      darkTheme: {
+        ...prismThemes.dracula,
+        plain: { ...prismThemes.dracula.plain, backgroundColor: "#010409" },
+      },
     },
   } satisfies Preset.ThemeConfig,
 };

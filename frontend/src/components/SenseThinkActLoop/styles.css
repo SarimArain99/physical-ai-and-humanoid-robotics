@@ -1,4 +1,4 @@
-/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · redesign: full · genre: modern-minimal · theme: GitHub Dark (3A) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * SenseThinkActLoop styles — the hero diagram.
@@ -55,7 +55,9 @@
 }
 
 .loop-pulse {
-  fill: var(--module-primary);
+  /* Signal orange: the one moving mark in the diagram is the
+     "pay attention" accent; the nodes and arrows stay blue. */
+  fill: var(--color-secondary);
   offset-path: path('M 320 70 L 500 260 L 140 260 Z');
   animation: loop-travel 6s linear infinite;
 }

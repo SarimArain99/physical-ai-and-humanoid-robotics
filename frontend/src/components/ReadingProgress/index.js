@@ -102,13 +102,13 @@ export default function ReadingProgress({
 
   const barStyle = {
     height: `${height}px`,
-    backgroundColor: color || 'var(--progress-color, var(--module-primary, #2ECC71))'
+    backgroundColor: color || 'var(--progress-color, var(--module-primary, #58A6FF))'
   };
 
   const fillStyle = {
     width: animationsEnabled ? `${progress}%` : '100%',
     transition: animationsEnabled ? 'width 0.1s linear' : 'none',
-    backgroundColor: color || 'var(--progress-color, var(--module-primary, #2ECC71))'
+    backgroundColor: color || 'var(--progress-color, var(--module-primary, #58A6FF))'
   };
 
   return (

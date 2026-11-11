@@ -1,4 +1,4 @@
-/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · redesign: full · genre: modern-minimal · theme: GitHub Dark (3A) · user palette (GitHub Dark blue/orange) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
 /**
  * Design Tokens & Theme CSS
@@ -6,27 +6,27 @@
  * Task: T007
  *
  * Contains module colors, spacing scale, and visual design tokens.
- * One palette only: white / sea-green / black. Module accents are
- * shades of the same sea-green, never the old orange/teal/purple/red
- * set. Every colour below lives in a token; nothing outside the
- * token blocks below uses a literal colour.
+ * One palette only: GitHub Dark (blue #58A6FF + signal orange
+ * #F0883E on #0D1117). Module accents are shades of the same blue
+ * family, never the old green/teal set. Every colour below lives in
+ * a token; nothing outside the token blocks below uses a literal colour.
  */
 
 /* ============================================
-   MODULE ACCENT COLORS — one green family
+   MODULE ACCENT COLORS — one blue family
    ============================================ */
 
 :root {
-  /* Default Brand - Green */
-  --module-primary: #177245;
-  --module-accent: #1f9260;
-  --module-light: #d9f2e6;
-  --module-dark: #0d452a;
+  /* Default Brand - Blue */
+  --module-primary: #0969DA;
+  --module-accent: #218BFF;
+  --module-light: #DDF1FF;
+  --module-dark: #0550AE;
 }
 
 /* Per-module accents remap only --module-primary to the module token
    (the module tokens below are theme-aware). Accent, light and dark
-   stay the default green: the level dots distinguish levels, not
+   stay the default blue: the level dots distinguish levels, not
    modules. data-module lives on <body>. */
 [data-module="ros2"] {
   --module-primary: var(--module-ros2);
@@ -47,10 +47,10 @@
 /* Dark theme: module accents brighten so fills and dots read on
    near-black. */
 html[data-theme="dark"] {
-  --module-primary: #2ecc71;
-  --module-accent: #22c55e;
-  --module-light: #a3fad9;
-  --module-dark: #25b365;
+  --module-primary: #58A6FF;
+  --module-accent: #79B8FF;
+  --module-light: #A5D6FF;
+  --module-dark: #388BFD;
 }
 
 /* ============================================
@@ -87,50 +87,98 @@ body.theme-transitioning *::after {
 :root {
   /* Base Colors */
   --color-bg-primary: #ffffff;
-  --color-bg-surface: #f6f8f7;
+  --color-bg-surface: #F6F8FA;
   --color-bg-elevated: #ffffff;
-  --color-bg-tertiary: #eef1ee;
-  --color-text-primary: #101613;
-  --color-text-secondary: #4b534e;
-  --color-text-tertiary: #6b736d;
-  --color-text-muted: #98a099;
+  --color-bg-tertiary: #EAEEF2;
+  --color-text-primary: #1F2328;
+  --color-text-secondary: #57606A;
+  --color-text-tertiary: #6E7781;
+  --color-text-muted: #656D76;
 
   /* Ink for text sitting on the accent fill (buttons, badges) */
-  --color-accent: #177245;
-  --color-accent-dark: #13603a;
+  --color-accent: #0969DA;
+  --color-accent-dark: #0550AE;
   --color-accent-ink: #ffffff;
   --color-on-accent: #ffffff;
 
+  /* Secondary accent (signal orange) — fills and graphic marks only,
+     never body text on a light ground. Dark text on it is 7.5:1. */
+  --color-secondary: #C2410C;
+
   /* UI Colors */
-  --color-border: #e2e8e4;
-  --color-border-light: #edf1ee;
-  --color-divider: #edf1ee;
+  --color-border: #D0D7DE;
+  --color-border-light: #EAEEF2;
+  --color-divider: #EAEEF2;
 
   /* Status Colors */
-  --color-success: #177245;
-  --color-warning: #b45309;
-  --color-error: #b91c1c;
+  --color-success: #1A7F37;
+  --color-warning: #9A6700;
+  --color-error: #D1242F;
   --color-error-ink: #ffffff;
   --color-info: #1d4ed8;
 
   /* Overlay Colors */
-  --color-overlay: rgba(16, 22, 19, 0.5);
+  --color-overlay: rgba(31, 35, 40, 0.5);
   --color-overlay-light: rgba(255, 255, 255, 0.1);
 
   /* Focus ring and accent elevation (offset shadows, never glows) */
-  --color-focus-ring: rgba(23, 114, 69, 0.25);
-  --shadow-accent: 0 8px 24px rgba(23, 114, 69, 0.18);
+  --color-focus-ring: rgba(9, 105, 218, 0.25);
+  --shadow-accent: 0 8px 24px rgba(9, 105, 218, 0.18);
 
   /* Per-module accents (same green family as the [data-module] blocks) */
-  --module-ros2: #1b7a4b;
-  --module-digitalTwin: #177245;
-  --module-isaac: #14603a;
-  --module-vla: #0d5c33;
-  --module-primary-bg: rgba(23, 114, 69, 0.08);
+  --module-ros2: #0969DA;
+  --module-digitalTwin: #1F6FEB;
+  --module-isaac: #0550AE;
+  --module-vla: #218BFF;
+  --module-primary-bg: rgba(9, 105, 218, 0.08);
 
   /* Success/error tints for quiz feedback */
-  --color-success-bg: rgba(23, 114, 69, 0.12);
-  --color-error-bg: rgba(185, 28, 28, 0.08);
+  --color-success-bg: rgba(26, 127, 55, 0.12);
+  --color-error-bg: rgba(209, 36, 47, 0.08);
+
+  /* Auth input edge: the #ccc border on dark auth fields (login /
+     register pages). The value is the token; the pages reference it. */
+  --color-border-input: #CCCCCC;
+
+  /* Glow shadow (VisualEffects) and per-module glow colours */
+  --glow-md: 0 0 20px rgba(88, 166, 255, 0.5);
+  --glow-ros2: rgba(255, 107, 53, 0.5);
+  --glow-digitalTwin: rgba(88, 166, 255, 0.5);
+  --glow-isaac: rgba(168, 85, 247, 0.5);
+  --glow-vla: rgba(255, 8, 68, 0.5);
+
+  /* Reading-progress module colours (categorical fills, labelled by
+     module name elsewhere — never body text, never the brand) */
+  --progress-ros2: #FF6B35;
+  --progress-ros2-end: #FF8C5A;
+  --progress-digitalTwin: #58A6FF;
+  --progress-digitalTwin-end: #79B8FF;
+  --progress-isaac: #A855F7;
+  --progress-isaac-end: #C084FC;
+  --progress-vla: #FF0844;
+  --progress-vla-end: #FF4D6D;
+
+  /* Auth input edge: the #ccc border on dark auth fields (login /
+     register pages). The value is the token; the pages reference it. */
+  --color-border-input: #CCCCCC;
+
+  /* Glow shadow (VisualEffects) and per-module glow colours */
+  --glow-md: 0 0 20px rgba(88, 166, 255, 0.5);
+  --glow-ros2: rgba(255, 107, 53, 0.5);
+  --glow-digitalTwin: rgba(88, 166, 255, 0.5);
+  --glow-isaac: rgba(168, 85, 247, 0.5);
+  --glow-vla: rgba(255, 8, 68, 0.5);
+
+  /* Reading-progress module colours (categorical fills, labelled by
+     module name elsewhere — never body text, never the brand) */
+  --progress-ros2: #FF6B35;
+  --progress-ros2-end: #FF8C5A;
+  --progress-digitalTwin: #58A6FF;
+  --progress-digitalTwin-end: #79B8FF;
+  --progress-isaac: #A855F7;
+  --progress-isaac-end: #C084FC;
+  --progress-vla: #FF0844;
+  --progress-vla-end: #FF4D6D;
 
   /* Text shadow for diagram labels */
   --color-text-shadow: rgba(0, 0, 0, 0.3);
@@ -138,51 +186,54 @@ body.theme-transitioning *::after {
 
 html[data-theme="dark"] {
   /* Base Colors */
-  --color-bg-primary: #0a0f0c;
-  --color-bg-surface: #101713;
-  --color-bg-elevated: #16211b;
-  --color-bg-tertiary: #1d2b23;
-  --color-text-primary: #ebedea;
-  --color-text-secondary: #a6ada8;
-  --color-text-tertiary: #7e867f;
-  --color-text-muted: #5c655e;
+  --color-bg-primary: #0D1117;
+  --color-bg-surface: #161B22;
+  --color-bg-elevated: #1C2128;
+  --color-bg-tertiary: #21262D;
+  --color-text-primary: #E6EDF3;
+  --color-text-secondary: #C9D1D9;
+  --color-text-tertiary: #8B949E;
+  --color-text-muted: #6E7781;
 
   /* Ink for text sitting on the accent fill */
-  --color-accent: #2ecc71;
-  --color-accent-dark: #27ad72;
-  --color-accent-ink: #0a0f0c;
-  --color-on-accent: #0a0f0c;
+  --color-accent: #58A6FF;
+  --color-accent-dark: #388BFD;
+  --color-accent-ink: #0D1117;
+  --color-on-accent: #0D1117;
+
+  /* Secondary accent (signal orange) — fills and graphic marks only. */
+  --color-secondary: #F0883E;
 
   /* UI Colors */
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-light: rgba(255, 255, 255, 0.12);
-  --color-divider: rgba(255, 255, 255, 0.06);
+  --color-border: #30363D;
+  --color-border-light: #484F58;
+  --color-divider: #21262D;
 
   /* Status Colors */
-  --color-success: #2ecc71;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+  --color-success: #3FB950;
+  --color-warning: #D29922;
+  --color-error: #F85149;
   --color-error-ink: #ffffff;
-  --color-info: #60a5fa;
+  --color-info: #79C0FF;
 
   /* Overlay Colors */
   --color-overlay: rgba(0, 0, 0, 0.5);
   --color-overlay-light: rgba(255, 255, 255, 0.1);
 
   /* Focus ring and accent elevation */
-  --color-focus-ring: rgba(46, 204, 113, 0.3);
-  --shadow-accent: 0 8px 24px rgba(46, 204, 113, 0.25);
+  --color-focus-ring: rgba(88, 166, 255, 0.3);
+  --shadow-accent: 0 8px 24px rgba(88, 166, 255, 0.25);
 
   /* Per-module accents (same green family as the [data-module] blocks) */
-  --module-ros2: #34d399;
-  --module-digitalTwin: #4ade80;
-  --module-isaac: #27ad72;
-  --module-vla: #1f9260;
-  --module-primary-bg: rgba(46, 204, 113, 0.12);
+  --module-ros2: #79B8FF;
+  --module-digitalTwin: #A5D6FF;
+  --module-isaac: #58A6FF;
+  --module-vla: #388BFD;
+  --module-primary-bg: rgba(88, 166, 255, 0.12);
 
   /* Success/error tints for quiz feedback */
-  --color-success-bg: rgba(46, 204, 113, 0.15);
-  --color-error-bg: rgba(239, 68, 68, 0.15);
+  --color-success-bg: rgba(63, 185, 80, 0.15);
+  --color-error-bg: rgba(248, 81, 73, 0.15);
 
   /* Text shadow for diagram labels */
   --color-text-shadow: rgba(0, 0, 0, 0.3);
@@ -316,23 +367,23 @@ html[data-theme="dark"] {
 :root {
   --chat-accent: var(--module-primary);
   --chat-bg-primary: #ffffff;
-  --chat-bg-surface: #f6f8f7;
-  --chat-bubble-user: #177245;
+  --chat-bg-surface: #F6F8FA;
+  --chat-bubble-user: #0969DA;
   --chat-bubble-user-text: #ffffff;
-  --chat-bubble-bot: #eef1ee;
-  --chat-bubble-bot-text: #101613;
-  --chat-border: #e2e8e4;
+  --chat-bubble-bot: #F6F8FA;
+  --chat-bubble-bot-text: #1F2328;
+  --chat-border: #D0D7DE;
 }
 
 /* Chat Colors — dark */
 html[data-theme="dark"] {
-  --chat-bg-primary: #101713;
-  --chat-bg-surface: #0a0f0c;
-  --chat-bubble-user: #2ecc71;
-  --chat-bubble-user-text: #0a0f0c;
-  --chat-bubble-bot: #16211b;
-  --chat-bubble-bot-text: #ebedea;
-  --chat-border: rgba(255, 255, 255, 0.08);
+  --chat-bg-primary: #161B22;
+  --chat-bg-surface: #0D1117;
+  --chat-bubble-user: #58A6FF;
+  --chat-bubble-user-text: #0D1117;
+  --chat-bubble-bot: #21262D;
+  --chat-bubble-bot-text: #E6EDF3;
+  --chat-border: #30363D;
 }
 
 /* ============================================

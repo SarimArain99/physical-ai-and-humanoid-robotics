@@ -94,15 +94,15 @@ const AuthModalContent = ({ isOpen, onClose }) => {
 
       {/* EMBEDDED STYLES */}
       <style>{`
-        /* Hallmark · scope: component · genre: modern-minimal · theme: user palette (white/sea-green/black) · job: sign in / create account · states: 8 · contrast: pass · v2.0.0 */
+        /* Hallmark · scope: component · genre: modern-minimal · theme: GitHub Dark (3A) · job: sign in / create account · states: 8 · contrast: pass · v2.0.0 */
         /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: H, the form must hold every field at 375px; capped height with internal scroll keeps the tall register form reachable */
         /* Hallmark · dismissed 29 · the dimmed backdrop blur is the modal glass Muhammad's taste profile asks for on the floating layer */
-        /* Hallmark · answered F24 · the sea-green hairline is the modal edge on the near-black backdrop, and the shadow lifts the panel off the dimmed page */
+        /* Hallmark · answered F24 · the blue hairline is the modal edge on the near-black backdrop, and the shadow lifts the panel off the dimmed page */
         :root {
           --auth-modal-backdrop: rgba(0, 0, 0, 0.85);
           --auth-modal-bg: #1E2A38;
           --auth-modal-shadow: rgba(0, 0, 0, 0.5);
-          --auth-modal-edge: #2ECC71;
+          --auth-modal-edge: #58A6FF;
           --auth-modal-muted: #94a3b8;
           --auth-modal-text: #ffffff;
         }

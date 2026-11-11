@@ -144,18 +144,18 @@ const Register = ({ onSwitchToLogin, onClose }) => {
         .auth-input-group { margin-bottom: 1rem; }
         .auth-input-group label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; font-weight: 500; }
         .auth-input-group input, .auth-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: white; font-size: 16px; }
-        .auth-input-group input:focus, .auth-select:focus, .auth-input-group input:focus-visible, .auth-select:focus-visible { border-color: #2ECC71; outline: none; }
+        .auth-input-group input:focus, .auth-select:focus, .auth-input-group input:focus-visible, .auth-select:focus-visible { border-color: #58A6FF; outline: none; }
         .auth-section { margin-top: 4px; padding-top: 12px; border-top: 1px solid #334155; }
         .auth-section h3 { margin: 0 0 4px; color: #fff; font-size: 16px; font-weight: 600; }
         .auth-section-note { margin: 0 0 12px; color: #94a3b8; font-size: 14px; }
         .auth-optional { color: #94a3b8; font-size: 12px; font-weight: 500; }
-        .auth-submit-btn { width: 100%; padding: 12px; background-color: #2ECC71; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 8px; }
-        .auth-submit-btn:hover { background-color: #22c55e; }
+        .auth-submit-btn { width: 100%; padding: 12px; background-color: #58A6FF; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 8px; }
+        .auth-submit-btn:hover { background-color: #388BFD; }
         .auth-submit-btn:active { transform: scale(0.98); }
         .auth-submit-btn:disabled { opacity: 0.7; }
-        .auth-submit-btn:focus-visible, .auth-link-btn:focus-visible { outline: 2px solid #2ECC71; outline-offset: 2px; }
+        .auth-submit-btn:focus-visible, .auth-link-btn:focus-visible { outline: 2px solid #58A6FF; outline-offset: 2px; }
         .auth-footer { margin-top: 1.2rem; text-align: center; font-size: 14px; color: #94a3b8; }
-        .auth-link-btn { background: none; border: none; color: #2ECC71; cursor: pointer; font-weight: bold; padding: 0 4px; }
+        .auth-link-btn { background: none; border: none; color: #58A6FF; cursor: pointer; font-weight: bold; padding: 0 4px; }
       `}</style>
     </div>
   );

@@ -1,3 +1,4 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: GitHub Dark (3A) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: visual effects · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /**
  * VisualEffects Component Styles
  * Feature: 002-ui-improvements
@@ -126,7 +127,7 @@
 }
 
 .glow-on-scroll.visible {
-  box-shadow: var(--glow-md, 0 0 20px rgba(46, 204, 113, 0.5));
+  box-shadow: var(--glow-md);
 }
 
 /* Magnetic Hover Effect */
@@ -164,7 +165,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    var(--color-overlay-light) 50%,
     transparent 100%
   );
   animation: shimmer 1.5s infinite;
@@ -183,11 +184,11 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 5px var(--module-primary, #2ECC71);
+    box-shadow: 0 0 5px var(--module-primary, var(--ifm-color-primary));
   }
   50% {
-    box-shadow: 0 0 20px var(--module-primary, #2ECC71),
-                0 0 30px var(--module-primary, #2ECC71);
+    box-shadow: 0 0 20px var(--module-primary, var(--ifm-color-primary)),
+                0 0 30px var(--module-primary, var(--ifm-color-primary));
   }
 }
 
@@ -209,7 +210,7 @@
 .typewriter {
   overflow: hidden;
   white-space: nowrap;
-  border-right: 2px solid var(--module-primary, #2ECC71);
+  border-right: 2px solid var(--module-primary, var(--ifm-color-primary));
   animation: typing 3s steps(40) 1s forwards, blink 0.75s step-end infinite;
 }
 
@@ -241,7 +242,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--color-bg-surface, #151E29);
+  background: var(--color-bg-surface);
   transform: translateX(-101%);
   transition: transform var(--duration-slow, 500ms) var(--ease-out, ease-out);
 }
@@ -306,17 +307,17 @@
 
 /* Module-specific glow effects */
 [data-module='ros2'] .glow-on-scroll.visible {
-  box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+  box-shadow: 0 0 20px var(--glow-ros2);
 }
 
 [data-module='digitalTwin'] .glow-on-scroll.visible {
-  box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+  box-shadow: 0 0 20px var(--glow-digitalTwin);
 }
 
 [data-module='isaac'] .glow-on-scroll.visible {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px var(--glow-isaac);
 }
 
 [data-module='vla'] .glow-on-scroll.visible {
-  box-shadow: 0 0 20px rgba(255, 8, 68, 0.5);
+  box-shadow: 0 0 20px var(--glow-vla);
 }

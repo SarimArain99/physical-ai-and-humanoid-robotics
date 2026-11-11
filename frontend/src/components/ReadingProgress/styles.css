@@ -1,3 +1,4 @@
+/* Hallmark · redesign: full · genre: modern-minimal · theme: GitHub Dark (3A) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: reading progress · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /**
  * Reading Progress Styles
  * Feature: 002-ui-improvements
@@ -17,9 +18,9 @@
 
 .reading-progress-fill {
   height: 100%;
-  background-color: var(--progress-color, var(--module-primary, #2ECC71));
+  background-color: var(--progress-color, var(--module-primary, var(--ifm-color-primary)));
   transition: width 0.1s linear;
-  box-shadow: 0 0 10px var(--module-primary, #2ECC71)40;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--module-primary, var(--ifm-color-primary)) 25%, transparent);
 }
 
 /* Progress label (optional) */
@@ -84,42 +85,42 @@
 /* Module-specific progress bar colors */
 [data-module="ros2"] .reading-progress-fill,
 [data-module="ros2"] .course-progress-fill {
-  background-color: #FF6B35;
-  box-shadow: 0 0 10px #FF6B3540;
+  background-color: var(--progress-ros2);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--progress-ros2) 25%, transparent);
 }
 
 [data-module="ros2"] .course-progress-fill {
-  background: linear-gradient(90deg, #FF6B35, #FF8C5A);
+  background: linear-gradient(90deg, var(--progress-ros2), var(--progress-ros2-end));
 }
 
 [data-module="digitalTwin"] .reading-progress-fill,
 [data-module="digitalTwin"] .course-progress-fill {
-  background-color: #4ECDC4;
-  box-shadow: 0 0 10px #4ECDC440;
+  background-color: var(--progress-digitalTwin);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--progress-digitalTwin) 25%, transparent);
 }
 
 [data-module="digitalTwin"] .course-progress-fill {
-  background: linear-gradient(90deg, #4ECDC4, #7EDDD6);
+  background: linear-gradient(90deg, var(--progress-digitalTwin), var(--progress-digitalTwin-end));
 }
 
 [data-module="isaac"] .reading-progress-fill,
 [data-module="isaac"] .course-progress-fill {
-  background-color: #A855F7;
-  box-shadow: 0 0 10px #A855F740;
+  background-color: var(--progress-isaac);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--progress-isaac) 25%, transparent);
 }
 
 [data-module="isaac"] .course-progress-fill {
-  background: linear-gradient(90deg, #A855F7, #C084FC);
+  background: linear-gradient(90deg, var(--progress-isaac), var(--progress-isaac-end));
 }
 
 [data-module="vla"] .reading-progress-fill,
 [data-module="vla"] .course-progress-fill {
-  background-color: #FF0844;
-  box-shadow: 0 0 10px #FF084440;
+  background-color: var(--progress-vla);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--progress-vla) 25%, transparent);
 }
 
 [data-module="vla"] .course-progress-fill {
-  background: linear-gradient(90deg, #FF0844, #FF4D6D);
+  background: linear-gradient(90deg, var(--progress-vla), var(--progress-vla-end));
 }
 
 /* Thicker progress bar variant */

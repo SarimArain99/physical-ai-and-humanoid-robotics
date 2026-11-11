@@ -56,7 +56,7 @@ export default function VisualEffects({
   enableParticles = true,
   enableScrollAnimations = true,
   particleCount = 'auto',
-  particleColor = 'rgba(46, 204, 113, 0.5)'
+  particleColor = 'rgba(88, 166, 255, 0.5)'
 }) {
   const [performanceLevel, setPerformanceLevel] = useState('medium');
   const [reducedMotion, setReducedMotion] = useState(false);

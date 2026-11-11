@@ -1,5 +1,6 @@
-/* Hallmark · redesign: full · genre: modern-minimal · theme: user palette (white/sea-green/black) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
+/* Hallmark · redesign: full · genre: modern-minimal · theme: GitHub Dark (3A) · user palette (GitHub Dark blue/orange) · hero: Corridor · nav: docs · footer: links · posture: restrained · job: start reading the book · shape: long document · states: 8 · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, split hero must hold headline, sentence, actions and loop at 1280x800; kept the loop compact and the headline to six words */
+/* Hallmark · waive 26b · the profile page has no disabled button and no aria-disabled anywhere · profile actions are always available so no disabled style exists */
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
@@ -8,22 +9,22 @@
  * This file owns the full light/dark token set. Dark mode was broken
  * because only a few Infima vars were set and components hardcoded
  * light colours; every surface below reads from these tokens, in
- * both themes. Greens are green-tinted (never pure neutrals) and
+ * both themes. Neutrals are blue-grey (GitHub Primer) and
  * text pairs hold at least 4.5:1 in both themes.
  */
 
 /* 1. LIGHT MODE (Default) */
 :root {
-  /* Brand Color (Deep Green) — darkened on purpose: the old #2ecc71
-     fails contrast as link/body text on white (~2.2:1). This scale
-     keeps the green identity while links read at ~4.6:1. */
-  --ifm-color-primary: #177245;
-  --ifm-color-primary-dark: #13603a;
-  --ifm-color-primary-darker: #115533;
-  --ifm-color-primary-darkest: #0d452a;
-  --ifm-color-primary-light: #1f9260;
-  --ifm-color-primary-lighter: #27ad72;
-  --ifm-color-primary-lightest: #4cc38a;
+  /* Brand Color (GitHub blue) — the dark #58A6FF accent fails on white
+     (~2.5:1), so light mode uses the darker GitHub blue #0969DA, which
+     reads as link text at 5.2:1 and as a button fill with a white label. */
+  --ifm-color-primary: #0969DA;
+  --ifm-color-primary-dark: #0550AE;
+  --ifm-color-primary-darker: #044289;
+  --ifm-color-primary-darkest: #033561;
+  --ifm-color-primary-light: #218BFF;
+  --ifm-color-primary-lighter: #54AEFF;
+  --ifm-color-primary-lightest: #80CCFF;
 
   --ifm-code-font-size: 95%;
 
@@ -33,74 +34,76 @@
 
   /* Light Mode Specifics */
   --ifm-background-color: #ffffff; /* White Background */
-  --ifm-background-surface-color: #f6f8f7; /* Light Gray-Green for cards */
-  --ifm-font-color-base: #101613; /* Near-Black Text for readability */
-  --ifm-heading-color: #101613;
+  --ifm-background-surface-color: #F6F8FA; /* Surface / cards */
+  --ifm-font-color-base: #1F2328; /* Near-Black Text for readability */
+  --ifm-heading-color: #1F2328;
   --ifm-navbar-background-color: #ffffff;
-  --ifm-footer-background-color: #f5f6f7;
+  --ifm-footer-background-color: #F6F8FA;
   --ifm-card-background-color: #ffffff;
-  --ifm-table-stripe-background: #f6f8f7;
-  --ifm-code-background: #eef1ee;
-  --ifm-toc-border-color: #e2e8e4;
-  --ifm-menu-color: #414a43;
-  --ifm-menu-color-active: #177245;
-  --ifm-menu-color-background-active: rgba(23, 114, 69, 0.08);
-  --ifm-menu-color-background-hover: #eef1ee;
-  --ifm-link-color: #177245;
+  --ifm-table-stripe-background: #F6F8FA;
+  --ifm-code-background: #EFF1F3;
+  --ifm-toc-border-color: #D0D7DE;
+  --ifm-menu-color: #656D76;
+  --ifm-menu-color-active: #0969DA;
+  --ifm-menu-color-background-active: rgba(9, 105, 218, 0.08);
+  --ifm-menu-color-background-hover: #F6F8FA;
+  --ifm-link-color: #0969DA;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
-  /* Infima emphasis scale, light (green-tinted greys) */
-  --ifm-color-emphasis-100: #f6f8f7;
-  --ifm-color-emphasis-200: #e8edea;
-  --ifm-color-emphasis-300: #d3dad5;
-  --ifm-color-emphasis-400: #a9b3ac;
-  --ifm-color-emphasis-500: #7c867e;
-  --ifm-color-emphasis-600: #5a645c;
-  --ifm-color-emphasis-700: #414a43;
-  --ifm-color-emphasis-800: #2a312c;
-  --ifm-color-emphasis-900: #101613;
+  /* Infima emphasis scale, light (blue-grey) */
+  --ifm-color-emphasis-100: #F6F8FA;
+  --ifm-color-emphasis-200: #EAEEF2;
+  --ifm-color-emphasis-300: #D0D7DE;
+  --ifm-color-emphasis-400: #AFB8C1;
+  --ifm-color-emphasis-500: #8C959F;
+  --ifm-color-emphasis-600: #6E7781;
+  --ifm-color-emphasis-700: #57606A;
+  --ifm-color-emphasis-800: #424A53;
+  --ifm-color-emphasis-900: #1F2328;
 }
 
-/* 2. DARK MODE (Dark-first: near-black green-tinted base) */
+/* 2. DARK MODE (Dark-first: GitHub Dark base) */
 html[data-theme="dark"] {
-  /* Keep the Green Brand Color, brighter for dark surfaces */
-  --ifm-color-primary: #2ecc71;
-  --ifm-color-primary-dark: #27ad72;
-  --ifm-color-primary-darker: #1f9260;
-  --ifm-color-primary-darkest: #177245;
-  --ifm-color-primary-light: #4ade80;
-  --ifm-color-primary-lighter: #7ce8a8;
-  --ifm-color-primary-lightest: #a3fad9;
+  /* GitHub Dark primary: sky blue, brighter for dark surfaces.
+     White text on the blue fill fails (2.5:1), so buttons take the
+     dark ink --color-accent-ink (#0D1117) on this fill (7.5:1). */
+  --ifm-color-primary: #58A6FF;
+  --ifm-color-primary-dark: #388BFD;
+  --ifm-color-primary-darker: #1F6FEB;
+  --ifm-color-primary-darkest: #0969DA;
+  --ifm-color-primary-light: #79B8FF;
+  --ifm-color-primary-lighter: #A5D6FF;
+  --ifm-color-primary-lightest: #D2E9FF;
 
   /* Near-black base, surfaces stepping up */
-  --ifm-background-color: #0a0f0c;
-  --ifm-background-surface-color: #101713;
-  --ifm-font-color-base: #ebedea; /* 92% white */
-  --ifm-heading-color: #f2f4f2;
-  --ifm-navbar-background-color: #0d1310;
-  --ifm-footer-background-color: #080c09;
-  --ifm-card-background-color: #101713;
-  --ifm-table-stripe-background: #101713;
-  --ifm-code-background: #16211b;
-  --ifm-toc-border-color: #1d2b23;
-  --ifm-menu-color: #a6ada8; /* 64% white */
-  --ifm-menu-color-active: #2ecc71;
-  --ifm-menu-color-background-active: rgba(46, 204, 113, 0.1);
-  --ifm-menu-color-background-hover: #16211b;
-  --ifm-link-color: #2ecc71;
+  --ifm-background-color: #0D1117;
+  --ifm-background-surface-color: #161B22;
+  --ifm-font-color-base: #C9D1D9; /* body text */
+  --ifm-heading-color: #E6EDF3;
+  --ifm-navbar-background-color: #0D1117;
+  --ifm-footer-background-color: #010409;
+  --ifm-card-background-color: #161B22;
+  --ifm-table-stripe-background: #161B22;
+  --ifm-code-background: #010409;
+  --ifm-toc-border-color: #30363D;
+  --ifm-menu-color: #8B949E; /* muted text */
+  --ifm-menu-color-active: #58A6FF;
+  --ifm-menu-color-background-active: rgba(88, 166, 255, 0.1);
+  --ifm-menu-color-background-hover: #161B22;
+  --ifm-link-color: #58A6FF;
 
-  --docusaurus-highlighted-code-line-bg: rgba(46, 204, 113, 0.12);
+  --docusaurus-highlighted-code-line-bg: rgba(88, 166, 255, 0.12);
 
   /* Infima emphasis scale, dark (borders white 6-10%, text 92/64/44%) */
-  --ifm-color-emphasis-100: #16211b;
-  --ifm-color-emphasis-200: #1d2b23;
-  --ifm-color-emphasis-300: #2a3d31;
-  --ifm-color-emphasis-400: #3d5346;
-  --ifm-color-emphasis-500: #5c7064;
-  --ifm-color-emphasis-600: #7e9084;
-  --ifm-color-emphasis-700: #a6ada8;
-  --ifm-color-emphasis-800: #c9cec9;
-  --ifm-color-emphasis-900: #ebedea;
+  --ifm-color-emphasis-100: #161B22;
+  --ifm-color-emphasis-200: #1C2128;
+  --ifm-color-emphasis-300: #30363D;
+  --ifm-color-emphasis-400: #484F58;
+  --ifm-color-emphasis-500: #6E7781;
+  --ifm-color-emphasis-600: #8B949E;
+  --ifm-color-emphasis-700: #9DA7B1;
+  --ifm-color-emphasis-800: #C9D1D9;
+  --ifm-color-emphasis-900: #E6EDF3;
 }
 
 /* 3. GENERAL UTILITIES (Dynamic) */
@@ -128,15 +131,15 @@ body {
    as one row of controls instead of five unrelated widgets. */
 .navbar__items,
 .navbar__items--right {
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .navbar__inner .navbar__link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   height: var(--navbar-control-height);
-  padding: 0 12px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   font-family: var(--font-body);
@@ -215,7 +218,7 @@ body {
   .navbar-sidebar__items > .navbar-sidebar__item:first-child .menu__list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: stretch;
   }
 
@@ -227,7 +230,7 @@ body {
     display: flex;
     align-items: center;
     height: var(--navbar-control-height);
-    padding: 0 12px;
+    padding: 0 var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: 8px;
     font-family: var(--font-body);

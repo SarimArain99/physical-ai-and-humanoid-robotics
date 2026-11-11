@@ -84,7 +84,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -102,7 +102,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -120,7 +120,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -138,7 +138,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -154,7 +154,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         >
@@ -180,7 +180,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -199,7 +199,7 @@ function RegisterForm() {
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--color-border-input)',
             borderRadius: '4px',
           }}
         />
@@ -213,8 +213,8 @@ function RegisterForm() {
         style={{
           width: '100%',
           padding: '0.75rem',
-          backgroundColor: loading ? '#ccc' : '#007cba',
-          color: 'white',
+          backgroundColor: loading ? 'var(--color-border-input)' : 'var(--color-accent)',
+          color: 'var(--color-accent-ink)',
           border: 'none',
           borderRadius: '4px',
           cursor: loading ? 'not-allowed' : 'pointer',

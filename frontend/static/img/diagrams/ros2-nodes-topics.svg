@@ -2,12 +2,12 @@
   <title id="ros-title">ROS 2 nodes and topics: a sensor publisher</title>
   <desc id="ros-desc">The sensor_publisher node publishes LaserScan messages to the /scan topic and Twist messages to the /cmd_vel topic. An obstacle detector subscribes to /scan and a motor controller subscribes to /cmd_vel.</desc>
   <style>
-    .node { fill: #ffffff; stroke: #177245; stroke-width: 2; }
-    .topic { fill: #d9f2e6; stroke: #177245; stroke-width: 2; }
+    .node { fill: #ffffff; stroke: #0969DA; stroke-width: 2; }
+    .topic { fill: #DDF1FF; stroke: #0969DA; stroke-width: 2; }
     .name { fill: #101613; font: 600 15px 'JetBrains Mono', monospace; }
     .type { fill: #4b534e; font: 400 12px 'JetBrains Mono', monospace; }
-    .arrow { stroke: #177245; stroke-width: 2; fill: none; }
-    .arrow-head { fill: #177245; }
+    .arrow { stroke: #0969DA; stroke-width: 2; fill: none; }
+    .arrow-head { fill: #0969DA; }
     .caption { fill: #6b736d; font: 400 13px 'Inter', sans-serif; }
   </style>
   <defs>
@@ -18,7 +18,7 @@
 
   <!-- Figure card: the diagram is drawn on a light card so it reads
        on the site's dark pages and on light pages alike. -->
-  <rect x="0" y="0" width="720" height="340" rx="12" fill="#ffffff" stroke="#e3e8e4" />
+  <rect x="0" y="0" width="720" height="340" rx="12" fill="#ffffff" stroke="#D0D7DE" />
 
   <!-- sensor_publisher -> /scan -> obstacle detector -->
   <path class="arrow" d="M 228 134 Q 290 100 330 100" marker-end="url(#ros-arrow)" />

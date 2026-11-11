@@ -2,12 +2,12 @@
   <title id="sta-title">The Sense Think Act loop</title>
   <desc id="sta-desc">A robot senses the world, decides what to do, acts, then senses again. The loop repeats.</desc>
   <style>
-    .node { fill: #ffffff; stroke: #177245; stroke-width: 2; }
+    .node { fill: #ffffff; stroke: #0969DA; stroke-width: 2; }
     .node-label { fill: #101613; font: 700 20px 'Space Grotesk', 'Inter', sans-serif; }
     .node-sub { fill: #4b534e; font: 400 13px 'Inter', sans-serif; }
-    .arrow { stroke: #177245; stroke-width: 2; fill: none; }
-    .arrow-head { fill: #177245; }
-    .edge-label { fill: #177245; font: 600 13px 'Inter', sans-serif; }
+    .arrow { stroke: #0969DA; stroke-width: 2; fill: none; }
+    .arrow-head { fill: #0969DA; }
+    .edge-label { fill: #0969DA; font: 600 13px 'Inter', sans-serif; }
     .centre { fill: #6b736d; font: 400 13px 'Inter', sans-serif; }
   </style>
   <defs>
@@ -18,7 +18,7 @@
 
   <!-- Figure card: the diagram is drawn on a light card so it reads
        on the site's dark pages and on light pages alike. -->
-  <rect x="0" y="0" width="640" height="360" rx="12" fill="#ffffff" stroke="#e3e8e4" />
+  <rect x="0" y="0" width="640" height="360" rx="12" fill="#ffffff" stroke="#D0D7DE" />
 
   <!-- Sense -> Think -->
   <path class="arrow" d="M 430 100 Q 500 160 482 224" marker-end="url(#sta-arrow)" />

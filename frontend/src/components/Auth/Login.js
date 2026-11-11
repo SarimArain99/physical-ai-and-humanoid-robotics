@@ -106,13 +106,13 @@ const Login = ({ onSwitchToRegister, onClose }) => {
           transition: border-color 0.2s;
         }
         .auth-input-group input:focus {
-          border-color: #2ECC71;
+          border-color: #58A6FF;
           outline: none;
         }
         .auth-submit-btn {
           width: 100%;
           padding: 12px;
-          background-color: #2ECC71;
+          background-color: #58A6FF;
           color: #0f172a;
           border: none;
           border-radius: 8px;
@@ -123,7 +123,7 @@ const Login = ({ onSwitchToRegister, onClose }) => {
           transition: transform 0.1s, background-color 0.2s;
         }
         .auth-submit-btn:hover {
-          background-color: #22c55e;
+          background-color: #388BFD;
         }
         .auth-submit-btn:active {
           transform: scale(0.98);
@@ -141,7 +141,7 @@ const Login = ({ onSwitchToRegister, onClose }) => {
         .auth-link-btn {
           background: none;
           border: none;
-          color: #2ECC71;
+          color: #58A6FF;
           cursor: pointer;
           font-weight: bold;
           padding: 0 4px;

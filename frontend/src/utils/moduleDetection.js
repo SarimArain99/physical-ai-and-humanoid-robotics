@@ -7,43 +7,43 @@
  * and provides module-specific configuration
  */
 
-// Module color configurations — one green family only (locked palette).
+// Module color configurations — one blue family only (locked palette).
 // Values are fills and dots, never body text, so the brighter greens
 // below read on both light and dark surfaces.
 export const MODULE_COLORS = {
   ros2: {
-    primary: '#34D399',
-    accent: '#6EE7B7',
-    light: '#D1FAE5',
-    dark: '#059669',
+    primary: '#58A6FF',
+    accent: '#79B8FF',
+    light: '#D2E9FF',
+    dark: '#1F6FEB',
     name: 'ROS 2 Fundamentals'
   },
   digitalTwin: {
-    primary: '#4ADE80',
-    accent: '#86EFAC',
-    light: '#DCFCE7',
-    dark: '#16A34A',
+    primary: '#79B8FF',
+    accent: '#A5D6FF',
+    light: '#EAF4FF',
+    dark: '#388BFD',
     name: 'Digital Twin'
   },
   isaac: {
-    primary: '#27AD72',
-    accent: '#4ADE80',
-    light: '#A3FAD9',
-    dark: '#1F9260',
+    primary: '#1F6FEB',
+    accent: '#58A6FF',
+    light: '#D2E9FF',
+    dark: '#0969DA',
     name: 'NVIDIA Isaac'
   },
   vla: {
-    primary: '#1F9260',
-    accent: '#34D399',
-    light: '#A3FAD9',
-    dark: '#177245',
+    primary: '#388BFD',
+    accent: '#79B8FF',
+    light: '#D2E9FF',
+    dark: '#0550AE',
     name: 'Vision-Language-Action'
   },
   default: {
-    primary: '#2ECC71',
-    accent: '#22C55E',
-    light: '#A3FAD9',
-    dark: '#25B365',
+    primary: '#58A6FF',
+    accent: '#79B8FF',
+    light: '#D2E9FF',
+    dark: '#1F6FEB',
     name: 'Physical AI'
   }
 };

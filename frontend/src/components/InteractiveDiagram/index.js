@@ -14,19 +14,19 @@ import styles from './styles.css';
 
 // Node type colors
 const NODE_COLORS = {
-  component: { fill: '#2ECC71', stroke: '#25B365' },
-  channel: { fill: '#4ECDC4', stroke: '#3BA39C' },
+  component: { fill: '#58A6FF', stroke: '#1F6FEB' },
+  channel: { fill: '#79B8FF', stroke: '#388BFD' },
   middleware: { fill: '#9B59B6', stroke: '#8E44AD' },
   sensor: { fill: '#E74C3C', stroke: '#C0392B' },
   processing: { fill: '#F39C12', stroke: '#E67E22' },
   output: { fill: '#3498DB', stroke: '#2980B9' },
   server: { fill: '#1E2A38', stroke: '#2C3E50' },
-  topic: { fill: '#4ECDC4', stroke: '#3BA39C' },
+  topic: { fill: '#79B8FF', stroke: '#388BFD' },
   physical: { fill: '#E67E22', stroke: '#D35400' },
   virtual: { fill: '#9B59B6', stroke: '#8E44AD' },
   dataflow: { fill: '#95A5A6', stroke: '#7F8C8D' },
-  localization: { fill: '#16A085', stroke: '#138D75' },
-  planner: { fill: '#27AE60', stroke: '#229954' },
+  localization: { fill: '#A5D6FF', stroke: '#58A6FF' },
+  planner: { fill: '#1F6FEB', stroke: '#0969DA' },
   controller: { fill: '#2980B9', stroke: '#2471A3' },
   behavior: { fill: '#F1C40F', stroke: '#F39C12' }
 };
@@ -194,9 +194,9 @@ export default function InteractiveDiagram({
 
           {/* Gradient for animated paths */}
           <linearGradient id="flowGradient" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#4ECDC4'} stopOpacity="0.2"/>
-            <stop offset="50%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#4ECDC4'} stopOpacity="1"/>
-            <stop offset="100%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#4ECDC4'} stopOpacity="0.2"/>
+            <stop offset="0%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#79B8FF'} stopOpacity="0.2"/>
+            <stop offset="50%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#79B8FF'} stopOpacity="1"/>
+            <stop offset="100%" stopColor={selectedNode ? getNodeColor(selectedNode.type).fill : '#79B8FF'} stopOpacity="0.2"/>
           </linearGradient>
         </defs>
 

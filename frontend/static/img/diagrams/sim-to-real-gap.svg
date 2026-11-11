@@ -2,15 +2,15 @@
   <title id="str-title">Sim-to-real transfer and the reality gap</title>
   <desc id="str-desc">A policy is trained in simulation across many randomized worlds, then deployed on one real robot. The reality gap between them comes from visual domain shift, dynamics mismatch, actuator differences, sensor noise, and environmental factors. It is bridged by domain randomization, system identification, and domain adaptation.</desc>
   <style>
-    .box { fill: #ffffff; stroke: #177245; stroke-width: 2; }
+    .box { fill: #ffffff; stroke: #0969DA; stroke-width: 2; }
     .box-title { fill: #101613; font: 700 18px 'Space Grotesk', 'Inter', sans-serif; }
     .box-sub { fill: #4b534e; font: 400 13px 'Inter', sans-serif; }
     .box-line { fill: #4b534e; font: 400 12px 'JetBrains Mono', monospace; }
-    .arrow { stroke: #177245; stroke-width: 2; fill: none; }
-    .arrow-head { fill: #177245; }
+    .arrow { stroke: #0969DA; stroke-width: 2; fill: none; }
+    .arrow-head { fill: #0969DA; }
     .gap-title { fill: #101613; font: 700 16px 'Space Grotesk', 'Inter', sans-serif; }
     .gap-item { fill: #4b534e; font: 400 13px 'Inter', sans-serif; }
-    .bridge { fill: #177245; font: 600 13px 'Inter', sans-serif; }
+    .bridge { fill: #0969DA; font: 600 13px 'Inter', sans-serif; }
   </style>
   <defs>
     <marker id="str-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
@@ -20,7 +20,7 @@
 
   <!-- Figure card: the diagram is drawn on a light card so it reads
        on the site's dark pages and on light pages alike. -->
-  <rect x="0" y="0" width="720" height="360" rx="12" fill="#ffffff" stroke="#e3e8e4" />
+  <rect x="0" y="0" width="720" height="360" rx="12" fill="#ffffff" stroke="#D0D7DE" />
 
   <!-- Simulation -> Policy -> Real robot -->
   <path class="arrow" d="M 252 95 L 288 95" marker-end="url(#str-arrow)" />
