@@ -9,8 +9,10 @@ import pg from "pg";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
 // --- Workstream C: cached AI rewrites (personalize/translate) ---
-import { contentCacheKey, getCachedContent, setCachedContent } from "../content-cache.js";
+import { contentCacheKey, getCachedContent, setCachedContent, deleteCachedContent } from "../content-cache.js";
 import rateLimit from "express-rate-limit";
+import { createPgRateLimitStore } from "../rate-limit-store.js";
+import { duplicateSignupGuard, resetMailGuard } from "../auth-guards.js";
 // --- Workstream D (RAG): retrieval lives in retrieval.js; index.js only
 // wires it into the two chat handlers and /api/health. ---
 import { searchQdrant, buildGroundedSystemPrompt, FALLBACK_SYSTEM_PROMPT, getRagStatus, checkRagReachable } from "../retrieval.js";
@@ -18,20 +20,51 @@ const { Pool } = pg;
 
 const app = express();
 app.set("trust proxy", 1);
-const allowedOrigins = process.env.CORS_ORIGINS 
-  ? process.env.CORS_ORIGINS.split(",").map(o => o.trim()) 
-  : [];
+
+// Security headers + stack fingerprint removal (finding #11). The API
+// only returns JSON/SSE, so the CSP is deny-by-default; the frontend
+// gets its own headers from frontend/vercel.json.
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+  next();
+});
+
+// CORS (finding #1, CRITICAL): allowlist ONLY the real origins. The
+// frontend is same-origin in production (Vercel rewrites /api/* to this
+// backend), so the only cross-origin callers are local development and
+// whatever CORS_ORIGINS lists. NEVER trust a suffix such as `.vercel.app`
+// with credentials — Vercel subdomains are free and attacker-controlled,
+// so that rule let any malicious Vercel page read a signed-in victim's
+// session token. The production frontend origin is a default here (not
+// only from env) so the allowlist is correct even if CORS_ORIGINS is
+// unset in Vercel.
+const PRODUCTION_FRONTEND_ORIGIN = "https://physical-ai-and-humanoid-robotics-sarim.vercel.app";
+const DEV_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+];
+const allowedOrigins = [
+  ...new Set([
+    PRODUCTION_FRONTEND_ORIGIN,
+    ...DEV_ORIGINS,
+    ...(process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim().replace(/\/$/, ""))
+      : []),
+  ]),
+];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // No Origin header (curl, server-to-server, same-origin navigation)
+    // is not a cross-origin browser request — nothing to reflect.
     if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.includes(origin) || 
-      origin.startsWith('http://localhost') || 
-      origin.startsWith('http://127.0.0.1') || 
-      origin.endsWith('.vercel.app');
-      
-    if (isAllowed) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -41,28 +74,61 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Provide the Better Auth API at /api/auth
-app.use("/api/auth", (req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    const isAllowed = origin.startsWith('http://localhost') || 
-                      origin.startsWith('http://127.0.0.1') || 
-                      origin.endsWith('.vercel.app');
-    if (isAllowed && process.env.BETTER_AUTH_URL) {
-      // Normalize and match BETTER_AUTH_URL to pass Better Auth CSRF
-      req.headers.origin = process.env.BETTER_AUTH_URL.replace(/\/$/, "");
-    }
-  }
-  next();
-}, toNodeHandler(auth));
+// Provide the Better Auth API at /api/auth.
+//
+// Finding #2 (CRITICAL): the old /api/auth middleware REWROTE any
+// `.vercel.app`/localhost Origin header to BETTER_AUTH_URL, which
+// defeated better-auth's CSRF Origin check — a malicious Vercel page
+// could change a signed-in victim's profile. The rewrite is DELETED
+// entirely. better-auth now checks the real Origin against
+// trustedOrigins (api/auth.js), which lists only the real frontend
+// origin + local dev. Cross-origin auth is not needed: the frontend is
+// same-origin in production (Vercel /api/* rewrite), so the session
+// cookie is first-party (sameSite "Lax" in api/auth.js).
 
-// Configure rate limits for AI endpoints to prevent API key abuse
+// The guards live in auth-guards.js (unit-testable without the app
+// or a database). duplicateSignupGuard rewrites the duplicate-signup
+// 422 into a neutral 200 (finding #6); resetMailGuard fails password
+// reset honestly with a 503 when no mail transport is configured
+// (finding #5). The Origin-rewrite middleware that used to sit here
+// is deleted — see the finding #2 comment above.
+
+app.use("/api/auth", duplicateSignupGuard, resetMailGuard, toNodeHandler(auth));
+
+// Setup Neon DB Postgres Pool (created before the rate limiters —
+// the shared rate-limit store below is backed by this pool).
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+// Configure rate limits for AI endpoints to prevent API key abuse.
+// Finding #7: the default in-memory store is per-process, so on Vercel
+// serverless a burst spread across instances never trips the limit
+// (60 rapid requests produced 0x 429 live). Both limiters below share
+// counters through the Neon database (rate-limit-store.js), so the
+// count is global. If the database is unavailable the store falls back
+// to memory instead of failing requests. Each limiter has its own
+// namespace so their counters never collide.
+const AI_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const aiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: AI_RATE_LIMIT_WINDOW_MS,
   max: 60, // Limit each IP to 60 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
+  store: createPgRateLimitStore(pool, { namespace: "ai", windowMs: AI_RATE_LIMIT_WINDOW_MS }),
   message: { error: "Too many AI requests. Please try again in 15 minutes." }
+});
+
+// Non-AI API endpoints (progress reads/writes, cache reads) get a
+// higher budget — they are cheap and called often (every chapter/quiz),
+// but they were not limited at all before.
+const apiLimiter = rateLimit({
+  windowMs: AI_RATE_LIMIT_WINDOW_MS,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createPgRateLimitStore(pool, { namespace: "api", windowMs: AI_RATE_LIMIT_WINDOW_MS }),
+  message: { error: "Too many requests. Please try again in a few minutes." }
 });
 
 // Apply rate limits to all OpenAI-linked endpoints
@@ -72,14 +138,11 @@ app.use("/api/translate", aiLimiter);
 app.use("/api/personalize", aiLimiter);
 app.use("/api/quiz", aiLimiter);
 app.use("/api/flashcards", aiLimiter);
+app.use("/api/progress", apiLimiter);
+app.use("/api/cache", apiLimiter);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Setup Neon DB Postgres Pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
 });
 
 // Initialize DB schema
@@ -108,6 +171,19 @@ pool.query(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, page_id)
   );
+  CREATE TABLE IF NOT EXISTS rate_limit (
+    key VARCHAR(255) PRIMARY KEY,
+    hits INT NOT NULL DEFAULT 0,
+    reset_at TIMESTAMPTZ NOT NULL
+  );
+  -- Finding #9 (chat session binding): a session belongs to the user
+  -- who created it (NULL = guest). The binding is enforced in
+  -- getSessionHistory below.
+  ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS user_id VARCHAR(255);
+  -- Finding #3 (cache TTL): created_at drives the 30-day expiry in
+  -- content-cache.js. Existing rows get the migration time, so they get
+  -- a fresh 30-day window rather than expiring at once.
+  ALTER TABLE content_cache ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
 `).then(() => console.log('Neon DB initialized for chatbot API.')).catch(console.error);
 
 // Load the textbook context
@@ -159,13 +235,87 @@ try {
 // contextChars diagnostic — it is no longer sent to the model. ---
 const SYSTEM_PROMPT = FALLBACK_SYSTEM_PROMPT;
 
-async function getSessionHistory(sessionId) {
-  // Ensure session exists
-  await pool.query(`INSERT INTO chat_sessions (id) VALUES ($1) ON CONFLICT DO NOTHING`, [sessionId]);
-  
+// Finding #8 (unbounded input/history): a single request could carry
+// ~100 KB and a long session re-sent its whole history to the model on
+// every request — open-ended OpenAI cost. Caps below: chat messages
+// 4 KB, highlighted text 8 KB, other AI text inputs 16 KB (the
+// frontend sends at most ~2 KB chunks, so these never bind on normal
+// use), and only the last 10 non-system messages are sent to the model.
+const MAX_CHAT_MESSAGE_CHARS = 4096;
+const MAX_SELECTED_TEXT_CHARS = 8192;
+const MAX_AI_TEXT_CHARS = 16384;
+const MAX_HISTORY_MESSAGES = 10;
+
+function rejectOversizeText(res, value, limit, what) {
+  if (typeof value !== "string" || value.length > limit) {
+    res.status(413).json({ error: `${what} is too long (max ${limit} characters).` });
+    return true;
+  }
+  return false;
+}
+
+// Finding #9 (chat session binding): resolve the signed-in user for a
+// request from the better-auth session cookie. Returns the user id, or
+// null for a guest (no session). Throws on a verification failure —
+// callers fail the request rather than silently treating a signed-in
+// user as a guest, which would hand their session to an anonymous
+// caller. The chat endpoints are same-origin (Vercel /api/* rewrite),
+// so the first-party cookie is present when the user is signed in.
+async function getRequestUserId(req) {
+  const session = await auth.api.getSession({ headers: req.headers });
+  return session && session.user ? session.user.id : null;
+}
+
+// Same, but answers the HTTP request directly: 401 when there is no
+// session, 500 when the session cannot be verified. Returns the user
+// id, or null after answering.
+async function requireUserId(req, res) {
+  let userId;
+  try {
+    userId = await getRequestUserId(req);
+  } catch (error) {
+    console.error("Session verification failed:", error.message);
+    res.status(500).json({ error: "Could not verify your session. Please try again." });
+    return null;
+  }
+  if (!userId) {
+    res.status(401).json({ error: "Sign in to continue." });
+    return null;
+  }
+  return userId;
+}
+
+async function getSessionHistory(sessionId, userId = null) {
+  // Finding #9: a chat session belongs to one user. The session id was
+  // the only barrier — anyone who knew it could load the full history
+  // into the model. Now the owner is stored on the session row and
+  // enforced here:
+  // - a session with an owner only serves that owner (anyone else, and
+  //   any guest, gets a 403 via SESSION_OWNER_MISMATCH);
+  // - a guest session (owner NULL) adopted by a newly signed-in user
+  //   takes that user's id, so chatting before sign-in keeps working;
+  // - a new session is created with the requester's id (NULL for guests).
+  const existing = await pool.query(`SELECT user_id FROM chat_sessions WHERE id = $1`, [sessionId]);
+  if (existing.rows.length > 0) {
+    const owner = existing.rows[0].user_id;
+    if (owner && owner !== userId) {
+      const error = new Error("This chat session belongs to another account.");
+      error.code = "SESSION_OWNER_MISMATCH";
+      throw error;
+    }
+    if (owner === null && userId) {
+      await pool.query(`UPDATE chat_sessions SET user_id = $1 WHERE id = $2`, [userId, sessionId]);
+    }
+  } else {
+    await pool.query(
+      `INSERT INTO chat_sessions (id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [sessionId, userId]
+    );
+  }
+
   const res = await pool.query(`SELECT role, content FROM chat_messages WHERE session_id = $1 ORDER BY id ASC`, [sessionId]);
   const history = res.rows.map(r => ({ role: r.role, content: r.content }));
-  
+
   if (history.length === 0) {
     history.push({ role: "system", content: SYSTEM_PROMPT });
     await pool.query(`INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`, [sessionId, "system", SYSTEM_PROMPT]);
@@ -175,6 +325,32 @@ async function getSessionHistory(sessionId) {
 
 async function appendMessage(sessionId, role, content) {
   await pool.query(`INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`, [sessionId, role, content]);
+}
+
+// Load a chat session's history for this request, enforcing the owner
+// binding (finding #9). Answers 500/403 itself and returns null when
+// it has; otherwise returns { history }.
+async function loadChatHistory(req, res, sessionId) {
+  let userId;
+  try {
+    userId = await getRequestUserId(req);
+  } catch (error) {
+    console.error("Session verification failed:", error.message);
+    res.status(500).json({ error: "Could not verify your session. Please try again." });
+    return null;
+  }
+  try {
+    const history = await getSessionHistory(sessionId, userId);
+    return { history };
+  } catch (error) {
+    if (error.code === "SESSION_OWNER_MISMATCH") {
+      res.status(403).json({ error: "This chat session belongs to another account." });
+      return null;
+    }
+    console.error("Failed to load chat history:", error.message);
+    res.status(500).json({ error: "Could not load the chat session. Please try again." });
+    return null;
+  }
 }
 
 // --- Fix round (2026-11-10): a refusal must not carry sources. ---
@@ -224,8 +400,12 @@ app.post("/api/chat", async (req, res) => {
   if (!message || !session_id) {
     return res.status(400).json({ error: "Missing message or session_id" });
   }
+  // Finding #8: reject oversized messages instead of paying to process them.
+  if (rejectOversizeText(res, message, MAX_CHAT_MESSAGE_CHARS, "Message")) return;
 
-  const history = await getSessionHistory(session_id);
+  const loaded = await loadChatHistory(req, res, session_id);
+  if (!loaded) return;
+  const history = loaded.history;
   // --- Workstream D (RAG): retrieve the top-5 chapter chunks, then
   // answer ONLY from them. The stored session history's system message
   // is dropped here — the per-request grounded prompt replaces it, so
@@ -233,7 +413,9 @@ app.post("/api/chat", async (req, res) => {
   const retrieval = await searchQdrant(openai, message);
   const messages = [
     { role: "system", content: retrieval.available ? buildGroundedSystemPrompt(retrieval.sources) : FALLBACK_SYSTEM_PROMPT },
-    ...history.filter((m) => m.role !== "system"),
+    // Finding #8: only the most recent exchanges go to the model — a
+    // long session no longer re-sends its whole history every request.
+    ...history.filter((m) => m.role !== "system").slice(-MAX_HISTORY_MESSAGES),
     { role: "user", content: message },
   ];
   await appendMessage(session_id, "user", message);
@@ -285,8 +467,14 @@ app.post("/api/chat/selected", async (req, res) => {
   if (!message || !selected_text || !session_id) {
     return res.status(400).json({ error: "Missing message, selected_text, or session_id" });
   }
+  // Finding #8: same caps as /api/chat (the highlight is chapter text,
+  // so it gets a larger budget than the question itself).
+  if (rejectOversizeText(res, message, MAX_CHAT_MESSAGE_CHARS, "Message")) return;
+  if (rejectOversizeText(res, selected_text, MAX_SELECTED_TEXT_CHARS, "Selected text")) return;
 
-  const history = await getSessionHistory(session_id);
+  const loaded = await loadChatHistory(req, res, session_id);
+  if (!loaded) return;
+  const history = loaded.history;
   const prompt = `The user has highlighted the following text from the textbook:\n"${selected_text}"\n\nUser's Question:\n${message}`;
 
   // --- Workstream D (RAG): same retrieval as /api/chat, but the query
@@ -295,7 +483,8 @@ app.post("/api/chat/selected", async (req, res) => {
   const retrieval = await searchQdrant(openai, `${message}\n${selected_text}`);
   const messages = [
     { role: "system", content: retrieval.available ? buildGroundedSystemPrompt(retrieval.sources, { selectedText: selected_text }) : FALLBACK_SYSTEM_PROMPT },
-    ...history.filter((m) => m.role !== "system"),
+    // Finding #8: only the most recent exchanges go to the model.
+    ...history.filter((m) => m.role !== "system").slice(-MAX_HISTORY_MESSAGES),
     { role: "user", content: prompt },
   ];
   await appendMessage(session_id, "user", prompt);
@@ -524,6 +713,9 @@ app.post("/api/translate", async (req, res) => {
   if (!text) {
     return res.status(400).json({ error: "Missing text to translate" });
   }
+  // Finding #8: the frontend sends at most ~2 KB chunks; anything far
+  // larger is abuse, not a chapter passage.
+  if (rejectOversizeText(res, text, MAX_AI_TEXT_CHARS, "Text")) return;
 
   const systemPrompt = buildTranslatePrompt(target_language);
 
@@ -568,6 +760,8 @@ app.post("/api/personalize", async (req, res) => {
   if (!text || !level) {
     return res.status(400).json({ error: "Missing text or level" });
   }
+  // Finding #8: same cap as /api/translate.
+  if (rejectOversizeText(res, text, MAX_AI_TEXT_CHARS, "Text")) return;
 
   let systemPrompt = "";
   if (level === "beginner") {
@@ -599,6 +793,8 @@ app.post("/api/personalize", async (req, res) => {
 app.post("/api/quiz", async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: "Missing text" });
+  // Finding #8: same cap as the other AI text endpoints.
+  if (rejectOversizeText(res, text, MAX_AI_TEXT_CHARS, "Text")) return;
 
   const systemPrompt = `You are a technical educator. Generate a 3-question multiple-choice quiz based on the provided text. Return ONLY a valid JSON object with a "questions" array. Format exactly like this:
 {
@@ -630,6 +826,8 @@ app.post("/api/quiz", async (req, res) => {
 app.post("/api/flashcards", async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: "Missing text" });
+  // Finding #8: same cap as the other AI text endpoints.
+  if (rejectOversizeText(res, text, MAX_AI_TEXT_CHARS, "Text")) return;
 
   const systemPrompt = `You are a technical educator. Summarize the provided text into exactly 5 concise, high-yield bullet points for exam review (Flashcards). Use markdown bullet points. Return ONLY the bullet points, no introductory filler.`;
 
@@ -662,10 +860,18 @@ app.post("/api/flashcards", async (req, res) => {
 });
 
 // Progress Endpoints
+// Finding #4 (IDOR): these took user_id from the request with no
+// session check at all — anyone could read any student's progress and
+// fabricate a 100 for any account. Now the user id comes ONLY from the
+// better-auth session; the request body/path never supplies it. (The
+// frontend keeps progress in localStorage and never calls these
+// endpoints, so requiring a session breaks no existing flow.)
 app.post("/api/progress", async (req, res) => {
   try {
-    const { user_id, page_id, quiz_score, completed } = req.body;
-    if (!user_id || !page_id) return res.status(400).json({ error: "Missing user_id or page_id" });
+    const userId = await requireUserId(req, res);
+    if (!userId) return;
+    const { page_id, quiz_score, completed } = req.body;
+    if (!page_id) return res.status(400).json({ error: "Missing page_id" });
 
     await pool.query(
       `INSERT INTO user_progress (user_id, page_id, quiz_score, completed) 
@@ -674,7 +880,7 @@ app.post("/api/progress", async (req, res) => {
        DO UPDATE SET 
           quiz_score = GREATEST(user_progress.quiz_score, EXCLUDED.quiz_score),
           completed = EXCLUDED.completed`,
-      [user_id, page_id, quiz_score || 0, completed || true]
+      [userId, page_id, quiz_score || 0, completed || true]
     );
     res.json({ success: true });
   } catch (err) {
@@ -685,7 +891,13 @@ app.post("/api/progress", async (req, res) => {
 
 app.get("/api/progress/:userId", async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = await requireUserId(req, res);
+    if (!userId) return;
+    // A user can only ever read their own progress, even though the id
+    // is in the path.
+    if (req.params.userId !== userId) {
+      return res.status(403).json({ error: "You can only view your own progress." });
+    }
     const result = await pool.query(`SELECT page_id, quiz_score, completed, created_at FROM user_progress WHERE user_id = $1 ORDER BY created_at DESC`, [userId]);
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.json({ progress: result.rows });
@@ -699,6 +911,15 @@ app.get("/api/progress/:userId", async (req, res) => {
 // the translate/personalize handlers (where a cache failure must degrade
 // to a normal AI call), these endpoints keep their old contract: a DB
 // error is a 500, a missing key is a 404.
+//
+// Finding #3 (cache poisoning, CRITICAL): the old public POST
+// /api/cache let anyone upsert any key with no auth — an attacker
+// pre-seeded poisoned translations that were then served to every
+// reader as a cache HIT. The POST endpoint is DELETED entirely: the
+// translate/personalize handlers already write the cache server-side,
+// so no client ever needs to write it. What remains is a read (the
+// same content any reader gets through /api/translate) and an
+// admin-only delete for invalidation.
 app.get("/api/cache/:key", async (req, res) => {
   try {
     const content = await getCachedContent(pool, req.params.key, { throwOnError: true });
@@ -712,13 +933,28 @@ app.get("/api/cache/:key", async (req, res) => {
   }
 });
 
-app.post("/api/cache", async (req, res) => {
+// Admin-only cache invalidation (finding #3): delete one cached entry
+// by key. Requires a signed-in session whose user holds the admin role
+// (better-auth admin plugin). No user holds that role today, so this
+// is locked until the owner assigns it — by design, it must never be
+// open to ordinary accounts.
+app.delete("/api/cache/:key", async (req, res) => {
   try {
-    const { key, content } = req.body;
-    if (!key || !content) return res.status(400).json({ error: "Missing key or content" });
-
-    const stored = await setCachedContent(pool, key, content, { throwOnError: true });
-    if (!stored) return res.status(500).json({ error: "Database error" });
+    let session = null;
+    try {
+      session = await auth.api.getSession({ headers: req.headers });
+    } catch (error) {
+      console.error("Session verification failed:", error.message);
+      return res.status(500).json({ error: "Could not verify your session. Please try again." });
+    }
+    if (!session || !session.user) {
+      return res.status(401).json({ error: "Sign in to continue." });
+    }
+    if (session.user.role !== "admin") {
+      return res.status(403).json({ error: "Only an admin can invalidate cached content." });
+    }
+    const deleted = await deleteCachedContent(pool, req.params.key, { throwOnError: true });
+    if (!deleted) return res.status(404).json({ error: "Cache miss" });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Database error" });

@@ -27,7 +27,23 @@ const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map(o => o.trim().replace(/\/$/, "")) 
   : [];
 
-const trustedOrigins = ["http://localhost:3000", "http://localhost:3001", ...allowedOrigins];
+// Finding #1/#2: better-auth's CSRF defence is an Origin check against
+// trustedOrigins. The production frontend origin is a default here (not
+// only from env) so the check is correct even if CORS_ORIGINS is unset.
+// The frontend is same-origin in production (Vercel /api/* rewrite),
+// so this is the origin the browser actually sends. Never add a
+// `.vercel.app` suffix here — see api/index.js.
+const PRODUCTION_FRONTEND_ORIGIN = "https://physical-ai-and-humanoid-robotics-sarim.vercel.app";
+const trustedOrigins = [
+  ...new Set([
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    PRODUCTION_FRONTEND_ORIGIN,
+    ...allowedOrigins,
+  ]),
+];
 console.log("Better Auth: Configured Trusted Origins ->", trustedOrigins);
 
 export const auth = betterAuth({
@@ -36,10 +52,27 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
-      console.log(`[PASSWORD RESET REQUEST] for ${user.email}. Link: ${url}`);
-      
-      if (process.env.SMTP_HOST) {
-        try {
+      // Finding #5: the old code logged the full reset URL (live token)
+      // into the Vercel logs. Never log the URL or the token — the
+      // email alone identifies the request. (The url is still used
+      // below, inside the email itself, where it belongs.)
+      console.log(`[PASSWORD RESET REQUEST] for ${user.email}`);
+
+      // Finding #5 (continued): better-auth runs this callback in the
+      // background, so a failure here can never change the HTTP
+      // response — the user would be told to "check your inbox" for
+      // mail that will never arrive. The honest error for a missing
+      // transport is returned by the Express guard in api/index.js
+      // (resetMailGuard), which runs before better-auth. This throw is
+      // a safety net for any path that reaches here without a
+      // transport, and for a failed send: if better-auth awaits the
+      // callback, the error surfaces instead of a false promise.
+      if (!process.env.SMTP_HOST) {
+        console.error(`Password reset requested for ${user.email} but SMTP_HOST is not configured — no reset email can be sent.`);
+        throw new Error("Password reset email is not available right now. Please contact support.");
+      }
+
+      try {
           const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: parseInt(process.env.SMTP_PORT || "587"),
@@ -67,9 +100,12 @@ export const auth = betterAuth({
           
           await transporter.sendMail(mailOptions);
           console.log(`Reset email sent successfully to ${user.email}`);
-        } catch (mailError) {
-          console.error(`Failed to send password reset email to ${user.email}:`, mailError);
-        }
+      } catch (mailError) {
+        // Finding #5: a failed send must not leave the user believing
+        // mail is on its way. Throw so the failure surfaces (when
+        // better-auth awaits this callback) instead of being swallowed.
+        console.error(`Failed to send password reset email to ${user.email}:`, mailError);
+        throw new Error("Password reset email could not be sent. Please try again later or contact support.");
       }
     }
   },
@@ -80,7 +116,14 @@ export const auth = betterAuth({
       session_token: {
         name: "better-auth.session_token",
         attributes: {
-          sameSite: "None",
+          // Finding #2: the cookie was sameSite "None" (cross-site),
+          // which let a malicious page's requests carry it. The
+          // frontend is same-origin in production (Vercel /api/*
+          // rewrite) and same-site on localhost:8000 in development,
+          // so "Lax" is sent on every legitimate request and NOT on
+          // cross-site ones — the CSRF defence now has a second layer
+          // behind the trustedOrigins check.
+          sameSite: "Lax",
           secure: true,
         }
       }
