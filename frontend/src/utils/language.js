@@ -93,10 +93,16 @@ export function collectChapterElements(minLength = 2) {
 // innerText — the translator needs to SEE the **bold** markers to
 // keep them. The Listen button keeps collectChapterElements: spoken
 // text must stay plain, with no markers to read aloud.
+//
+// The set is wider than the Listen set on purpose: h4–h6 (quiz
+// question titles and deep section heads) and table cells (the
+// comparison tables) are prose a reader expects translated too —
+// leaving them in English inside an otherwise translated chapter
+// reads as a broken translation.
 export function collectChapterMarkdown(minLength = 2) {
   if (typeof document === "undefined") return [];
   const found = document.querySelectorAll(
-    ".markdown p, .markdown h1, .markdown h2, .markdown h3, .markdown li"
+    ".markdown p, .markdown h1, .markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6, .markdown li, .markdown td, .markdown th"
   );
   const out = [];
   for (const element of Array.from(found)) {

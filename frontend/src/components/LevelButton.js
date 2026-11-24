@@ -41,6 +41,24 @@ function storeLevel(level) {
   }
 }
 
+// The account's own proficiency, read synchronously from the legacy
+// user cache AuthProvider keeps (its "physical-ai-user" key) — only
+// so the pill's first paint already matches the profile instead of
+// flashing "Pro" until the server session lands. The server is the
+// authority: the effect below re-syncs from user.proficiency whenever
+// it loads, and an explicit pick always wins over both.
+function readStoredUserProficiency() {
+  try {
+    const raw = localStorage.getItem("physical-ai-user");
+    const stored = raw ? JSON.parse(raw) : null;
+    const level = stored && stored.proficiency;
+    if (level === "advanced") return "pro";
+    return VALID_LEVELS.includes(level) ? level : null;
+  } catch {
+    return null;
+  }
+}
+
 // --- ICONS ---
 const LevelIcon = () => (
   <svg
@@ -93,11 +111,31 @@ const CancelIcon = () => (
   </svg>
 );
 
+const CheckIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+);
+
 const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
   const { user, updateProfile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState(() => readStoredLevel() || "pro");
+  const [currentLevel, setCurrentLevel] = useState(() => readStoredLevel() || readStoredUserProficiency() || "pro");
+  // True once the reader picks a level in this visit. A pick wins
+  // over the server default — but only a pick made here, not a stale
+  // device pick left over from before the account existed.
+  const pickedThisSessionRef = useRef(false);
   const [loading, setLoading] = useState(false);
   // Honest progress: texts actually rewritten out of the total on the
   // page — counts, never a percentage guessed from elapsed time.
@@ -137,21 +175,29 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [loading]);
 
-  // Load the signed-in user's proficiency from the server on mount —
-  // only when they have never picked a level on this device; a stored
-  // pick wins. user.proficiency is the server value (AuthProvider), so
-  // the pill defaults to what the account actually holds.
+  // The pill follows the account's server proficiency: a stored pick
+  // on this device used to win over the server, so a pick left over
+  // from before the account existed (or from an anonymous visit)
+  // overrode the profile — the navbar said "Pro" while the profile
+  // said "Intermediate". Now the server wins unless the reader
+  // picked a level in this visit (a pick is also saved to the
+  // server, so the two agree from then on). The stored pick is
+  // updated to match, so a reload keeps the profile's level.
   React.useEffect(() => {
-    if (user && user.proficiency && !readStoredLevel()) {
-      const proficiencyMap = {
-        "beginner": "beginner",
-        "intermediate": "intermediate",
-        "advanced": "pro",
-        "pro": "pro"
-      };
-      const mappedLevel = proficiencyMap[user.proficiency] || "pro";
-      setCurrentLevel(mappedLevel);
+    if (!user || !user.proficiency) {
+      pickedThisSessionRef.current = false;
+      return;
     }
+    if (pickedThisSessionRef.current) return;
+    const proficiencyMap = {
+      "beginner": "beginner",
+      "intermediate": "intermediate",
+      "advanced": "pro",
+      "pro": "pro"
+    };
+    const mappedLevel = proficiencyMap[user.proficiency] || "pro";
+    setCurrentLevel(mappedLevel);
+    storeLevel(mappedLevel);
   }, [user]);
 
   // Save an explicit pick to the account so it sticks on every device.
@@ -178,6 +224,10 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
       setIsAuthModalOpen(true);
       return;
     }
+
+    // From here the reader is signed in and a level is being picked:
+    // this pick wins over the server default for the rest of the visit.
+    pickedThisSessionRef.current = true;
 
     // If PRO is selected, just reload to get original text back
     if (level === "pro") {
@@ -361,39 +411,51 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
       {isOpen && (
         <div className="level-menu" role="menu">
           <button
-            className="level-menu-item"
+            className={`level-menu-item${currentLevel === "beginner" ? " level-menu-item--active" : ""}`}
             onClick={() => handleLevelSelect("beginner")}
             role="menuitem"
+            aria-current={currentLevel === "beginner"}
           >
             <span className="level-menu-dot level-menu-dot--basic"></span>
             <span className="level-menu-text">
               <span className="level-menu-label">Basic</span>
               <span className="level-menu-sub">Explain Like I'm 5</span>
             </span>
+            {currentLevel === "beginner" && (
+              <span className="level-menu-check"><CheckIcon /></span>
+            )}
           </button>
 
           <button
-            className="level-menu-item"
+            className={`level-menu-item${currentLevel === "intermediate" ? " level-menu-item--active" : ""}`}
             onClick={() => handleLevelSelect("intermediate")}
             role="menuitem"
+            aria-current={currentLevel === "intermediate"}
           >
             <span className="level-menu-dot level-menu-dot--intermediate"></span>
             <span className="level-menu-text">
               <span className="level-menu-label">Intermediate</span>
               <span className="level-menu-sub">For Students</span>
             </span>
+            {currentLevel === "intermediate" && (
+              <span className="level-menu-check"><CheckIcon /></span>
+            )}
           </button>
 
           <button
-            className="level-menu-item"
+            className={`level-menu-item${currentLevel === "pro" ? " level-menu-item--active" : ""}`}
             onClick={() => handleLevelSelect("pro")}
             role="menuitem"
+            aria-current={currentLevel === "pro"}
           >
             <span className="level-menu-dot level-menu-dot--pro"></span>
             <span className="level-menu-text">
               <span className="level-menu-label">Pro</span>
               <span className="level-menu-sub">Original Research</span>
             </span>
+            {currentLevel === "pro" && (
+              <span className="level-menu-check"><CheckIcon /></span>
+            )}
           </button>
         </div>
       )}

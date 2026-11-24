@@ -19,7 +19,7 @@ By the end of this week, you will be able to:
 
 ## Prerequisites
 
-- Understanding of digital twin concepts (Weeks 5-6)
+- Understanding of simulation environments and robot models (Week 6)
 - Basic knowledge of NVIDIA GPU computing
 - Understanding of ROS 2 concepts (Weeks 1-4)
 

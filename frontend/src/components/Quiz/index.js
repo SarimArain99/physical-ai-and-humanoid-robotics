@@ -270,9 +270,9 @@ function QuizQuestion({ question, questionNumber, isVisible, onSelect }) {
         )}
       </h4>
 
-      {question.explanation && !hasSubmitted && (
-        <p className={styles.hint}>{question.explanation}</p>
-      )}
+      {/* The explanation is shown only after submitting, in the
+          feedback block below — showing it here, above the options
+          before answering, gives the answer away. */}
 
       <div
         className={styles.options}

@@ -17,7 +17,7 @@ By the end of this week, you will be able to:
 
 ## Prerequisites
 
-- Understanding of digital twin concepts (Weeks 1-7)
+- Understanding of simulation environments (Weeks 6-7)
 - Basic knowledge of NVIDIA GPU computing
 - Understanding of ROS 2 concepts (Weeks 3-5)
 - Familiarity with Unity integration (Week 7)
@@ -1256,6 +1256,6 @@ Implement a complete Isaac platform system:
 ## Further Reading
 
 - [NVIDIA Isaac Sim Documentation](https://docs.omniverse.nvidia.com/isaacsim/latest/index.html)
-- [Isaac ROS Documentation](https://nvidia-isaac-ros.github.io/released/index.html)
+- [Isaac ROS Documentation](https://nvidia-isaac-ros.github.io/v/release-2.1/index.html)
 - [Isaac Lab Documentation](https://isaac-sim.github.io/IsaacLab/)
 - "Reinforcement Learning for Robotics" by Gerkey and Matarić

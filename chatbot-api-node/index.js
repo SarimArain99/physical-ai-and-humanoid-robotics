@@ -13,7 +13,7 @@ import { contentCacheKey, getCachedContent, setCachedContent } from "./content-c
 import rateLimit from "express-rate-limit";
 // --- Workstream D (RAG): retrieval lives in retrieval.js; index.js only
 // wires it into the two chat handlers and /api/health. ---
-import { searchQdrant, buildGroundedSystemPrompt, FALLBACK_SYSTEM_PROMPT, getRagStatus } from "./retrieval.js";
+import { searchQdrant, buildGroundedSystemPrompt, FALLBACK_SYSTEM_PROMPT, getRagStatus, checkRagReachable } from "./retrieval.js";
 const { Pool } = pg;
 
 const app = express();
@@ -724,9 +724,24 @@ app.post("/api/cache", async (req, res) => {
 // Health check endpoint
 // contextChars reports how much textbook text the RAG context holds —
 // 0 means the docs were not found at startup (check the docs path).
-app.get("/api/health", (req, res) => {
+app.get("/api/health", async (req, res) => {
   // Key presence only — never the value. "missing" explains at a glance
   // why every AI endpoint returns "Error connecting to AI.".
+  const ragStatus = getRagStatus();
+  // Live reachability, not just env presence: "configured" only says
+  // the vars exist — the chat can still fall back with "fetch failed"
+  // when the cluster itself is unreachable (wrong URL, paused or
+  // deleted cluster, network/TLS failure). Probe once so health
+  // reports what the chat will actually do. Nothing on this path is
+  // used by the frontend on page load, so a slow probe only slows a
+  // diagnostic call.
+  let reachable = null;
+  let reachableError = null;
+  if (ragStatus.qdrant === "configured") {
+    const probe = await checkRagReachable();
+    reachable = probe.reachable;
+    reachableError = probe.reason;
+  }
   res.json({
     status: "ok",
     contextChars: textbookContext.length,
@@ -734,8 +749,9 @@ app.get("/api/health", (req, res) => {
     model: "gpt-4o-mini",
     // --- Workstream D (RAG): qdrant "configured" only when BOTH
     // QDRANT_URL and QDRANT_API_KEY are set; "missing" lists which are
-    // absent. No values are ever returned. ---
-    rag: getRagStatus(),
+    // absent. No values are ever returned. `reachable` is the live
+    // probe: false + reachableError names why retrieval fails. ---
+    rag: { ...ragStatus, reachable, reachableError },
   });
 });
 

@@ -1213,7 +1213,7 @@ Create a complete Isaac ROS system:
 
 ## Further Reading
 
-- [Isaac ROS Documentation](https://nvidia-isaac-ros.github.io/released/index.html)
+- [Isaac ROS Documentation](https://nvidia-isaac-ros.github.io/v/release-2.1/index.html)
 - [Isaac ROS GitHub Repository](https://github.com/NVIDIA-ISAAC-ROS)
 - "Hardware-Accelerated Robotics" by NVIDIA Developer Documentation
 - "Visual SLAM: Past, Present, and Future" by Mur-Artal and Tardós

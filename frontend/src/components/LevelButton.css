@@ -130,6 +130,23 @@
   background-color: var(--module-dark);
 }
 
+/* The selected level is marked, not guessed: the coloured dots are
+   the level's own colour on every row, so on their own two rows can
+   read as "selected" at once. The active row gets a highlighted
+   background and an accent check — exactly one row carries it. */
+.level-menu-item--active {
+  background-color: var(--level-item-hover-bg);
+}
+
+.level-menu-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--color-accent);
+}
+
 .level-menu-text {
   display: flex;
   flex-direction: column;

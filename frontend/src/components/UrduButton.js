@@ -196,6 +196,7 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
       element.innerHTML = original.html;
       if (original.langClass) element.classList.remove(original.langClass);
       element.removeAttribute("lang");
+      element.removeAttribute("dir");
     }
     originalsRef.current.clear();
   };
@@ -274,8 +275,13 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
           applyRewrittenText(element, fixed);
           // The script's own face and direction, if it needs one;
           // Latin languages keep Inter and the page's own alignment.
+          // dir comes from the language definition (rtl for Urdu and
+          // Arabic) — the class sets direction in CSS too, but the
+          // attribute is what the browser's bidi algorithm and
+          // assistive tech read.
           if (lang.fontClass) element.classList.add(lang.fontClass);
           element.setAttribute("lang", lang.code);
+          if (lang.dir) element.setAttribute("dir", lang.dir);
         }
       });
       return count;
@@ -380,7 +386,7 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label={loading ? "Cancel translation" : `Language, currently ${getLanguage(activeLanguage).label}`}
-        title={loading ? "Translating — tap to cancel" : "Choose a language"}
+        title={loading ? "Translating — tap to cancel" : user ? "Choose a language" : "Choose a language — sign in to translate"}
       >
         <span className="language-icon"><GlobeIcon /></span>
         <span className="navbar-btn__label">{getLabel()}</span>
@@ -393,6 +399,12 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
 
       {isOpen && (
         <div className="language-menu" role="menu">
+          {!user && (
+            <p className="language-menu-hint">
+              Sign in to translate — translation needs an account. Your
+              pick will run right after you sign in.
+            </p>
+          )}
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}

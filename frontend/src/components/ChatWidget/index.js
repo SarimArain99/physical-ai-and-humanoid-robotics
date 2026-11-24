@@ -192,8 +192,15 @@ const SUGGESTIONS = [
   "How do I start Week 1?",
 ];
 
+// The assistant message shown when a signed-out visitor tries to
+// send. It is a placeholder, not a conversation: once the session is
+// recognised (sign-in completes) the effect below removes it again,
+// so a signed-in reader never keeps staring at "Please sign in".
+// Kept as a constant so the send path and the cleanup agree.
+const SIGN_IN_PLACEHOLDER = "Please sign in to chat with me!";
+
 const ChatWidgetContent = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -217,6 +224,18 @@ const ChatWidgetContent = () => {
     }
     sessionIdRef.current = id;
   }, []);
+
+  // The sign-in gate: a "Please sign in" placeholder appended while
+  // signed out is stale the moment the session is recognised. Drop
+  // it (and only it) when a user appears, so the conversation the
+  // reader sees after signing in never contains a sign-in nag.
+  useEffect(() => {
+    if (!user) return;
+    setMessages((prev) => {
+      if (!prev.some((m) => m.role === "assistant" && m.content === SIGN_IN_PLACEHOLDER)) return prev;
+      return prev.filter((m) => !(m.role === "assistant" && m.content === SIGN_IN_PLACEHOLDER));
+    });
+  }, [user]);
 
   // Persist messages whenever they change.
   useEffect(() => {
@@ -264,10 +283,15 @@ const ChatWidgetContent = () => {
   const handleSendMessage = async (overrideText) => {
     const text = (overrideText ?? input).trim();
     if (!text || loading) return;
+    // While the session is still being checked the reader may already
+    // be signed in — do not stamp a "Please sign in" placeholder on
+    // a session that has not resolved yet. The input stays, so the
+    // reader can send again once the session lands.
+    if (authLoading) return;
     if (!user) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Please sign in to chat with me!" },
+        { role: "assistant", content: SIGN_IN_PLACEHOLDER },
       ]);
       setInput("");
       return;
@@ -388,7 +412,9 @@ const ChatWidgetContent = () => {
               <div className="chat-empty-state">
                 <p className="chat-empty-title">Ask the book anything</p>
                 <p className="chat-empty-text">
-                  Answers come from the chapters. Sign in to start chatting.
+                  {user
+                    ? "Answers come from the chapters. Ask about ROS 2, Gazebo, Isaac Sim, or humanoid robots."
+                    : "Answers come from the chapters. Sign in to start chatting."}
                 </p>
                 <div className="chat-suggestions">
                   {SUGGESTIONS.map((suggestion) => (

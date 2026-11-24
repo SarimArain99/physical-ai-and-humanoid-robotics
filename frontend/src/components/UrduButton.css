@@ -111,6 +111,18 @@
   margin-top: 2px;
 }
 
+/* Shown at the top of the menu for signed-out readers: picking a
+   language opens the sign-in modal, so the menu says so first
+   instead of failing silently. */
+.language-menu-hint {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
 .language-menu-check {
   display: flex;
   align-items: center;
@@ -125,7 +137,28 @@
 .translated-ur {
   direction: rtl;
   font-family: var(--font-urdu);
-  line-height: 1.8;
+  /* Nastaliq draws far taller than Inter at the same size, so the
+     translated text read oversized next to the Latin original —
+     scale it back to match, with leading tall enough that its
+     diacritics never collide. Headings scale further (below).
+     overflow-wrap keeps a long word from running off the viewport
+     edge in RTL, where html/body clips horizontal overflow. */
+  font-size: 0.95em;
+  line-height: 2;
+  overflow-wrap: break-word;
+}
+
+/* Headings in Nastaliq need the same treatment at their own scale:
+   the em is relative to the heading size, so the hierarchy holds
+   while the face stops dwarfing the Latin original. */
+h1.translated-ur,
+h2.translated-ur,
+h3.translated-ur,
+h4.translated-ur,
+h5.translated-ur,
+h6.translated-ur {
+  font-size: 0.85em;
+  line-height: 1.9;
 }
 
 .translated-hi {
@@ -137,6 +170,7 @@
   direction: rtl;
   font-family: var(--font-arabic);
   line-height: 1.8;
+  overflow-wrap: break-word;
 }
 
 /* While a translation is running the trigger is the cancel control,

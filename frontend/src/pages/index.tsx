@@ -146,7 +146,7 @@ const FAQS = [
   },
   {
     q: 'Does it include practice?',
-    a: 'Yes. Every chapter ends with review questions and an exercise, and six quiz sets hold 15 questions.',
+    a: 'Yes. Every week ends with review questions and a hands-on exercise, and six quiz sets hold 15 questions.',
   },
   {
     q: 'Can I read it in Urdu, or simpler?',
