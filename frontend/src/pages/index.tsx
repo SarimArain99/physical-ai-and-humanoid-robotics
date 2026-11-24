@@ -192,7 +192,7 @@ function HomepageHeader() {
               </div>
               <div className={styles.heroFact}>
                 <dt>quiz questions</dt>
-                <dd>15</dd>
+                <dd>42</dd>
               </div>
               <div className={styles.heroFact}>
                 <dt>price</dt>
