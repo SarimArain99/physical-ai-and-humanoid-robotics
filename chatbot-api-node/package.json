@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Node.js RAG Chatbot API for Textbook",
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node api/index.js"
   },
   "dependencies": {
     "@better-auth/infra": "^0.4.1",

@@ -23,8 +23,10 @@ system lives in one repo and one Vercel account.
 1. **RAG context is now this book's chapters.** The original loaded
    `../textbook/docs` (the other repo's docs, a different structure). This
    copy resolves the docs relative to its own file —
-   `../frontend/docs` — so answers are grounded in the 13 chapters of this
-   book. Set `TEXTBOOK_DOCS_PATH` to point it elsewhere.
+   `../../frontend/docs` from `api/index.js` — so answers are grounded
+   in the 13 chapters of this book. Set `TEXTBOOK_DOCS_PATH` to point it
+   elsewhere. (On Vercel the docs folder is outside the Root Directory,
+   so it is absent there; grounding comes from Qdrant instead.)
 2. **`/api/diagnostics` removed.** The old endpoint returned masked
    prefixes of live secrets (`DATABASE_URL`, `OPENAI_API_KEY`,
    `BETTER_AUTH_SECRET`). A debug endpoint has no place in production.
@@ -79,21 +81,32 @@ npm start   # listens on http://localhost:8000
 ## Deploying
 
 The backend is deployed to the existing `physical-ai-backend` Vercel
-project as a **file deployment** (the project is not git-linked, so pushes
-do not auto-deploy it). Deploy with the Vercel `create_deployment` call,
-target `production`, with these files:
+project, **git-linked** to `SarimArain99/physical-ai-and-humanoid-robotics`
+with **Root Directory = `chatbot-api-node`**. Every push to `main` that
+touches this folder auto-deploys to production — no manual deployment
+step. Vercel detects the serverless functions from the `api/` directory
+inside the Root Directory:
 
-- `api/index.js` ← `chatbot-api-node/index.js`
-- `api/auth.js` ← `chatbot-api-node/auth.js`
-- `package.json`, `package-lock.json`, `.npmrc` at the deployment root
-  ← `chatbot-api-node/package.json`, `package-lock.json`, `.npmrc`
-- `frontend/docs/*.md` ← `frontend/docs/*.md` (the RAG context)
+- `api/index.js` — the Express app (exports `app`; only calls
+  `app.listen()` when `VERCEL` is not set, i.e. local runs)
+- `api/auth.js` — better-auth handler, imported by `api/index.js`
+- `content-cache.js`, `retrieval.js` — imported from `api/` as
+  `../content-cache.js` / `../retrieval.js`
+- `package.json` (`"type": "module"`) is what makes `api/*.js` load as
+  ESM and lets Vercel install dependencies
 
-The root `package.json` (`"type": "module"`) is what makes `api/*.js`
-load as ESM and lets Vercel install dependencies. The legacy
-`vercel.json` in this folder is kept for reference only (it was the old
-`@vercel/node` builds config); it is **not** part of the file deployment
-— the `api/` layout needs no `vercel.json`.
+The old file-deployment mapping (`api/index.js` ← `chatbot-api-node/index.js`
+etc. via a manual `create_deployment` call) is retired — do not use it.
+The legacy `vercel.json` (old `@vercel/node` builds/routes config) was
+deleted: it conflicts with the `api/` layout and the `api/` layout needs
+no `vercel.json`.
+
+Note: `frontend/docs/` is **not** inside the Root Directory, so it is
+absent from the Vercel deployment. That is expected and harmless:
+`readAllMarkdown` returns `""` when the folder is missing, and the
+textbook text is only used for the `/api/health` `contextChars`
+diagnostic — chapter grounding comes from Qdrant, so chat still works.
+(Set `TEXTBOOK_DOCS_PATH` if the docs ever need to be bundled.)
 
 After deploying, check `GET /api/health` on the production URL and confirm
 the deployment state is READY before calling it live. The frontend needs
