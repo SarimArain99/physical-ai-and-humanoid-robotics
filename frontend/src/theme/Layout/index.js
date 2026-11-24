@@ -1,7 +1,6 @@
 import React from 'react';
 import OriginalLayout from '@theme-original/Layout';
 import ChatWidget from '@site/src/components/ChatWidget';
-import { AuthProvider } from '@site/src/components/Auth/AuthProvider';
 import ModuleThemeProvider from '@site/src/components/ModuleThemeProvider';
 import ReadingProgress from '@site/src/components/ReadingProgress';
 import ChapterNavigation from '@site/src/components/ChapterNavigation';
@@ -16,12 +15,16 @@ import useIsBrowser from '@docusaurus/useIsBrowser';
  *
  * Wraps the original Docusaurus Layout with:
  * - ModuleThemeProvider for dynamic theming
- * - AuthProvider for authentication
  * - ChatWidget for AI assistant
  * - ReadingProgress for scroll tracking
  * - ChapterNavigation for prev/next links
  * - PageTransition for smooth page transitions
  * - VisualEffects for particle backgrounds and scroll animations
+ *
+ * Authentication is NOT wrapped here: src/theme/Root.js already
+ * wraps the whole app in a single <AuthProvider>, and a second one
+ * here mounted a duplicate provider (two session states/effects,
+ * inner one winning). One provider, in Root.
  */
 export default function Layout(props) {
   const isBrowser = useIsBrowser();
@@ -30,21 +33,19 @@ export default function Layout(props) {
 
   return (
     <ModuleThemeProvider>
-      <AuthProvider>
-        {/* VisualEffects enabled with particles on homepage, scroll animations globally */}
-        <VisualEffects
-          enableParticles={isHomePage}
-          enableScrollAnimations={true}
-          particleCount="auto"
-        >
-          {isDocPage && isBrowser && <ReadingProgress />}
-          <PageTransition>
-            <OriginalLayout {...props} />
-          </PageTransition>
-          <ChatWidget />
-          {isDocPage && <ChapterNavigationWrapper />}
-        </VisualEffects>
-      </AuthProvider>
+      {/* VisualEffects enabled with particles on homepage, scroll animations globally */}
+      <VisualEffects
+        enableParticles={isHomePage}
+        enableScrollAnimations={true}
+        particleCount="auto"
+      >
+        {isDocPage && isBrowser && <ReadingProgress />}
+        <PageTransition>
+          <OriginalLayout {...props} />
+        </PageTransition>
+        <ChatWidget />
+        {isDocPage && <ChapterNavigationWrapper />}
+      </VisualEffects>
     </ModuleThemeProvider>
   );
 }

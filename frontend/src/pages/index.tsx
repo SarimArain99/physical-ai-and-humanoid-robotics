@@ -14,8 +14,8 @@ import styles from './index.module.css';
  * the Sense–Think–Act loop, honest facts), what you will build,
  * course journey by phase, a real sample lesson, tools with honest
  * states, FAQ, closing call to action with the author strip.
- * Every number is real: 13 weeks, 13 chapters, 6 quiz sets with
- * 15 questions, free. No invented testimonials, counts or outcomes.
+ * Every number is real: 13 weeks, 13 chapters, 15 quiz sets with
+ * 42 questions, free. No invented testimonials, counts or outcomes.
  */
 
 const OUTCOMES = [
@@ -146,7 +146,7 @@ const FAQS = [
   },
   {
     q: 'Does it include practice?',
-    a: 'Yes. Every week ends with review questions and a hands-on exercise, and six quiz sets hold 15 questions.',
+    a: 'Yes. Every week ends with review questions and a hands-on exercise, and fifteen quiz sets hold 42 questions.',
   },
   {
     q: 'Can I read it in Urdu, or simpler?',

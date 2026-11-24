@@ -114,7 +114,9 @@ function speechSupported() {
 const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
   const location = useLocation();
   const isDocsPage = location.pathname.startsWith("/docs/");
-  // idle | playing | paused | novoice (no voice for this language)
+  // idle | playing | paused | novoice (no voice for this language) |
+  // empty (the page has nothing readable — an inline panel replaces
+  // the old blocking alert(), which never surfaced in some browsers)
   const [status, setStatus] = useState("idle");
   const [language, setLanguage] = useState(() => getCurrentLanguage());
   const [voices, setVoices] = useState([]);
@@ -338,6 +340,12 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
       }
       return;
     }
+    if (status === "empty") {
+      // No readable content on this page: the trigger toggles the
+      // explanation panel, like the "No voice" state.
+      setDetailsOpen((open) => !open);
+      return;
+    }
     // Idle: build the reading from the page as it reads right now —
     // translated text included, because the translation already
     // replaced the words in the DOM.
@@ -356,7 +364,10 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
     if (onNavbarItemClick) onNavbarItemClick();
     const collected = collectChapterElements(2);
     if (collected.length === 0) {
-      alert("Nothing to read on this page.");
+      // Nothing to read: show the inline explanation instead of a
+      // blocking alert(), which never surfaced in some browsers.
+      setStatus("empty");
+      setDetailsOpen(true);
       return;
     }
     const chunks = [];
@@ -366,7 +377,8 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
       }
     }
     if (chunks.length === 0) {
-      alert("Nothing to read on this page.");
+      setStatus("empty");
+      setDetailsOpen(true);
       return;
     }
     chunksRef.current = chunks;
@@ -386,7 +398,9 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
         ? "Paused"
         : status === "novoice"
           ? "No voice"
-          : "Listen";
+          : status === "empty"
+            ? "Nothing to read"
+            : "Listen";
   const title =
     status === "playing"
       ? "Reading — tap to pause"
@@ -394,7 +408,9 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
         ? "Paused — tap to resume"
         : status === "novoice"
           ? `No ${lang.label} voice on this device — tap to ${detailsOpen ? "hide" : "show"} details`
-          : `Listen to this chapter in ${lang.label}`;
+          : status === "empty"
+            ? `Nothing to read on this page — tap to ${detailsOpen ? "hide" : "show"} details`
+            : `Listen to this chapter in ${lang.label}`;
 
   return (
     <div className="listen-controls" ref={controlsRef}>
@@ -402,7 +418,7 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
         className="navbar-btn navbar-btn--secondary listen-trigger"
         onClick={handleToggle}
         aria-label={title}
-        aria-expanded={status === "novoice" ? detailsOpen : undefined}
+        aria-expanded={status === "novoice" || status === "empty" ? detailsOpen : undefined}
         title={title}
       >
         <span className="listen-icon"><SpeakerIcon /></span>
@@ -420,6 +436,22 @@ const ListenButtonContent = ({ onClick: onNavbarItemClick }) => {
         >
           <StopIcon />
         </button>
+      )}
+      {status === "empty" && detailsOpen && (
+        <div className="listen-details" role="status">
+          <p className="listen-details-text">
+            Nothing to read on this page. Listen is available on chapter pages.
+          </p>
+          <div className="listen-details-actions">
+            <button
+              type="button"
+              className="navbar-btn listen-details-btn"
+              onClick={() => setDetailsOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
       {status === "novoice" && detailsOpen && (
         <div className="listen-details" role="status">

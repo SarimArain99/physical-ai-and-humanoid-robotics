@@ -141,6 +141,10 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
   // page — counts, never a percentage guessed from elapsed time.
   // Workstream C: chunks run concurrently (see api.js runChunked).
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  // Inline failure notice (replaces the old alert() calls): the menu
+  // reopens with the message, so a failed rewrite is visible
+  // instead of a native popup that mobile browsers can swallow.
+  const [error, setError] = useState(null);
   const dropdownRef = useRef(null);
   // Workstream C: the in-flight rewrite, so tapping the pill or pressing
   // Escape while it runs cancels it instead of opening the menu.
@@ -210,6 +214,7 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
 
   const handleLevelSelect = async (level) => {
     setIsOpen(false);
+    setError(null);
 
     // Docusaurus passes onClick to every navbar item in the mobile
     // sidebar: it toggles the sidebar closed (desktop items get no
@@ -337,7 +342,8 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
       const rewrittenCount = applyRewritten(rewritten);
 
       if (rewrittenCount === 0) {
-        alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+        setError("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+        setIsOpen(true);
         setCurrentLevel("pro");
         storeLevel("pro");
         setLoading(false);
@@ -355,7 +361,8 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
         setLoading(false);
         return;
       }
-      alert("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+      setError("Could not rewrite the content. The AI service is unavailable right now — please try again later.");
+      setIsOpen(true);
       setCurrentLevel("pro");
       storeLevel("pro");
     } finally {
@@ -410,6 +417,11 @@ const LevelButtonContent = ({ onClick: onNavbarItemClick }) => {
 
       {isOpen && (
         <div className="level-menu" role="menu">
+          {error && (
+            <p className="level-menu-error" role="alert">
+              {error}
+            </p>
+          )}
           <button
             className={`level-menu-item${currentLevel === "beginner" ? " level-menu-item--active" : ""}`}
             onClick={() => handleLevelSelect("beginner")}

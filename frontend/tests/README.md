@@ -7,58 +7,20 @@ This guide covers accessibility auditing, cross-browser testing, responsive desi
 
 ---
 
-## Playwright Visual Regression Tests (T093)
+## Playwright Visual Regression Tests (T093) — spec deleted 2026-11-24
 
-### Installation
+The only spec file (`tests/e2e/visual-regression.spec.js`) was deleted: it waited up to 5s for `.three-d-robot-container` / `.three-d-robot-fallback-svg`, but the 3D robot was removed entirely, so every homepage test timed out; it also asserted the Orbitron font (retired — headings now use Space Grotesk/Inter) and Week Cards (component removed), and its overlap check flagged parent/child pairs as overlaps. It could not be fixed by editing — it described a homepage that no longer exists.
 
-```bash
-cd frontend
-npm install --save-dev @playwright/test
-npx playwright install
-```
+A replacement spec, when written, should assert against the current homepage:
 
-### Running Tests
+- Homepage loads at 375/768/1280px with the hero headline and the Sense–Think–Act loop visible (no 3D robot).
+- No horizontal scroll at 320/375/414px.
+- A chapter page renders its quiz (e.g. `/docs/week3/ros2-nodes-topics` shows a quiz) and the reading progress bar.
+- The chat widget icon is visible on the homepage.
+- Module theming: `body[data-module]` is set and `--module-primary` is non-empty on a doc page.
+- Headings use the current font stack (Space Grotesk/Inter), not Orbitron.
 
-```bash
-# Run all E2E tests
-npm run test:e2e
-
-# Run with UI mode (interactive)
-npm run test:e2e:ui
-
-# Run in headed mode (see browser)
-npm run test:e2e:headed
-
-# Debug tests
-npm run test:e2e:debug
-
-# Run visual regression tests only
-npm run test:visual
-
-# Update screenshot baselines
-npm run test:visual:update
-```
-
-### Test Coverage
-
-The visual regression tests cover:
-
-1. **Homepage**: Screenshots at mobile, tablet, and desktop viewports
-2. **Module Theming**: Verifies module-specific colors (ROS2, Digital Twin, Isaac, VLA)
-3. **Chat Widget**: Icon visibility and appearance
-4. **Reading Progress**: Progress bar presence on documentation pages
-5. **Week Cards**: Default and hover state screenshots
-6. **Typography**: Font loading verification (Orbitron, Space Grotesk)
-7. **Accessibility**: Focus state visibility
-8. **Responsive Layout**: Mobile viewport testing (320px, 375px, 414px)
-
-### Updating Baselines
-
-When UI changes are intentional, update screenshots:
-
-```bash
-npm run test:visual:update
-```
+The Playwright setup (`playwright.config.js`, `npm run test:e2e*` scripts) is unchanged; add the new spec under `tests/e2e/` and generate screenshot baselines with `npm run test:visual:update` before relying on screenshot comparisons.
 
 ---
 

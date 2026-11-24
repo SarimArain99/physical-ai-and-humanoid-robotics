@@ -147,6 +147,19 @@
   color: var(--color-accent);
 }
 
+/* Inline failure notice, at the top of the menu: a failed rewrite
+   is visible in the menu instead of a native alert() popup, which
+   mobile browsers can swallow. */
+.level-menu-error {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--level-item-border);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
 .level-menu-text {
   display: flex;
   flex-direction: column;
@@ -220,6 +233,27 @@
     width: 8px;
     height: 8px;
   }
+}
+
+/* In the hamburger drawer the menu opens in flow below the trigger,
+   full width — an absolute menu would run off the narrow drawer.
+   Same treatment the language menu, Listen panel and auth menu
+   already have; the Level menu was the one left out. */
+.navbar-sidebar .level-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: auto;
+}
+
+.navbar-sidebar .level-menu {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  margin-top: var(--space-2);
+  box-shadow: none;
+  animation: none;
 }
 
 /* Workstream C: while a rewrite is running the pill is the cancel

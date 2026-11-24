@@ -34,6 +34,8 @@ import {
   LANGUAGES,
   getLanguage,
   setCurrentLanguage,
+  readStoredLanguage,
+  storeLanguage,
   collectChapterMarkdown,
   CANCEL_SPEECH_EVENT,
 } from "../utils/language";
@@ -115,6 +117,10 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeLanguage, setActiveLanguage] = useState("en");
   const [loading, setLoading] = useState(false);
+  // Inline failure notice (replaces the old alert() calls): the menu
+  // reopens with the message, so a failed translation is visible
+  // instead of a native popup that mobile browsers can swallow.
+  const [error, setError] = useState(null);
   // Honest counts: texts actually translated out of the total on the
   // page — counts, never a percentage guessed from elapsed time.
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -161,9 +167,14 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [loading]);
 
-  // A new chapter starts in English: the translated elements of the
-  // old page are gone with it, and the new page has never been
-  // translated. Cancel anything in flight and reset the state.
+  // A new chapter starts untranslated — but a language the reader
+  // picked earlier follows them to the new page instead of resetting
+  // to English: it is re-applied on the fresh page (the Neon cache
+  // makes a visited page near-instant). Cancel anything in flight
+  // and reset the state first, so the new page is translated from
+  // its own original text. Signed out, the pick waits in pendingRef
+  // and runs after sign-in — the sign-in modal must NOT pop on every
+  // navigation.
   useEffect(() => {
     // Invalidate any in-flight run first, so its late callbacks
     // cannot apply over the fresh page or set state after the reset.
@@ -175,6 +186,15 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
       setCurrentLanguage("en");
     }
     setIsOpen(false);
+    setError(null);
+    const stored = readStoredLanguage();
+    if (stored && stored !== "en") {
+      if (user) {
+        handleLanguageSelect(stored, { force: true });
+      } else {
+        pendingRef.current = stored;
+      }
+    }
     // Only the pathname matters here; activeLanguage is read through
     // the state setter guard above, not as a dependency.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,8 +221,9 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
     originalsRef.current.clear();
   };
 
-  const handleLanguageSelect = async (code) => {
+  const handleLanguageSelect = async (code, { force = false } = {}) => {
     setIsOpen(false);
+    setError(null);
 
     // Docusaurus passes onClick to every navbar item in the mobile
     // sidebar: it toggles the sidebar closed (desktop items get no
@@ -212,7 +233,12 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
     // behind the open drawer.
     if (onNavbarItemClick) onNavbarItemClick();
 
-    if (code === activeLanguage) return;
+    if (!force && code === activeLanguage) return;
+
+    // Remember the pick so it follows the reader to the next chapter
+    // (and survives a sign-in that happens on another page).
+    // Picking English clears the stored pick.
+    storeLanguage(code);
 
     // Translation needs a signed-in account. Remember the pick and
     // open sign-in; it runs when the user comes back signed in.
@@ -296,7 +322,8 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
       const collected = collectChapterMarkdown(2);
 
       if (collected.length === 0) {
-        alert("No content found to translate.");
+        setError("No content found to translate.");
+        setIsOpen(true);
         setLoading(false);
         return;
       }
@@ -336,7 +363,8 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
       const translatedCount = applyTranslations(translations);
 
       if (translatedCount === 0) {
-        alert("Translation failed. The translation service is unavailable right now — please try again later.");
+        setError("Translation failed. The translation service is unavailable right now — please try again later.");
+        setIsOpen(true);
         setLoading(false);
         setProgress({ done: 0, total: 0 });
         return;
@@ -357,7 +385,8 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
         return;
       }
       console.error(error);
-      alert("Translation failed. The translation service is unavailable right now — please try again later.");
+      setError("Translation failed. The translation service is unavailable right now — please try again later.");
+      setIsOpen(true);
     } finally {
       if (runId === runIdRef.current) abortRef.current = null;
       setLoading(false);
@@ -399,6 +428,11 @@ const LanguageMenuContent = ({ onClick: onNavbarItemClick }) => {
 
       {isOpen && (
         <div className="language-menu" role="menu">
+          {error && (
+            <p className="language-menu-error" role="alert">
+              {error}
+            </p>
+          )}
           {!user && (
             <p className="language-menu-hint">
               Sign in to translate — translation needs an account. Your
