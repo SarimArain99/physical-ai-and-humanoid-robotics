@@ -2,6 +2,9 @@
 sidebar_position: 9
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ISAAC_PLATFORM_QUIZZES } from '@site/src/data/quizzes';
+
 # Isaac ROS: Hardware-Accelerated Perception and Navigation
 
 This chapter focuses on Isaac ROS, NVIDIA's hardware-accelerated robotics software development kit that bridges the gap between perception and navigation with GPU acceleration for real-time performance.
@@ -1210,6 +1213,10 @@ Create a complete Isaac ROS system:
 2. How does hardware acceleration improve robotics perception and navigation?
 3. What are the challenges in applying Isaac ROS to humanoid robot navigation?
 4. How do you optimize Isaac ROS pipelines for real-time performance?
+
+## Check Your Understanding
+
+<Quiz quizId="isaac-ros-intro" questions={ISAAC_PLATFORM_QUIZZES['isaac-ros-intro'].questions} />
 
 ## Further Reading
 

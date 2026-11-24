@@ -2,6 +2,9 @@
 sidebar_position: 1
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { INTRO_QUIZZES } from '@site/src/data/quizzes';
+
 # Introduction
 
 Welcome to **Physical AI & Humanoid Robotics**, a free 13-week textbook on robots that see, think, and act. It covers the concepts needed to understand and build humanoid robots with AI capabilities.
@@ -39,3 +42,7 @@ By the end of this course, you will be able to:
 - Basic programming knowledge (Python preferred)
 - Understanding of linear algebra and calculus
 - Familiarity with Linux command line
+
+## Check Your Understanding
+
+<Quiz quizId="course-overview" questions={INTRO_QUIZZES['course-overview'].questions} />

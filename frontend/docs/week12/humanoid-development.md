@@ -2,6 +2,9 @@
 sidebar_position: 12
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { HUMANOID_QUIZZES } from '@site/src/data/quizzes';
+
 # Humanoid Robot Development: Kinematics, Dynamics, and Control
 
 This chapter covers humanoid robot development focusing on kinematics, dynamics, bipedal locomotion, balance control, and natural human-robot interaction design as specified in the course requirements.
@@ -1321,6 +1324,10 @@ Create a complete humanoid interaction system:
 2. How does the Zero Moment Point (ZMP) approach enable stable walking?
 3. What factors influence grasp selection for robotic manipulation?
 4. How do social interaction protocols improve human-robot acceptance?
+
+## Check Your Understanding
+
+<Quiz quizId="humanoid-development" questions={HUMANOID_QUIZZES['humanoid-development'].questions} />
 
 ## Further Reading
 

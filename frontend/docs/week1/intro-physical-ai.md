@@ -2,6 +2,9 @@
 sidebar_position: 1
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { PHYSICAL_AI_QUIZZES } from '@site/src/data/quizzes';
+
 # Introduction to Physical AI
 
 This chapter introduces the fundamental concepts of Physical AI - AI systems that function in reality and comprehend physical laws. The focus is on bridging the gap between digital AI and the physical world.
@@ -151,6 +154,10 @@ Create a simple simulation environment that demonstrates the difference between 
 2. Why is embodied intelligence important for humanoid robotics?
 3. What are the main challenges in transitioning from digital to physical AI?
 4. How do environmental affordances influence intelligent behavior?
+
+## Check Your Understanding
+
+<Quiz quizId="physical-ai-intro" questions={PHYSICAL_AI_QUIZZES['physical-ai-intro'].questions} />
 
 ## Further Reading
 

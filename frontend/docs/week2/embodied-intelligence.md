@@ -2,6 +2,9 @@
 sidebar_position: 2
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { PHYSICAL_AI_QUIZZES } from '@site/src/data/quizzes';
+
 # Embodied Intelligence
 
 This chapter explores the principles of embodied intelligence and how AI systems can leverage their physical form to enhance cognitive capabilities, focusing on sensorimotor integration and environmental interaction.
@@ -311,6 +314,10 @@ Implement a simple embodied agent that demonstrates sensorimotor coupling:
 2. What are sensorimotor contingencies and why are they important?
 3. How does morphological computation reduce the computational burden on the controller?
 4. What are environmental affordances and how do they guide behavior?
+
+## Check Your Understanding
+
+<Quiz quizId="embodied-intro" questions={PHYSICAL_AI_QUIZZES['embodied-intro'].questions} />
 
 ## Further Reading
 

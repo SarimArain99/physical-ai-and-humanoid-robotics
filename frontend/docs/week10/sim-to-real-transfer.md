@@ -2,6 +2,9 @@
 sidebar_position: 10
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ISAAC_PLATFORM_QUIZZES } from '@site/src/data/quizzes';
+
 # Sim-to-Real Transfer: Bridging Simulation and Reality
 
 This chapter focuses on sim-to-real transfer techniques, covering how to successfully deploy models trained in simulation to real robotic systems, addressing the reality gap and domain adaptation challenges.
@@ -1453,6 +1456,10 @@ Create a complete sim-to-real transfer pipeline:
 2. How does domain randomization help bridge the sim-to-real gap?
 3. What are the key components of a successful sim-to-real transfer system?
 4. How do you evaluate the success of sim-to-real transfer?
+
+## Check Your Understanding
+
+<Quiz quizId="sim-to-real" questions={ISAAC_PLATFORM_QUIZZES['sim-to-real'].questions} />
 
 ## Further Reading
 

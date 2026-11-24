@@ -2,6 +2,9 @@
 sidebar_position: 8
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ISAAC_PLATFORM_QUIZZES } from '@site/src/data/quizzes';
+
 # NVIDIA Isaac Platform: AI-Powered Robotics
 
 This chapter covers the NVIDIA Isaac platform, focusing on Isaac Sim for photorealistic simulation, Isaac ROS for hardware-accelerated perception, and reinforcement learning for robot control as specified in the course details.
@@ -1252,6 +1255,10 @@ Implement a complete Isaac platform system:
 2. How does Isaac ROS accelerate perception and navigation tasks?
 3. What is the role of synthetic data generation in AI training?
 4. How do sim-to-real transfer techniques help bridge simulation and reality?
+
+## Check Your Understanding
+
+<Quiz quizId="isaac-platform" questions={ISAAC_PLATFORM_QUIZZES['isaac-platform'].questions} />
 
 ## Further Reading
 

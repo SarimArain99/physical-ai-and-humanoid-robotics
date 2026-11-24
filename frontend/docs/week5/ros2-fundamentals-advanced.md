@@ -2,6 +2,9 @@
 sidebar_position: 5
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { ROS2_ADVANCED_QUIZZES } from '@site/src/data/quizzes';
+
 # Advanced ROS 2 Concepts: Launch Files, Parameters, and Lifecycle Nodes
 
 This chapter covers advanced ROS 2 concepts including launch files for system management, parameter systems for configuration, and lifecycle nodes for complex state management in robotic systems.
@@ -964,6 +967,10 @@ Create an advanced ROS 2 system with the following components:
 2. How do launch files improve system management in ROS 2?
 3. What are the best practices for parameter management in ROS 2?
 4. How can you optimize ROS 2 systems for performance?
+
+## Check Your Understanding
+
+<Quiz quizId="ros2-advanced" questions={ROS2_ADVANCED_QUIZZES['ros2-advanced'].questions} />
 
 ## Further Reading
 

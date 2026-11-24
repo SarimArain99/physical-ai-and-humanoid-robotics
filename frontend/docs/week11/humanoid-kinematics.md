@@ -2,6 +2,9 @@
 sidebar_position: 11
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import { HUMANOID_QUIZZES } from '@site/src/data/quizzes';
+
 # Humanoid Robot Kinematics
 
 This chapter covers the mathematical foundations of humanoid robot kinematics, including forward and inverse kinematics, balance control, and bipedal locomotion principles essential for physical AI applications.
@@ -1024,6 +1027,10 @@ Implement a complete humanoid interaction system:
 2. How does Zero Moment Point (ZMP) control enable stable bipedal locomotion?
 3. What role does inverse kinematics play in humanoid manipulation?
 4. How do arm swing patterns contribute to balance during walking?
+
+## Check Your Understanding
+
+<Quiz quizId="humanoid-kinematics" questions={HUMANOID_QUIZZES['humanoid-kinematics'].questions} />
 
 ## Further Reading
 
