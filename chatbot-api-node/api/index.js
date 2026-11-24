@@ -67,7 +67,10 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Clean rejection: no CORS headers, no error — the browser blocks
+      // the cross-origin read. (callback(new Error(...)) would surface
+      // as a noisy 500; the request itself is not an error.)
+      callback(null, false);
     }
   },
   credentials: true,
@@ -871,6 +874,11 @@ app.post("/api/progress", async (req, res) => {
     const userId = await requireUserId(req, res);
     if (!userId) return;
     const { page_id, quiz_score, completed } = req.body;
+    // A mismatched user_id in the body is a cross-user write attempt:
+    // reject it explicitly instead of silently writing to the session user.
+    if (req.body.user_id && req.body.user_id !== userId) {
+      return res.status(403).json({ error: "You can only update your own progress." });
+    }
     if (!page_id) return res.status(400).json({ error: "Missing page_id" });
 
     await pool.query(
