@@ -66,20 +66,59 @@ export function getRagStatus() {
     : { qdrant: "missing", missing: cfg.missing, collection: cfg.collection, topK: cfg.topK, embeddingModel: cfg.embeddingModel };
 }
 
+/**
+ * Live reachability probe for /api/health. getRagStatus only checks
+ * that the env vars exist — a wrong URL, a paused or deleted cluster,
+ * or a network/TLS failure still reports "configured" while every
+ * chat falls back with "fetch failed". This does one cheap read (GET
+ * the collection) so health reports what the chat will actually do.
+ * Never returns or logs a URL or a key.
+ */
+export async function checkRagReachable() {
+  const cfg = getRagConfig();
+  if (!cfg.configured) {
+    return { reachable: false, reason: `Qdrant not configured (missing ${cfg.missing.join(", ")}).` };
+  }
+  try {
+    await qdrantRequest(`/collections/${QDRANT_COLLECTION}`, { fetchImpl: fetch });
+    return { reachable: true, reason: null };
+  } catch (err) {
+    const cause = err.cause;
+    const causeText = cause ? cause.code || cause.message || String(cause) : "";
+    const detail = causeText && causeText !== err.message ? ` (${causeText})` : "";
+    return { reachable: false, reason: `${err.message}${detail}` };
+  }
+}
+
 function qdrantHeaders(apiKey) {
   return { "Content-Type": "application/json", "api-key": apiKey };
 }
+
+// Qdrant calls get a hard timeout: without one a hung connection burns
+// the whole serverless invocation and the chat fails with no usable
+// reason. A timeout is reported as such (see the catch in
+// searchQdrant), not as a bare "fetch failed".
+const QDRANT_REQUEST_TIMEOUT_MS = 10000;
 
 async function qdrantRequest(path, { method = "GET", body = undefined, fetchImpl = fetch } = {}) {
   const cfg = getRagConfig();
   if (!cfg.configured) {
     throw new Error(`Qdrant not configured (missing ${cfg.missing.join(", ")}).`);
   }
-  const res = await fetchImpl(`${cfg.url}${path}`, {
-    method,
-    headers: qdrantHeaders(cfg.apiKey),
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let res;
+  try {
+    res = await fetchImpl(`${cfg.url}${path}`, {
+      method,
+      headers: qdrantHeaders(cfg.apiKey),
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(QDRANT_REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    if (err && err.name === "TimeoutError") {
+      throw new Error(`Qdrant ${method} ${path} timed out after ${QDRANT_REQUEST_TIMEOUT_MS / 1000}s — the cluster did not answer.`);
+    }
+    throw err;
+  }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(`Qdrant ${method} ${path} failed (${res.status}): ${detail.slice(0, 200)}`);
@@ -131,8 +170,17 @@ export async function searchQdrant(openai, query, { topK = TOP_K, fetchImpl = fe
     });
     return { available: true, configured: true, sources, error: null };
   } catch (err) {
-    console.error("[RAG] Qdrant search failed, falling back to ungrounded chat:", err.message);
-    return { available: false, configured: true, sources: [], error: err.message };
+    // A bare "fetch failed" says nothing about why the cluster could
+    // not be reached. Node's fetch puts the real cause on err.cause
+    // (e.g. ENOTFOUND, ECONNREFUSED, certificate errors) — keep it,
+    // so the SSE meta reason names the failure instead of hiding it.
+    // The cause holds a host/code, never a key.
+    const cause = err.cause;
+    const causeText = cause ? cause.code || cause.message || String(cause) : "";
+    const detail = causeText && causeText !== err.message ? ` (${causeText})` : "";
+    const message = `${err.message}${detail}`;
+    console.error("[RAG] Qdrant search failed, falling back to ungrounded chat:", message);
+    return { available: false, configured: true, sources: [], error: message };
   }
 }
 
