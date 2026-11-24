@@ -126,24 +126,30 @@ export default function Quiz({
   }, [questions, selectedAnswers]);
 
   /**
-   * Shuffle options if enabled
+   * Shuffle options if enabled.
+   *
+   * Always returns { option, originalIndex, isCorrect } objects: the
+   * caller scores and selects by originalIndex, so shuffling the
+   * display order can never remap an answer onto the wrong option.
+   * The old code mapped the shuffled objects back to plain strings,
+   * dropping the remap — with shuffle on, correct answers scored as
+   * wrong. Shuffling is off by default, so this was dormant.
    */
   const getShuffledOptions = useCallback((options, correctIndex) => {
-    if (!shuffleOptions) return options;
-
-    const shuffled = [...options].map((option, index) => ({
+    const tagged = options.map((option, index) => ({
       option,
       originalIndex: index,
       isCorrect: index === correctIndex
     }));
+    if (!shuffleOptions) return tagged;
 
     // Fisher-Yates shuffle
-    for (let i = shuffled.length - 1; i > 0; i--) {
+    for (let i = tagged.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      [tagged[i], tagged[j]] = [tagged[j], tagged[i]];
     }
 
-    return shuffled.map(s => s.option);
+    return tagged;
   }, [shuffleOptions]);
 
   if (!questions.length) {
@@ -260,9 +266,13 @@ function QuizQuestion({ question, questionNumber, isVisible, onSelect }) {
 
   return (
     <div className={styles.question}>
-      <h4 className={styles.questionTitle}>
+      {/* data-quiz-question + data-quiz-question-text: the translator
+          collects the question text span on its own, so the number
+          and difficulty badge (sibling spans) survive a translation
+          instead of being wiped when the h4 is rewritten. */}
+      <h4 className={styles.questionTitle} data-quiz-question>
         <span className={styles.questionNumber}>{questionNumber}.</span>
-        {question.question}
+        <span data-quiz-question-text>{question.question}</span>
         {question.difficulty && (
           <span className={styles.difficulty} aria-label={`Difficulty: ${question.difficulty}`}>
             {question.difficulty}
@@ -279,10 +289,12 @@ function QuizQuestion({ question, questionNumber, isVisible, onSelect }) {
         role="radiogroup"
         aria-label={`Question ${questionNumber} options`}
       >
-        {options.map((option, index) => {
-          const optionId = `${questionId}-option-${index}`;
-          const isSelected = selectedAnswer === index;
-          const showCorrect = hasSubmitted && index === question.correctAnswer;
+        {options.map((item) => {
+          const option = item.option;
+          const originalIndex = item.originalIndex;
+          const optionId = `${questionId}-option-${originalIndex}`;
+          const isSelected = selectedAnswer === originalIndex;
+          const showCorrect = hasSubmitted && item.isCorrect;
           const showIncorrect = hasSubmitted && isSelected && !isCorrect;
 
           return (
@@ -299,9 +311,9 @@ function QuizQuestion({ question, questionNumber, isVisible, onSelect }) {
               <input
                 type="radio"
                 name={questionId}
-                value={index}
+                value={originalIndex}
                 checked={isSelected}
-                onChange={() => onSelect(questionId, index)}
+                onChange={() => onSelect(questionId, originalIndex)}
                 disabled={hasSubmitted}
                 className={styles.optionInput}
                 aria-describedby={
@@ -325,25 +337,11 @@ function QuizQuestion({ question, questionNumber, isVisible, onSelect }) {
         })}
       </div>
 
-      {hasSubmitted && showFeedback && (
-        <div
-          className={`${styles.feedback} ${isCorrect ? styles.feedbackCorrect : styles.feedbackIncorrect}`}
-          role="alert"
-          aria-live="polite"
-        >
-          <p className={styles.feedbackTitle}>
-            {isCorrect ? 'Correct!' : 'Incorrect'}
-          </p>
-          {question.explanation && (
-            <p className={styles.feedbackText}>{question.explanation}</p>
-          )}
-          {!isCorrect && question.correctAnswer !== undefined && (
-            <p className={styles.feedbackText}>
-              Correct answer: {question.options[question.correctAnswer]}
-            </p>
-          )}
-        </div>
-      )}
+      {/* No explanation is shown here before answering (that was the
+          A3 leak). After submit the questions are replaced by the
+          results review below, which is where each explanation
+          appears — this per-question block can never render after
+          submit, so the review is the only place it lives. */}
     </div>
   );
 }
@@ -387,7 +385,7 @@ function QuizNavigation({ current, total, answered, onPrevious, onNext, canSubmi
  * Quiz Results Component
  */
 function QuizResults({ score, passed, questions, onRetry }) {
-  const { selectedAnswers } = React.useContext(QuizContext);
+  const { selectedAnswers, showFeedback } = React.useContext(QuizContext);
 
   return (
     <div className={styles.results}>
@@ -414,16 +412,46 @@ function QuizResults({ score, passed, questions, onRetry }) {
           const questionId = question.id || `q-${index + 1}`;
           const selected = selectedAnswers[questionId];
           const isCorrect = selected === question.correctAnswer;
+          const selectedText =
+            selected !== undefined && question.options[selected] !== undefined
+              ? question.options[selected]
+              : null;
 
           return (
             <div
               key={questionId}
               className={`${styles.reviewItem} ${isCorrect ? styles.correct : styles.incorrect}`}
             >
-              <span className={styles.reviewIcon}>{isCorrect ? '✓' : '✗'}</span>
-              <span className={styles.reviewQuestion}>
-                {index + 1}. {question.question}
-              </span>
+              <div className={styles.reviewHeader}>
+                <span className={styles.reviewIcon}>{isCorrect ? '✓' : '✗'}</span>
+                <span className={styles.reviewQuestion}>
+                  {index + 1}. {question.question}
+                </span>
+              </div>
+              {/* The explanation lives here, in the post-submit review:
+                  submitting swaps the questions for these results, so
+                  the per-question feedback block can never render after
+                  submit. Nothing here shows before answering. */}
+              {showFeedback && (
+                <>
+                  {selectedText !== null && (
+                    <p className={styles.reviewAnswer}>
+                      Your answer: {selectedText}
+                    </p>
+                  )}
+                  {selectedText === null && (
+                    <p className={styles.reviewAnswer}>No answer given.</p>
+                  )}
+                  {!isCorrect && question.correctAnswer !== undefined && (
+                    <p className={styles.reviewAnswer}>
+                      Correct answer: {question.options[question.correctAnswer]}
+                    </p>
+                  )}
+                  {question.explanation && (
+                    <p className={styles.reviewExplanation}>{question.explanation}</p>
+                  )}
+                </>
+              )}
             </div>
           );
         })}

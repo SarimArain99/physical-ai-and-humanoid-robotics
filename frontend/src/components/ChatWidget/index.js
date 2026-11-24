@@ -6,15 +6,38 @@ import { chatUrls, readSseStream } from "../../config/api";
 
 // The backend stores chat history by session id but has no endpoint to
 // list or fetch past sessions, so this widget keeps one conversation per
-// browser: the session id and the messages live in localStorage and
-// survive page reloads. "New chat" starts a fresh conversation.
+// signed-in account: the session id and the messages live in
+// localStorage, scoped to the account, and survive page reloads.
+// "New chat" starts a fresh conversation.
+//
+// localStorage is per-origin, not per-account — a fixed key let one
+// account's conversation (and its server session id) leak into the
+// next account that signed in on the same browser. Scoping the keys
+// to the account id means a brand-new account opens empty and each
+// account keeps only its own conversation.
 //
 // The chat opens empty on purpose: it never ships a pre-seeded greeting
 // that looks like a conversation that never happened. An earlier version
 // seeded "Hello! I am your Physical AI assistant..." on every fresh load.
 
-const SESSION_KEY = "physical-ai-chat-session";
-const MESSAGES_KEY = "physical-ai-chat-messages";
+function scopeFor(user) {
+  const id = user?.id || user?.email;
+  return id ? `user:${id}` : "anon";
+}
+
+function messagesKeyFor(scope) {
+  return `physical-ai-chat-messages:${scope}`;
+}
+
+function sessionKeyFor(scope) {
+  return `physical-ai-chat-session:${scope}`;
+}
+
+// Retired fixed keys (pre-scoping): never read again. They hold
+// whichever account last used this browser, so the widget removes
+// them on mount rather than ever showing them to another account.
+const LEGACY_SESSION_KEY = "physical-ai-chat-session";
+const LEGACY_MESSAGES_KEY = "physical-ai-chat-messages";
 
 // The old pre-seeded greeting, dropped when loading stored history.
 const OLD_GREETING =
@@ -27,10 +50,10 @@ function newSessionId() {
   return `session-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 }
 
-function loadStoredMessages() {
+function loadStoredMessages(key) {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(MESSAGES_KEY);
+    const raw = localStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : null;
     if (Array.isArray(parsed)) {
       return parsed.filter((m) => m && m.content !== OLD_GREETING);
@@ -41,10 +64,10 @@ function loadStoredMessages() {
   return [];
 }
 
-function loadStoredSessionId() {
+function loadStoredSessionId(key) {
   if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(SESSION_KEY) || null;
+    return localStorage.getItem(key) || null;
   } catch {
     return null;
   }
@@ -209,21 +232,42 @@ const ChatWidgetContent = () => {
   const [selectedText, setSelectedText] = useState("");
   const messagesEndRef = useRef(null);
   const sessionIdRef = useRef(null);
+  // The account the messages on screen were loaded for. The persist
+  // effect below only writes once this matches the current account,
+  // so the empty initial state (or the previous account's messages)
+  // can never overwrite the account's stored conversation.
+  const [loadedScope, setLoadedScope] = useState(null);
+  const scope = scopeFor(user);
 
-  // Load the stored conversation on mount (client only).
+  // Retire the pre-scoping shared keys: they hold whichever account
+  // last used this browser, so they must never be read again.
   useEffect(() => {
-    setMessages(loadStoredMessages());
-    let id = loadStoredSessionId();
+    try {
+      localStorage.removeItem(LEGACY_SESSION_KEY);
+      localStorage.removeItem(LEGACY_MESSAGES_KEY);
+    } catch {
+      // Storage unavailable — ignore.
+    }
+  }, []);
+
+  // Load the stored conversation for the current account whenever the
+  // signed-in account changes. A brand-new account has no scoped key
+  // yet, so it opens empty; a returning account gets only its own
+  // conversation and its own server session id.
+  useEffect(() => {
+    setMessages(loadStoredMessages(messagesKeyFor(scope)));
+    let id = loadStoredSessionId(sessionKeyFor(scope));
     if (!id) {
       id = newSessionId();
       try {
-        localStorage.setItem(SESSION_KEY, id);
+        localStorage.setItem(sessionKeyFor(scope), id);
       } catch {
         // Storage unavailable — the session still works for this visit.
       }
     }
     sessionIdRef.current = id;
-  }, []);
+    setLoadedScope(scope);
+  }, [scope]);
 
   // The sign-in gate: a "Please sign in" placeholder appended while
   // signed out is stale the moment the session is recognised. Drop
@@ -237,15 +281,19 @@ const ChatWidgetContent = () => {
     });
   }, [user]);
 
-  // Persist messages whenever they change.
+  // Persist messages whenever they change, under the current
+  // account's key — but only once that account's stored conversation
+  // has been loaded (loadedScope guard above), so an account switch
+  // can never clobber the new account's history with the old one.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (loadedScope !== scope) return;
     try {
-      localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+      localStorage.setItem(messagesKeyFor(scope), JSON.stringify(messages));
     } catch {
       // Storage unavailable — ignore.
     }
-  }, [messages]);
+  }, [messages, scope, loadedScope]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -271,8 +319,8 @@ const ChatWidgetContent = () => {
     const id = newSessionId();
     sessionIdRef.current = id;
     try {
-      localStorage.setItem(SESSION_KEY, id);
-      localStorage.setItem(MESSAGES_KEY, JSON.stringify([]));
+      localStorage.setItem(sessionKeyFor(scope), id);
+      localStorage.setItem(messagesKeyFor(scope), JSON.stringify([]));
     } catch {
       // Storage unavailable — ignore.
     }
