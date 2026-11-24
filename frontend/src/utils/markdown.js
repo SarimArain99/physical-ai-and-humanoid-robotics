@@ -69,10 +69,20 @@ function renderLinksInText(text) {
       i = open + 1;
       continue;
     }
-    const safe =
-      /^(https?:\/\/|\/|#)/.test(url) || !/^[a-z][a-z0-9+.-]*:/i.test(url);
+    // Finding #12 (link-scheme bypass): the old check treated a URL as
+    // safe unless it LOOKED like a scheme — a denylist. Browsers strip
+    // ASCII control characters and whitespace from URLs before
+    // navigating, so a URL such as `java<TAB>script:` (which the scheme
+    // regex does not match) becomes `javascript:` on click. Fix both
+    // ways: clean the URL the way the browser will (strip ASCII control
+    // characters and whitespace), then ALLOWLIST the schemes instead of
+    // denylisting — only http(s), same-site relative, and fragment
+    // links are ever rendered. Anything else (javascript:, data:,
+    // vbscript:, mailto:, ...) becomes plain text, not a link.
+    const cleanUrl = url.replace(/[\u0000-\u0020]+/g, "");
+    const safe = /^(https?:\/\/|\/|#)/.test(cleanUrl);
     out += text.slice(i, open);
-    out += safe ? `<a href="${url}">${label}</a>` : label;
+    out += safe ? `<a href="${cleanUrl}">${label}</a>` : label;
     i = closeParen + 1;
   }
   return out;

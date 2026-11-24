@@ -151,11 +151,12 @@ export const AuthProvider = ({ children }) => {
   // answers are never localStorage-only. The legacy /register page calls
   // register with three arguments; details then defaults to {}.
   const register = useCallback(async (email, name, password, details = {}) => {
-    try {
-      const proficiency = normalizeProficiency(details.proficiency) || "beginner";
-      const softwareBg = (details.softwareBg || "").trim();
-      const hardwareBg = (details.hardwareBg || "").trim();
-      const { data, error } = await authClient.signUp.email({
+    const proficiency = normalizeProficiency(details.proficiency) || "beginner";
+    const softwareBg = (details.softwareBg || "").trim();
+    const hardwareBg = (details.hardwareBg || "").trim();
+
+    const attemptSignUp = () =>
+      authClient.signUp.email({
         email,
         password,
         name,
@@ -163,11 +164,59 @@ export const AuthProvider = ({ children }) => {
         softwareBg,
         hardwareBg,
       });
-      if (error) {
-        return { success: false, message: error.message || "Could not create the account. Try a different email." };
+
+    // Finding #13: "Could not create the account" was the no-message
+    // fallback — it appeared when the sign-up request never got a proper
+    // JSON error (transport/gateway failure), so the user had no idea
+    // what went wrong. Surface the underlying failure instead: log the
+    // HTTP status / error code, and retry ONCE on a network or 5xx
+    // failure (a transient gateway error, not a validation error —
+    // duplicates and bad input are never retried). A transport failure
+    // after the retry says so plainly instead of blaming the email.
+    const describeError = (error) => {
+      if (!error) return null;
+      const status = error.status ?? error.statusCode ?? null;
+      const code = error.code || null;
+      if (status || code) {
+        console.error("Sign-up failed:", { status, code, message: error.message || null });
       }
-      const serverUser = data && data.user;
+      if (error.message) return { message: error.message, retryable: status >= 500 };
+      return { message: null, retryable: true };
+    };
+
+    try {
+      let result = await attemptSignUp();
+      let described = result.error ? describeError(result.error) : null;
+      if (described && described.retryable) {
+        // One automatic retry, after a short pause, on network/5xx only.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        result = await attemptSignUp();
+        described = result.error ? describeError(result.error) : null;
+      }
+      if (result.error) {
+        const error = result.error;
+        const status = error.status ?? error.statusCode ?? null;
+        if (!error.message) {
+          return {
+            success: false,
+            message:
+              status
+                ? `Could not create the account (server error ${status}). Please try again in a moment.`
+                : "Connection problem — could not reach the sign-up service. Check your connection and try again.",
+          };
+        }
+        return { success: false, message: error.message };
+      }
+      const serverUser = result.data && result.data.user;
       if (!serverUser) {
+        // The server's neutral duplicate-signup response (finding #6)
+        // carries a message and no user: the email may already have an
+        // account. Treat it exactly like a fresh sign-up — the page
+        // redirects to /login either way, so the two cases are
+        // indistinguishable in the browser.
+        if (result.data && typeof result.data.message === "string") {
+          return { success: true, message: result.data.message };
+        }
         return { success: false, message: "Account creation failed. Please try again." };
       }
       // Legacy cache only — the server row is the source of truth.
